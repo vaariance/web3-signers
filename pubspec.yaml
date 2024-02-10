@@ -1,0 +1,57 @@
+name: web3_signers
+description: Web3 signers provides a uniform interface for signing EIP-1271 messages with different EC algorithms.
+version: 0.0.1
+homepage: https://variance.space
+repository: https://github.com/vaariance/web3-signers
+issue_tracker: https://github.com/vaariance/web3-signers/issues
+
+environment:
+  sdk: ^3.2.6
+  flutter: "^3.16.9"
+
+platforms:
+  android:
+  ios:
+
+dependencies:
+  flutter:
+    sdk: flutter
+  asn1lib: ^1.5.2
+  bip32_bip44: ^1.0.0
+  bip39: ^1.0.6
+  cbor: ^6.2.0
+  crypto: ^3.0.3
+  flutter_secure_storage: ^9.0.0
+  local_auth: ^2.1.8
+  local_auth_android: ^1.0.36
+  local_auth_ios: ^1.1.6
+  passkeys: ^2.0.4
+  uuid: ^4.3.3
+  web3dart: ^2.7.2
+  webcrypto: ^0.5.4
+  validators: ^3.0.0
+  collection: ^1.18.0
+  tuple: ^2.0.0
+  plugin_platform_interface: ^2.1.8
+  cryptography: ^2.7.0
+  cryptography_flutter: ^2.3.2
+
+dev_dependencies:
+  flutter_lints: ^3.0.0
+  flutter_test:
+    sdk: flutter
+
+topics:
+  - ethereum
+  - wallets
+  - passkey
+  - secure-enclave
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.variance.web3_signers
+        pluginClass: SecureP256Plugin
+      ios:
+        pluginClass: SecureP256Plugin
