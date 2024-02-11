@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   runApp(Web3Signer());
@@ -189,7 +190,10 @@ class _Web3SignerState extends State<Web3Signer> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         )),
-                    onPressed: _updatePublicKeyX,
+                    onPressed: () async {
+                      Clipboard.setData(
+                          ClipboardData(text: _textField3Controller.text));
+                    },
                     child: const Row(children: [
                       Text('Copy callData'),
                       Icon(Icons.copy_all)
