@@ -35,7 +35,7 @@ public class SwiftSecureP256Plugin: NSObject, FlutterPlugin {
                     password = pwd
                 }
                 
-                let key = try isKeyCreated(tag: tag, password: password)!
+                let key = try isKeyCreated(tag: tag, password: password)
                 result(key)
             } catch {
                 result(FlutterError(code: "isKeyCreated", message: error.localizedDescription, details: "\(error)"))

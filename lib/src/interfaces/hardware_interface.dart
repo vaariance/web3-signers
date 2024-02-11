@@ -5,6 +5,7 @@ abstract class HardwareInterface extends MultiSignerInterface {
   ///
   /// This function is asynchronous and returns a `Future<P256Credential>`.
   /// The `P256Credential` object represents the generated key pair.
+  /// if publickey already exist for tag, does not generate new one.
   ///
   /// Example:
   /// ```dart

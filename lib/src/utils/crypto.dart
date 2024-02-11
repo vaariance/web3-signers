@@ -66,8 +66,7 @@ Future<Tuple2<Uint256, Uint256>> getPublicKeyFromBytes(
 /// final signatureBytes = Uint8List.fromList([48, 68, 2, 32, ...]);
 /// final signatureHexValues = await getMessagingSignature(signatureBytes);
 /// ```
-Future<Tuple2<Uint256, Uint256>> getMessagingSignature(
-    Uint8List signatureBytes) async {
+Tuple2<Uint256, Uint256> getMessagingSignature(Uint8List signatureBytes) {
   ASN1Parser parser = ASN1Parser(signatureBytes);
   ASN1Sequence parsedSignature = parser.nextObject() as ASN1Sequence;
   ASN1Integer rValue = parsedSignature.elements[0] as ASN1Integer;
