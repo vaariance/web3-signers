@@ -144,7 +144,7 @@ class _Web3SignerState extends State<Web3Signer> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                       ),
-                      onPressed: _updatePublicKeyX,
+                      onPressed: _updateField3,
                       child: const Text('Register with Secure enclave'),
                     ),
                   ),
