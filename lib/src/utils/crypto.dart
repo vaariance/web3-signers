@@ -1,5 +1,7 @@
 part of 'utils.dart';
 
+RegExp _hexadecimal = RegExp(r'^[0-9a-fA-F]+$');
+
 /// Converts a hex string to a 32bytes `Uint8List`.
 ///
 /// Parameters:
@@ -140,8 +142,13 @@ require(bool requirement, String exception) {
 /// final hash = sha256Hash(data);
 /// print("SHA-256 Hash: ${hash.toString()}");
 /// ```
-Digest sha256Hash(List<int> input) {
-  return sha256.convert(input);
+List<int> sha256Hash(List<int> input) {
+  final algo = const DartSha256();
+  final sink = algo.newHashSink();
+  sink.add(input);
+  sink.close();
+  final hash = sink.hashSync();
+  return hash.bytes;
 }
 
 /// Checks whether the leading zero should be removed from the byte array.
@@ -242,7 +249,7 @@ bool isHex(dynamic value, {int bits = -1, bool ignoreLength = false}) {
   if (value.startsWith('0x')) {
     value = value.substring(2);
   }
-  if (isHexadecimal(value)) {
+  if (_hexadecimal.hasMatch(value)) {
     if (bits != -1) {
       return value.length == (bits / 4).ceil();
     }

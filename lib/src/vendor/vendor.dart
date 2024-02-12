@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:tuple/tuple.dart';
 import 'package:web3dart/crypto.dart';

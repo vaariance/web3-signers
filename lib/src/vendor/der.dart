@@ -257,5 +257,14 @@ bool isDerSignature(Uint8List sig) {
 }
 
 extension U8aExtension on Uint8List {
-  bool eq(Uint8List other) => const ListEquality().equals(this, other);
+  bool eq(Uint8List other) {
+    bool equals(Object? e1, Object? e2) => e1 == e2;
+    if (identical(this, other)) return true;
+    var length = this.length;
+    if (length != other.length) return false;
+    for (var i = 0; i < length; i++) {
+      if (!equals(this[i], other[i])) return false;
+    }
+    return true;
+  }
 }

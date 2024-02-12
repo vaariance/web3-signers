@@ -166,7 +166,7 @@ class PassKeySigner implements PasskeyInterface {
     });
     final dataBuffer = utf8.encode(clientDataJson);
     final hash = sha256Hash(dataBuffer);
-    return Uint8List.fromList(hash.bytes);
+    return Uint8List.fromList(hash);
   }
 
   @override

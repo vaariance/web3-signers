@@ -1,3 +1,8 @@
+## 0.0.2
+
+- remove unused dependencies
+- updated sha256 function to rely on cryptography package
+
 ## 0.0.1
 
 - Initial release.
