@@ -57,8 +57,8 @@ class _Web3SignerState extends State<Web3Signer> {
         final hb64e = b64e(Uint8List(32));
         final cldj = sha256Hash(
             utf8.encode(sig.clientDataPrefix + hb64e + sig.clientDataSuffix));
-        sig.authData.toList().addAll(cldj.bytes);
-        print(hexlify(sha256Hash(sig.authData).bytes));
+        sig.authData.toList().addAll(cldj);
+        print(hexlify(sha256Hash(sig.authData)));
         _calldata = hexlify(abi.encode([
           "bytes32",
           "uint256",
@@ -66,7 +66,7 @@ class _Web3SignerState extends State<Web3Signer> {
           "uint256",
           "uint256"
         ], [
-          sha256Hash(sig.authData).bytes,
+          sha256Hash(sig.authData),
           sig.signature.item1.value,
           sig.signature.item2.value,
           _pkp?.publicKey.item1.value,
@@ -78,7 +78,7 @@ class _Web3SignerState extends State<Web3Signer> {
         final sig = await _seSigner.signToEc(Uint8List(32));
         _textField3Controller.text =
             "[r:${Uint256(sig.r).toHex()}, s:${Uint256(sig.s).toHex()}]";
-        print(hexlify(sha256Hash(Uint8List(32)).bytes));
+        print(hexlify(sha256Hash(Uint8List(32))));
         _calldata = hexlify(abi.encode([
           "bytes32",
           "uint256",
@@ -86,7 +86,7 @@ class _Web3SignerState extends State<Web3Signer> {
           "uint256",
           "uint256"
         ], [
-          sha256Hash(Uint8List(32)).bytes,
+          sha256Hash(Uint8List(32)),
           sig.r,
           sig.s,
           _seCredential?.publicKey.item1.value,
