@@ -65,11 +65,10 @@ class SecureP256 {
       await BiometricMiddleware().authenticate(localizedReason: "Sign");
     }
     final signature = await SecureP256Platform.instance.sign(tag, payload);
-    if (isDerSignature(signature)) {
-      return bytesUnwrapDerSignature(signature);
-    } else {
-      return signature; // As raw.
+    if (!isDerSignature(signature)) {
+      return bytesWrapDerSignature(signature);
     }
+    return signature;
   }
 
   static Future<bool> verify(

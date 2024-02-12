@@ -7,7 +7,7 @@ issue_tracker: https://github.com/vaariance/web3-signers/issues
 
 environment:
   sdk: ^3.2.6
-  flutter: "^3.16.9"
+  flutter: ">=3.16.9"
 
 platforms:
   android:

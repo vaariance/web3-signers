@@ -164,7 +164,7 @@ class PassKeySigner implements PasskeyInterface {
       "origin": options.origin,
       "crossOrigin": options.crossOrigin
     });
-    final dataBuffer = Uint8List.fromList(utf8.encode(clientDataJson));
+    final dataBuffer = utf8.encode(clientDataJson);
     final hash = sha256Hash(dataBuffer);
     return Uint8List.fromList(hash.bytes);
   }
@@ -211,7 +211,6 @@ class PassKeySigner implements PasskeyInterface {
         await _register(username, displayname, requiresUserVerification);
     final authData = _decodeAttestation(attestation);
 
-    _knownCredentials.add(authData.credentialHex);
     return PassKeyPair(
       authData.credentialHex,
       authData.publicKey,
@@ -254,11 +253,10 @@ class PassKeySigner implements PasskeyInterface {
     final assertion = await _authenticate(hashBase64, credentials, true);
 
     // Extract signature from response
-    final sig = await getMessagingSignature(b64d(assertion.signature));
+    final sig = getMessagingSignature(b64d(assertion.signature));
 
     // Prepare challenge for response
-    final clientDataJSON =
-        utf8.decode(base64Url.decode(assertion.clientDataJSON));
+    final clientDataJSON = utf8.decode(b64d(assertion.clientDataJSON));
     int challengePos = clientDataJSON.indexOf(hashBase64);
     String challengePrefix = clientDataJSON.substring(0, challengePos);
     String challengeSuffix =

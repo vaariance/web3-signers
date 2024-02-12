@@ -5,8 +5,6 @@ import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'dart:developer' as dev;
-
 import 'package:bip32_bip44/dart_bip32_bip44.dart' as bip44;
 import "package:bip39/bip39.dart" as bip39;
 import 'package:cbor/cbor.dart';

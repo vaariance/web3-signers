@@ -1,0 +1,66 @@
+PODS:
+  - cryptography_flutter (0.2.0):
+    - Flutter
+  - Flutter (1.0.0)
+  - flutter_secure_storage (6.0.0):
+    - Flutter
+  - local_auth_ios (0.0.1):
+    - Flutter
+  - passkeys_ios (0.0.1):
+    - Flutter
+  - path_provider_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
+  - ua_client_hints (1.2.2):
+    - Flutter
+  - web3_signers (0.0.1):
+    - Flutter
+  - webcrypto (0.1.1):
+    - Flutter
+    - FlutterMacOS
+
+DEPENDENCIES:
+  - cryptography_flutter (from `.symlinks/plugins/cryptography_flutter/ios`)
+  - Flutter (from `Flutter`)
+  - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
+  - local_auth_ios (from `.symlinks/plugins/local_auth_ios/ios`)
+  - passkeys_ios (from `.symlinks/plugins/passkeys_ios/ios`)
+  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - ua_client_hints (from `.symlinks/plugins/ua_client_hints/ios`)
+  - web3_signers (from `.symlinks/plugins/web3_signers/ios`)
+  - webcrypto (from `.symlinks/plugins/webcrypto/darwin`)
+
+EXTERNAL SOURCES:
+  cryptography_flutter:
+    :path: ".symlinks/plugins/cryptography_flutter/ios"
+  Flutter:
+    :path: Flutter
+  flutter_secure_storage:
+    :path: ".symlinks/plugins/flutter_secure_storage/ios"
+  local_auth_ios:
+    :path: ".symlinks/plugins/local_auth_ios/ios"
+  passkeys_ios:
+    :path: ".symlinks/plugins/passkeys_ios/ios"
+  path_provider_foundation:
+    :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  ua_client_hints:
+    :path: ".symlinks/plugins/ua_client_hints/ios"
+  web3_signers:
+    :path: ".symlinks/plugins/web3_signers/ios"
+  webcrypto:
+    :path: ".symlinks/plugins/webcrypto/darwin"
+
+SPEC CHECKSUMS:
+  cryptography_flutter: 381bdacc984abcfbe3ca45ef7c76566ff061614c
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  flutter_secure_storage: 23fc622d89d073675f2eaa109381aefbcf5a49be
+  local_auth_ios: 5046a18c018dd973247a0564496c8898dbb5adf9
+  passkeys_ios: fdae8c06e2178a9fcb9261a6cb21fb9a06a81d53
+  path_provider_foundation: 3784922295ac71e43754bd15e0653ccfd36a147c
+  ua_client_hints: 7f4e0f5d390685e8f7efd6eb363594f760108926
+  web3_signers: 5f49d582ab0d1fe673b3220aa6ecf25bb3cbed6b
+  webcrypto: f44963fa2d88f93deea971a9f59f2e21c2301689
+
+PODFILE CHECKSUM: a9b822b9db63c1907c4c4325c451f5a5fc1f85a8
+
+COCOAPODS: 1.14.2

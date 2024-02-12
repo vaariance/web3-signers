@@ -14,12 +14,8 @@ class HardwareSigner implements HardwareInterface {
 
   @override
   Future<P256Credential> generateKeyPair() async {
-    final bool isKeyCreated = await SecureP256.isKeyCreated(_tag);
-    if (isKeyCreated) {
-      throw KeyPairForTagAlreadyExists(_tag);
-    }
     final publicKeyBytes = await SecureP256.getPublicKey(_tag);
-    final publicKey = await getPublicKeyFromBytes(publicKeyBytes.rawKey);
+    final publicKey = await getPublicKeyFromBytes(publicKeyBytes.derKey);
     return P256Credential(
         _tag, publicKeyBytes.derKey, publicKeyBytes.rawKey, publicKey);
   }
@@ -37,7 +33,7 @@ class HardwareSigner implements HardwareInterface {
     }
     final publicKeyBytes = await SecureP256.getPublicKey(_tag);
 
-    return await getPublicKeyFromBytes(publicKeyBytes.rawKey);
+    return await getPublicKeyFromBytes(publicKeyBytes.derKey);
   }
 
   @override
@@ -46,14 +42,23 @@ class HardwareSigner implements HardwareInterface {
   }
 
   @override
-  Future<Uint8List> personalSign(Uint8List hash, {int? index}) {
+  Future<Uint8List> personalSign(Uint8List hash, {int? index}) async {
+    final bool isKeyCreated = await SecureP256.isKeyCreated(_tag);
+    if (!isKeyCreated) {
+      throw KeyPairForTagDoesNotExist(_tag);
+    }
     return SecureP256.sign(_tag, hash);
   }
 
   @override
   Future<MsgSignature> signToEc(Uint8List hash, {int? index}) async {
+    final bool isKeyCreated = await SecureP256.isKeyCreated(_tag);
+    if (!isKeyCreated) {
+      throw KeyPairForTagDoesNotExist(_tag);
+    }
     final signatureBytes = await SecureP256.sign(_tag, hash);
-    final signature = await getMessagingSignature(signatureBytes);
+    final signature = getMessagingSignature(signatureBytes);
+
     return MsgSignature(signature.item1.value, signature.item2.value, 0);
   }
 }

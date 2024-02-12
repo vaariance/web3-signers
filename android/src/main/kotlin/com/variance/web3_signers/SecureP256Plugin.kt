@@ -30,7 +30,7 @@ class SecureP256Plugin : FlutterPlugin, MethodCallHandler {
 
     private lateinit var channel: MethodChannel
     private val CHANNEL = "web3_signers"
-Ï
+
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, CHANNEL)
         channel.setMethodCallHandler(this)
@@ -58,8 +58,7 @@ class SecureP256Plugin : FlutterPlugin, MethodCallHandler {
                 "sign" -> {
                     val cAlias = call.argument<String>("tag")!!
                     val payload = call.argument<ByteArray>("payload")!!
-                    val signature = Signature.getInstance(signatureAlgorithm)
-                    val rs = sign(cAlias, payload, signature)
+                    val rs = sign(cAlias, payload)
                     result.success(rs)
                 }
 
@@ -77,8 +76,7 @@ class SecureP256Plugin : FlutterPlugin, MethodCallHandler {
                     } else {
                         val cAlias = call.argument<String>("tag")!!
                         val cPublicKey = call.argument<ByteArray>("publicKey")!!
-                        val kf = KeyFactory.getInstance("EC")
-                        val sharedSecret = ecdh(cAlias, cPublicKey, kf)
+                        val sharedSecret = ecdh(cAlias, cPublicKey)
                         result.success(sharedSecret)
                     }
                 }
@@ -163,8 +161,9 @@ class SecureP256Plugin : FlutterPlugin, MethodCallHandler {
     }
 
     @Synchronized
-    private fun sign(alias: String, payload: ByteArray, signature: Signature): ByteArray {
+    private fun sign(alias: String, payload: ByteArray): ByteArray {
         val privateKey = obtainPrivateKeyEntryFromAlias(alias).privateKey
+        val signature = Signature.getInstance(signatureAlgorithm)
         signature.initSign(privateKey)
         signature.update(payload)
         return signature.sign()
@@ -182,9 +181,10 @@ class SecureP256Plugin : FlutterPlugin, MethodCallHandler {
     }
 
     @Synchronized
-    private fun ecdh(alias: String, otherPublicKey: ByteArray, kf: KeyFactory): ByteArray {
+    private fun ecdh(alias: String, otherPublicKey: ByteArray): ByteArray {
         val entry = obtainPrivateKeyEntryFromAlias(alias)
         val publicKeySpec: EncodedKeySpec = X509EncodedKeySpec(otherPublicKey)
+        val kf = KeyFactory.getInstance("EC")
         val publicKey = kf.generatePublic(publicKeySpec)
         val agreement = KeyAgreement.getInstance("ECDH", storeProvider)
         agreement.init(entry.privateKey)
