@@ -253,7 +253,7 @@ class PassKeySigner implements PasskeyInterface {
     final assertion = await _authenticate(hashBase64, credentials, true);
 
     // Extract signature from response
-    final sig = await getMessagingSignature(b64d(assertion.signature));
+    final sig = getMessagingSignature(b64d(assertion.signature));
 
     // Prepare challenge for response
     final clientDataJSON = utf8.decode(b64d(assertion.clientDataJSON));

@@ -24,6 +24,8 @@ import '../interfaces/interfaces.dart';
 import '../platform/platform.dart';
 import '../vendor/vendor.dart';
 
+export 'package:cryptography/cryptography.dart' show SecretBox, SecretKey;
+
 part 'abi_coder.dart';
 part 'crypto.dart';
 part 'local_authentication.dart';
