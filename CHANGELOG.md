@@ -1,3 +1,7 @@
+## 0.0.3
+
+- Simplify Storage middleware usage
+
 ## 0.0.2
 
 - remove unused dependencies

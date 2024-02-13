@@ -91,10 +91,8 @@ class PrivateKeySigner with SecureStorageMixin implements MultiSignerInterface {
   @override
   SecureStorageMiddleware withSecureStorage(FlutterSecureStorage secureStorage,
       {Authentication? authMiddleware}) {
-    return SecureStorageMiddleware(
-        secureStorage: secureStorage,
-        authMiddleware: authMiddleware,
-        credential: toJson());
+    return SecureStorageMiddleware(secureStorage,
+        authMiddleware: authMiddleware, credential: toJson());
   }
 
   /// Loads a PrivateKeySigner encrypted credentialJson from secure storage.
@@ -115,9 +113,8 @@ class PrivateKeySigner with SecureStorageMixin implements MultiSignerInterface {
   /// );
   /// ```
   static Future<PrivateKeySigner?> loadFromSecureStorage(
-      {required SecureStorageRepository storageMiddleware,
-      required String password,
-      StorageOptions? options}) {
+      SecureStorageRepository storageMiddleware, String password,
+      {StorageOptions? options}) {
     return storageMiddleware
         .readCredential(SignerType.privateKey, options: options)
         .then((value) =>

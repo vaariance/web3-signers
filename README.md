@@ -237,16 +237,16 @@ await credential
 - load a credential from the device
 
 ```dart
-final ss = SecureStorageMiddleware(secureStorage: FlutterSecureStorage());
+final ss = SecureStorageMiddleware(FlutterSecureStorage());
 final credential =
-    await P256Credential.loadFromSecureStorage(storageMiddleware: ss);
+    await P256Credential.loadFromSecureStorage(ss);
 print("P256Credential: ${credential?.toJson()}");
 ```
 
 - interactions with secure storage can be authenticated when using `SecureStorageMiddleware`
 
 ```dart
-final ss = SecureStorageMiddleware(secureStorage: FlutterSecureStorage(), authMiddleware: BiometricMiddleware());
+final ss = SecureStorageMiddleware(FlutterSecureStorage(), authMiddleware: BiometricMiddleware());
 ss.save("key", "value", options: StorageOptions(requiresAuth: true, authReason: "authenticate!"));
 ss.read("key"); // default options are used i.e requiresAuth: false
 ss.delete("key", options: StorageOptions(requiresAuth: false)); // explicitly reject authentication
