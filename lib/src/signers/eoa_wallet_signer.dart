@@ -86,10 +86,8 @@ class EOAWalletSigner with SecureStorageMixin implements EOAInterface {
   @override
   SecureStorageMiddleware withSecureStorage(FlutterSecureStorage secureStorage,
       {Authentication? authMiddleware}) {
-    return SecureStorageMiddleware(
-        secureStorage: secureStorage,
-        authMiddleware: authMiddleware,
-        credential: _getMnemonic());
+    return SecureStorageMiddleware(secureStorage,
+        authMiddleware: authMiddleware, credential: _getMnemonic());
   }
 
   EthereumAddress _add(String seed, int index) {
@@ -140,14 +138,13 @@ class EOAWalletSigner with SecureStorageMixin implements EOAInterface {
   ///
   /// Example:
   /// ```dart
-  /// final secureStorageRepo = SecureStorageRepository(); // Replace with an actual instance
   /// final loadedSigner = await HDWalletSigner.loadFromSecureStorage(
-  ///   storageMiddleware: secureStorageRepo,
+  ///    SecureStorageMiddleware(),
   /// );
   /// ```
   static Future<EOAWalletSigner?> loadFromSecureStorage(
-      {required SecureStorageRepository storageMiddleware,
-      StorageOptions? options}) {
+      SecureStorageRepository storageMiddleware,
+      {StorageOptions? options}) {
     return storageMiddleware
         .readCredential(SignerType.eoaWallet, options: options)
         .then((value) =>

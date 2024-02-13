@@ -52,10 +52,8 @@ class PassKeyPair with SecureStorageMixin {
   @override
   SecureStorageMiddleware withSecureStorage(FlutterSecureStorage secureStorage,
       {Authentication? authMiddleware}) {
-    return SecureStorageMiddleware(
-        secureStorage: secureStorage,
-        authMiddleware: authMiddleware,
-        credential: toJson());
+    return SecureStorageMiddleware(secureStorage,
+        authMiddleware: authMiddleware, credential: toJson());
   }
 
   /// Loads a passkey pair from secure storage using the provided [SecureStorageRepository].
@@ -68,14 +66,13 @@ class PassKeyPair with SecureStorageMixin {
   ///
   /// Example:
   /// ```dart
-  /// final secureStorageRepo = SecureStorageRepository(); // Replace with an actual instance
   /// final loadedPassKeyPair = await PassKeyPair.loadFromSecureStorage(
-  ///   storageMiddleware: secureStorageRepo,
+  ///   SecureStorageMiddleware(),
   /// );
   /// ```
   static Future<PassKeyPair?> loadFromSecureStorage(
-      {required SecureStorageRepository storageMiddleware,
-      StorageOptions? options}) {
+      SecureStorageRepository storageMiddleware,
+      {StorageOptions? options}) {
     return storageMiddleware
         .readCredential(SignerType.passkey, options: options)
         .then((value) => value != null ? PassKeyPair.fromJson(value) : null);

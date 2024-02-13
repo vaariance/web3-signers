@@ -75,15 +75,13 @@ class P256Credential with SecureStorageMixin {
   @override
   SecureStorageMiddleware withSecureStorage(FlutterSecureStorage secureStorage,
       {Authentication? authMiddleware}) {
-    return SecureStorageMiddleware(
-        secureStorage: secureStorage,
-        authMiddleware: authMiddleware,
-        credential: toJson());
+    return SecureStorageMiddleware(secureStorage,
+        authMiddleware: authMiddleware, credential: toJson());
   }
 
   static Future<P256Credential?> loadFromSecureStorage(
-      {required SecureStorageRepository storageMiddleware,
-      StorageOptions? options}) {
+      SecureStorageRepository storageMiddleware,
+      {StorageOptions? options}) {
     return storageMiddleware
         .readCredential(SignerType.hardware, options: options)
         .then((value) => value != null ? P256Credential.fromJson(value) : null);

@@ -21,17 +21,16 @@ class SecureStorageMiddleware implements SecureStorageRepository {
   final FlutterSecureStorage secureStorage;
   final Authentication? authMiddleware;
 
-  final String? _credential;
+  final String? credential;
 
-  SecureStorageMiddleware(
-      {required this.secureStorage, this.authMiddleware, String? credential})
+  SecureStorageMiddleware(this.secureStorage,
+      {this.authMiddleware, this.credential})
       : androidOptions = AndroidOptions(
           encryptedSharedPreferences: true,
         ),
         iosOptions = const IOSOptions(
           accessibility: KeychainAccessibility.unlocked,
-        ),
-        _credential = credential;
+        );
 
   @override
   Future<void> delete(String key,
@@ -96,7 +95,7 @@ class SecureStorageMiddleware implements SecureStorageRepository {
     }
     await secureStorage.write(
         key: "${options.namespace ?? "vaariance"}_${type.name}",
-        value: _credential);
+        value: credential);
   }
 
   @override
