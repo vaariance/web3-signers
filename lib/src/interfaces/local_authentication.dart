@@ -12,9 +12,7 @@ abstract class Authentication {
   /// or face recognition.
   ///
   /// The [localizedReason] parameter is a human-readable message describing
-  /// why authentication is required. The [androidAuthMessages] and [iosAuthMessages]
-  /// parameters allow providing custom strings for platform-specific authentication
-  /// scenarios.
+  /// why authentication is required.
   ///
   /// The [useErrorDialogs] parameter, when set to `true`, indicates that error
   /// dialogs should be used to communicate authentication failures. The
@@ -24,8 +22,6 @@ abstract class Authentication {
   /// Throws an exception if the authentication operation fails.
   Future<void> authenticate({
     required String localizedReason,
-    AndroidAuthMessages? androidAuthMessages,
-    IOSAuthMessages? iosAuthMessages,
     bool useErrorDialogs = true,
     bool stickyAuth = true,
   });

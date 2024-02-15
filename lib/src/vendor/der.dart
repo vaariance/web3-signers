@@ -90,7 +90,7 @@ Uint8List bytesUnwrapDerSignature(Uint8List derEncoded) {
     throw 'Splitter not found';
   }
 
-  Tuple2<int, Uint8List> getBytes(Uint8List remaining) {
+  Tuple<int, Uint8List> getBytes(Uint8List remaining) {
     int length = 0;
     Uint8List bytes;
 
@@ -108,7 +108,7 @@ Uint8List bytesUnwrapDerSignature(Uint8List derEncoded) {
       length = remaining[1];
       bytes = remaining.sublist(2, 2 + length);
     }
-    return Tuple2(length, bytes);
+    return Tuple(length, bytes);
   }
 
   final rRemaining = buf.sublist(2);
@@ -253,18 +253,5 @@ bool isDerSignature(Uint8List sig) {
     return bytesWrapDerSignature(bytesUnwrapDerSignature(sig)).eq(sig);
   } catch (e) {
     return false;
-  }
-}
-
-extension U8aExtension on Uint8List {
-  bool eq(Uint8List other) {
-    bool equals(Object? e1, Object? e2) => e1 == e2;
-    if (identical(this, other)) return true;
-    var length = this.length;
-    if (length != other.length) return false;
-    for (var i = 0; i < length; i++) {
-      if (!equals(this[i], other[i])) return false;
-    }
-    return true;
   }
 }

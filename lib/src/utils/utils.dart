@@ -5,6 +5,7 @@ import 'dart:io' show Platform;
 import 'dart:math';
 
 import 'package:asn1lib/asn1lib.dart';
+import 'package:blockchain_utils/tuple/tuple.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:cryptography/dart.dart';
 import 'package:cryptography_flutter/cryptography_flutter.dart';
@@ -12,9 +13,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/error_codes.dart' as auth_error;
 import 'package:local_auth/local_auth.dart';
-import 'package:local_auth_android/local_auth_android.dart';
-import 'package:local_auth_ios/types/auth_messages_ios.dart';
-import 'package:tuple/tuple.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:webcrypto/webcrypto.dart';

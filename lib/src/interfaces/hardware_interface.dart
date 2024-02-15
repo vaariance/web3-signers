@@ -31,7 +31,7 @@ abstract class HardwareInterface extends MultiSignerInterface {
   ///
   /// Example:
   /// ```dart
-  /// Tuple2<Uint256, Uint256> publicKey = await getPublicKey();
+  /// Tuple<Uint256, Uint256> publicKey = await getPublicKey();
   /// ```
-  Future<Tuple2<Uint256, Uint256>> getPublicKey();
+  Future<Tuple<Uint256, Uint256>> getPublicKey();
 }

@@ -38,7 +38,7 @@ Uint8List arrayify(String hexString) {
 /// final components = await getPublicKeyFromBytes(publicKeyBytes);
 /// print(components); // Output: ['01', '02']
 /// ```
-Future<Tuple2<Uint256, Uint256>> getPublicKeyFromBytes(
+Future<Tuple<Uint256, Uint256>> getPublicKeyFromBytes(
     Uint8List publicKeyBytes) async {
   final pKey =
       await EcdsaPublicKey.importSpkiKey(publicKeyBytes, EllipticCurve.p256);
@@ -50,7 +50,7 @@ Future<Tuple2<Uint256, Uint256>> getPublicKeyFromBytes(
     final decodedX = hexlify(base64Url.decode(x));
     final decodedY = hexlify(base64Url.decode(y));
 
-    return Tuple2(Uint256.fromHex(decodedX), Uint256.fromHex(decodedY));
+    return Tuple(Uint256.fromHex(decodedX), Uint256.fromHex(decodedY));
   } else {
     throw "Invalid public key";
   }
@@ -68,7 +68,7 @@ Future<Tuple2<Uint256, Uint256>> getPublicKeyFromBytes(
 /// final signatureBytes = Uint8List.fromList([48, 68, 2, 32, ...]);
 /// final signatureHexValues = await getMessagingSignature(signatureBytes);
 /// ```
-Tuple2<Uint256, Uint256> getMessagingSignature(Uint8List signatureBytes) {
+Tuple<Uint256, Uint256> getMessagingSignature(Uint8List signatureBytes) {
   ASN1Parser parser = ASN1Parser(signatureBytes);
   ASN1Sequence parsedSignature = parser.nextObject() as ASN1Sequence;
   ASN1Integer rValue = parsedSignature.elements[0] as ASN1Integer;
@@ -85,7 +85,7 @@ Tuple2<Uint256, Uint256> getMessagingSignature(Uint8List signatureBytes) {
 
   final r = hexlify(rBytes);
   final s = hexlify(sBytes);
-  return Tuple2(Uint256.fromHex(r), Uint256.fromHex(s));
+  return Tuple(Uint256.fromHex(r), Uint256.fromHex(s));
 }
 
 /// Converts a list of integers to a hexadecimal string.

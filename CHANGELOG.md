@@ -1,3 +1,8 @@
+## 0.0.4
+
+- Reduce external deps
+- Introduce 24 word phrase EOA signer
+
 ## 0.0.3
 
 - Simplify Storage middleware usage

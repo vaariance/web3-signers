@@ -26,7 +26,7 @@ class HardwareSigner implements HardwareInterface {
   }
 
   @override
-  Future<Tuple2<Uint256, Uint256>> getPublicKey() async {
+  Future<Tuple<Uint256, Uint256>> getPublicKey() async {
     final bool isKeyCreated = await SecureP256.isKeyCreated(_tag);
     if (!isKeyCreated) {
       throw KeyPairForTagDoesNotExist(_tag);
@@ -67,7 +67,7 @@ class P256Credential with SecureStorageMixin {
   final String tag;
   final Uint8List credentialDer;
   final Uint8List credentialRaw;
-  final Tuple2<Uint256, Uint256> publicKey;
+  final Tuple<Uint256, Uint256> publicKey;
 
   P256Credential(
       this.tag, this.credentialDer, this.credentialRaw, this.publicKey);
@@ -102,7 +102,7 @@ class P256Credential with SecureStorageMixin {
         map['tag'] as String,
         Uint8List.fromList(List<int>.from(map['credentialDer'])),
         Uint8List.fromList(List<int>.from(map['credentialRaw'])),
-        Tuple2(Uint256.fromHex(map['publicKeyX'] as String),
+        Tuple(Uint256.fromHex(map['publicKeyX'] as String),
             Uint256.fromHex(map['publicKeyY'] as String)));
   }
 

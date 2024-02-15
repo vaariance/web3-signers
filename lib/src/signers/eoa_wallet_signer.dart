@@ -1,11 +1,9 @@
 part of '../web3_signers_base.dart';
 
 class EOAWalletSigner with SecureStorageMixin implements EOAInterface {
-  final String _mnemonic;
+  final Mnemonic _mnemonic;
 
-  final String _seed;
-
-  late final EthereumAddress zerothAddress;
+  final List<int> _seed;
 
   @override
   String dummySignature =
@@ -15,10 +13,17 @@ class EOAWalletSigner with SecureStorageMixin implements EOAInterface {
   ///
   /// Example:
   /// ```dart
-  /// final walletSigner = HDWalletSigner.createWallet();
+  /// final walletSigner = HDWalletSigner.createWallet(); // defaults to 12 words
+  ///
+  /// // create a 24 word phrase wallet
+  /// final walletSigner24 = HDWalletSigner.createWallet(WordLength.word_24); // defaults to 12 words
   /// ```
-  factory EOAWalletSigner.createWallet() {
-    return EOAWalletSigner.recoverAccount(bip39.generateMnemonic());
+  factory EOAWalletSigner.createWallet(
+      [WordLength wordLenth = WordLength.word_12]) {
+    final generator = Bip39MnemonicGenerator();
+    final Bip39WordsNum wordNumber = wordLenth.wordsNum;
+    final phrase = generator.fromWordsNumber(wordNumber);
+    return EOAWalletSigner.recoverAccount(phrase.toStr());
   }
 
   /// Recovers an EOA wallet signer instance from a given mnemonic phrase.
@@ -31,15 +36,15 @@ class EOAWalletSigner with SecureStorageMixin implements EOAInterface {
   /// final mnemonicPhrase = 'word1 word2 word3 ...'; // Replace with an actual mnemonic phrase
   /// final recoveredSigner = HDWalletSigner.recoverAccount(mnemonicPhrase);
   /// ```
-
   factory EOAWalletSigner.recoverAccount(String mnemonic) {
-    final seed = bip39.mnemonicToSeedHex(mnemonic);
-    final signer = EOAWalletSigner._internal(seed: seed, mnemonic: mnemonic);
-    signer.zerothAddress = signer._add(seed, 0);
+    final Mnemonic words = Mnemonic.fromString(mnemonic);
+    final seed = Bip39SeedGenerator(words).generate();
+    final signer = EOAWalletSigner._internal(seed: seed, mnemonic: words);
     return signer;
   }
 
-  EOAWalletSigner._internal({required String seed, required String mnemonic})
+  EOAWalletSigner._internal(
+      {required List<int> seed, required Mnemonic mnemonic})
       : _seed = seed,
         _mnemonic = mnemonic {
     assert(seed.isNotEmpty, "seed cannot be empty");
@@ -52,7 +57,7 @@ class EOAWalletSigner with SecureStorageMixin implements EOAInterface {
 
   @override
   String exportMnemonic() {
-    return _getMnemonic();
+    return _mnemonic.toStr();
   }
 
   @override
@@ -87,12 +92,12 @@ class EOAWalletSigner with SecureStorageMixin implements EOAInterface {
   SecureStorageMiddleware withSecureStorage(FlutterSecureStorage secureStorage,
       {Authentication? authMiddleware}) {
     return SecureStorageMiddleware(secureStorage,
-        authMiddleware: authMiddleware, credential: _getMnemonic());
+        authMiddleware: authMiddleware, credential: exportMnemonic());
   }
 
-  EthereumAddress _add(String seed, int index) {
+  EthereumAddress _add(List<int> seed, int index) {
     final hdKey = _deriveHdKey(seed, index);
-    final privKey = _deriveEthPrivKey(hdKey.privateKeyHex());
+    final privKey = _deriveEthPrivKey(hdKey.key.toHex());
     return privKey.address;
   }
 
@@ -101,30 +106,26 @@ class EOAWalletSigner with SecureStorageMixin implements EOAInterface {
     return ethPrivateKey;
   }
 
-  bip44.ExtendedPrivateKey _deriveHdKey(String seed, int idx) {
+  Bip44PrivateKey _deriveHdKey(List<int> seed, int idx) {
     final path = "m/44'/60'/0'/0/$idx";
-    final chain = bip44.Chain.seed(seed);
-    final hdKey = chain.forPath(path) as bip44.ExtendedPrivateKey;
-    return hdKey;
+    final chain = Bip44.fromSeed(seed, Bip44Coins.ethereum);
+    final privKey = chain.bip32.derivePath(path).privateKey;
+    return Bip44PrivateKey(privKey, chain.coinConf);
   }
 
   EthereumAddress _getEthereumAddress({int index = 0}) {
-    bip44.ExtendedPrivateKey hdKey = _getHdKey(index);
-    final privKey = _deriveEthPrivKey(hdKey.privateKeyHex());
+    Bip44PrivateKey hdKey = _getHdKey(index);
+    final privKey = _deriveEthPrivKey(hdKey.key.toHex());
     return privKey.address;
   }
 
-  bip44.ExtendedPrivateKey _getHdKey(int index) {
+  Bip44PrivateKey _getHdKey(int index) {
     return _deriveHdKey(_seed, index);
-  }
-
-  String _getMnemonic() {
-    return _mnemonic;
   }
 
   EthPrivateKey _getPrivateKey(int index) {
     final hdKey = _getHdKey(index);
-    final privateKey = _deriveEthPrivKey(hdKey.privateKeyHex());
+    final privateKey = _deriveEthPrivKey(hdKey.key.toHex());
     return privateKey;
   }
 
@@ -150,4 +151,13 @@ class EOAWalletSigner with SecureStorageMixin implements EOAInterface {
         .then((value) =>
             value != null ? EOAWalletSigner.recoverAccount(value) : null);
   }
+}
+
+enum WordLength {
+  word_12(Bip39WordsNum.wordsNum12),
+  word_24(Bip39WordsNum.wordsNum24);
+
+  final Bip39WordsNum wordsNum;
+
+  const WordLength(this.wordsNum);
 }

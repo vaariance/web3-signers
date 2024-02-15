@@ -54,7 +54,3 @@ class DartRandom {
 
   int nextUint8() => dartRandom.nextInt(pow(2, 8).toInt());
 }
-
-extension StringExtension on String {
-  Uint8List toU8a({int bitLength = -1}) => hexToU8a(this, bitLength);
-}

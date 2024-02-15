@@ -2,10 +2,8 @@ library interfaces;
 
 import 'dart:typed_data';
 
+import 'package:blockchain_utils/tuple/tuple.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:local_auth_android/local_auth_android.dart';
-import 'package:local_auth_ios/local_auth_ios.dart';
-import 'package:tuple/tuple.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
