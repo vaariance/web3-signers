@@ -12,8 +12,6 @@ class BiometricMiddleware implements Authentication {
   @override
   Future<void> authenticate(
       {required String localizedReason,
-      AndroidAuthMessages? androidAuthMessages,
-      IOSAuthMessages? iosAuthMessages,
       bool useErrorDialogs = true,
       bool stickyAuth = true}) async {
     final bool canAuthenticate = await canAuthenticateWithBiometrics();
@@ -25,20 +23,10 @@ class BiometricMiddleware implements Authentication {
 
     try {
       final bool authenticated = await _auth.authenticate(
-          localizedReason: localizedReason,
-          options: AuthenticationOptions(
-              useErrorDialogs: useErrorDialogs, stickyAuth: stickyAuth),
-          authMessages: <AuthMessages>[
-            androidAuthMessages ??
-                const AndroidAuthMessages(
-                  signInTitle: 'Authentication required!',
-                  cancelButton: 'No thanks',
-                ),
-            iosAuthMessages ??
-                const IOSAuthMessages(
-                  cancelButton: 'No thanks',
-                ),
-          ]);
+        localizedReason: localizedReason,
+        options: AuthenticationOptions(
+            useErrorDialogs: useErrorDialogs, stickyAuth: stickyAuth),
+      );
 
       if (!authenticated) {
         throw AuthenticationError(

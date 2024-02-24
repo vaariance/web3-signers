@@ -1,14 +1,15 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:blockchain_utils/tuple/tuple.dart';
 import 'package:flutter/foundation.dart';
-import 'package:tuple/tuple.dart';
 import 'package:web3dart/crypto.dart';
 
 import '../utils/utils.dart' show hexToU8a;
 
 part 'constants.dart';
 part "der.dart";
+part 'extensions.dart';
 part 'random.dart';
 
 typedef BinaryBlob = Uint8List;
@@ -55,14 +56,4 @@ abstract class PublicKey {
 
   // Get the public key bytes encoded with DER.
   DerEncodedBlob toDer();
-}
-
-extension ExtBinaryBlob on BinaryBlob {
-  BlobType get blobType => BlobType.binary;
-
-  int get byteLength => lengthInBytes;
-
-  String get name => '__BLOB';
-
-  static Uint8List from(Uint8List other) => Uint8List.fromList(other);
 }

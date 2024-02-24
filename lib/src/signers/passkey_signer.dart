@@ -6,7 +6,7 @@ class AuthData {
   final Hex credentialHex;
 
   /// x and y coordinates of the public key
-  final Tuple2<Uint256, Uint256> publicKey;
+  final Tuple<Uint256, Uint256> publicKey;
   final String aaGUID;
   AuthData(this.credentialHex, this.publicKey, this.aaGUID);
 }
@@ -15,7 +15,7 @@ class PassKeyPair with SecureStorageMixin {
   final Hex credentialHex;
 
   /// x and y coordinates of the public key
-  final Tuple2<Uint256, Uint256> publicKey;
+  final Tuple<Uint256, Uint256> publicKey;
   final String name;
   final String aaGUID;
   final DateTime registrationTime;
@@ -26,11 +26,12 @@ class PassKeyPair with SecureStorageMixin {
       PassKeyPair.fromMap(json.decode(source) as Map<String, dynamic>);
 
   factory PassKeyPair.fromMap(Map<String, dynamic> map) {
+    final pKey = List<String>.from(map['publicKey'])
+        .map((e) => Uint256.fromHex(e))
+        .toList();
     return PassKeyPair(
       map['credentialHex'],
-      Tuple2.fromList(List<String>.from(map['publicKey'])
-          .map((e) => Uint256.fromHex(e))
-          .toList()),
+      Tuple(pKey[0], pKey[1]),
       map['name'],
       map['aaGUID'],
       DateTime.fromMillisecondsSinceEpoch(map['registrationTime']),
@@ -83,7 +84,7 @@ class PassKeySignature {
   final Hex credentialHex;
 
   /// r and s values of the signature.
-  final Tuple2<Uint256, Uint256> signature;
+  final Tuple<Uint256, Uint256> signature;
   final Uint8List authData;
   final String clientDataPrefix;
   final String clientDataSuffix;
@@ -154,7 +155,7 @@ class PassKeySigner implements PasskeyInterface {
 
   @override
   Uint8List clientDataHash(PassKeysOptions options, {String? challenge}) {
-    options.challenge = challenge ?? _randomBase64String(options);
+    options.challenge = challenge ?? _randomBase64String();
     final clientDataJson = jsonEncode({
       "type": options.type,
       "challenge": options.challenge,
@@ -298,30 +299,29 @@ class PassKeySigner implements PasskeyInterface {
     final aaGUID = base64Url.encode(authData.sublist(37, 53));
 
     // Decode the CBOR-encoded public key and convert it to a map.
-    final decodedPubKey = cbor.decode(pKey).toObject() as Map;
+    final decodedPubKey = CborObject.fromDynamic(pKey).value as CborMapValue;
 
     // Calculate the hash of the credential ID.
     final credentialHex = credentialIdToHex(credentialId);
 
     // Extract x and y coordinates from the decoded public key.
-    final x = Uint256.fromHex(hexlify(decodedPubKey[-2]));
-    final y = Uint256.fromHex(hexlify(decodedPubKey[-3]));
+    final x = Uint256.fromHex(hexlify(decodedPubKey.value[-2]));
+    final y = Uint256.fromHex(hexlify(decodedPubKey.value[-3]));
 
-    return AuthData(credentialHex, Tuple2(x, y), aaGUID);
+    return AuthData(credentialHex, Tuple(x, y), aaGUID);
   }
 
   AuthData _decodeAttestation(RegisterResponseType attestation) {
     final attestationAsCbor = b64d(attestation.attestationObject);
     final decodedAttestationAsCbor =
-        cbor.decode(attestationAsCbor).toObject() as Map;
-    final authData = List<int>.from(decodedAttestationAsCbor["authData"]);
+        CborObject.fromDynamic(attestationAsCbor).value as CborMapValue;
+    final authData = List<int>.from(decodedAttestationAsCbor.value["authData"]);
     return _decode(authData);
   }
 
-  String _randomBase64String(PassKeysOptions options) {
-    final uuid = const Uuid()
-        .v5buffer(Uuid.NAMESPACE_URL, options.name, List<int>.filled(32, 0));
-    return b64e(uuid);
+  String _randomBase64String() {
+    final uuid = UUID.generateUUIDv4();
+    return b64e(UUID.toBuffer(uuid));
   }
 
   Future<RegisterResponseType> _register(String username,
@@ -335,7 +335,7 @@ class PassKeySigner implements PasskeyInterface {
         name: options.name,
       ),
       user: UserType(
-        id: _randomBase64String(options),
+        id: _randomBase64String(),
         displayName: displayname ?? username,
         name: username,
       ),

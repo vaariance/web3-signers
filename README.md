@@ -196,6 +196,9 @@ The EOA wallet conforms to the multi-signer-interface, hence it can be used to c
 // creates a new EOA wallet
 EOAWalletSigner eoaWallet = EOAWalletSigner.createWallet();
 
+// by the default a 12 word phrase signer is created, in order to create a 24 word phrase you need to specify it
+eoaWallet = EOAWalletSigner.createWallet(WordLength.word_24); // returns 24 word phrase signer
+
 // retrieve the account seed phrase
 final mnemonic = eoaWallet.exportMnemonic();
 
