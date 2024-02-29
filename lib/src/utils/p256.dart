@@ -17,20 +17,19 @@ class SecureP256 {
   static Future<Uint8List> getSharedSecret(
     String tag,
     P256PublicKey publicKey, [
-    Tuple<FutureOr<void> Function(String, P256PublicKey)?,
-            FutureOr<void> Function(Uint8List)?>?
+    Tuple<FutureOr<void> Function(String, Uint8List)?,
+            FutureOr<Uint8List>? Function(Uint8List)?>?
         hooks,
   ]) async {
     assert(tag.isNotEmpty);
     Uint8List rawKey = publicKey.rawKey;
-    hooks?.item1?.call(tag, publicKey);
     if (Platform.isAndroid && !isDerPublicKey(rawKey, oidP256)) {
       rawKey = bytesWrapDer(rawKey, oidP256);
     }
+    hooks?.item1?.call(tag, rawKey);
     final sharedSecret =
         await SecureP256Platform.instance.getSharedSecret(tag, rawKey);
-    hooks?.item2?.call(sharedSecret);
-    return sharedSecret;
+    return hooks?.item2?.call(sharedSecret) ?? sharedSecret;
   }
 
   static Future<bool> isKeyCreated(String tag) async {
@@ -42,7 +41,7 @@ class SecureP256 {
     String tag,
     Uint8List payload, [
     Tuple<FutureOr<void> Function(String, Uint8List)?,
-            FutureOr<void> Function(Uint8List)?>?
+            FutureOr<Uint8List>? Function(Uint8List)?>?
         hooks,
   ]) async {
     assert(tag.isNotEmpty);
@@ -52,8 +51,7 @@ class SecureP256 {
     if (!isDerSignature(signature)) {
       signature = bytesWrapDerSignature(signature);
     }
-    hooks?.item2?.call(signature);
-    return signature;
+    return hooks?.item2?.call(signature) ?? signature;
   }
 
   static Future<bool> verify(
