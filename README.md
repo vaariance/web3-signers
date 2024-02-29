@@ -256,14 +256,14 @@ abstract class MultiSignerInterface {
 
 ### iOS
 
-- To support Local Authentication with Biometrics. update `info.plist`.
+- HardwareSignatures on iOS requires user prescence. update `info.plist` to enable face-id.
 
     ```plist
      <key>NSFaceIDUsageDescription</key>
      <string>Why is my app authenticating using face id?</string>
     ```
 
-- Configuring ios for passkeys
+- Configuring passkeys for iOS
 
     1. Set up Universal Links. follow this [guide](https://docs.flutter.dev/cookbook/navigation/set-up-universal-links).
 
@@ -272,26 +272,13 @@ abstract class MultiSignerInterface {
 
 ### Android
 
-- To support Local Authentication. update `MainActivity.kt` to use `FlutterFragmentActivity`.
-
-    ```kt
-    class MainActivity: FlutterFragmentActivity() {
-    }
-    ```
-
-- Update your project's `AndroidManifest.xml` file to include the `USE_BIOMETRIC` permissions:
-
-    ```xml
-    <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-            package="com.example.app">
-        <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
-    <manifest>
-    ```
-
 - Set your `minSdkVersion` to 28
+
 - Configuring android passkeys
-    1. Set up App Links. follow this [guide](https://docs.flutter.dev/cookbook/navigation/set-up-app-links).
-    2. Make sure your have `"delegate_permission/common.get_login_creds"` in your `assetlinks.json`. Refer to this [guide](https://developer.android.com/training/sign-in/passkeys).
+
+  - Set up App Links. follow this [guide](https://docs.flutter.dev/cookbook/navigation/set-up-app-links).
+  - Make sure your have `"delegate_permission/common.get_login_creds"` in your `assetlinks.json`. Refer to this [guide](https://developer.android.com/training/sign-in/passkeys).
+
 - Use the following command to get you app SHA256 certificate required in your `assetlinks.json`:
 
     ```sh
