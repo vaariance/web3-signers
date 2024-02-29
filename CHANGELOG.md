@@ -1,3 +1,7 @@
+## 0.0.5
+
+- Remove unnecessary dependencies
+
 ## 0.0.4
 
 - Reduce external deps

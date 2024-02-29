@@ -11,7 +11,7 @@ class AuthData {
   AuthData(this.credentialHex, this.publicKey, this.aaGUID);
 }
 
-class PassKeyPair with SecureStorageMixin {
+class PassKeyPair {
   final Hex credentialHex;
 
   /// x and y coordinates of the public key
@@ -48,35 +48,6 @@ class PassKeyPair with SecureStorageMixin {
       'aaGUID': aaGUID,
       'registrationTime': registrationTime.millisecondsSinceEpoch,
     };
-  }
-
-  @override
-  SecureStorageMiddleware withSecureStorage(FlutterSecureStorage secureStorage,
-      {Authentication? authMiddleware}) {
-    return SecureStorageMiddleware(secureStorage,
-        authMiddleware: authMiddleware, credential: toJson());
-  }
-
-  /// Loads a passkey pair from secure storage using the provided [SecureStorageRepository].
-  ///
-  /// Parameters:
-  /// - [storageMiddleware]: The secure storage repository used to retrieve the passkey pair credentials.
-  /// - [options]: Optional authentication operation options. Defaults to `null`.
-  ///
-  /// Returns a `Future` that resolves to a `PassKeyPair` instance if successfully loaded, or `null` otherwise.
-  ///
-  /// Example:
-  /// ```dart
-  /// final loadedPassKeyPair = await PassKeyPair.loadFromSecureStorage(
-  ///   SecureStorageMiddleware(),
-  /// );
-  /// ```
-  static Future<PassKeyPair?> loadFromSecureStorage(
-      SecureStorageRepository storageMiddleware,
-      {StorageOptions? options}) {
-    return storageMiddleware
-        .readCredential(SignerType.passkey, options: options)
-        .then((value) => value != null ? PassKeyPair.fromJson(value) : null);
   }
 }
 
@@ -120,7 +91,7 @@ class PassKeySignature {
   }
 }
 
-class PassKeySigner implements PasskeyInterface {
+class PassKeySigner implements PasskeySignerInterface {
   final PassKeysOptions _opts;
 
   final PasskeyAuthenticator _auth;

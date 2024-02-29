@@ -1,6 +1,8 @@
 part of 'interfaces.dart';
 
-abstract class PasskeyInterface extends MultiSignerInterface {
+typedef PSI = PasskeySignerInterface;
+
+abstract class PasskeySignerInterface extends MultiSignerInterface {
   /// Gets the PassKeysOptions used by the PasskeyInterface.
   PassKeysOptions get opts;
 

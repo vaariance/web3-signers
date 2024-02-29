@@ -5,7 +5,7 @@ part of 'interfaces.dart';
 /// This interface defines the basic contract for interacting with Ethereum wallets,
 /// allowing the creation of accounts, exporting mnemonic phrases, exporting
 /// private keys, signing messages, and more.
-abstract class EOAInterface extends MultiSignerInterface {
+abstract class EOAWalletInterface extends MultiSignerInterface {
   /// Adds an Ethereum account derived from the wallet using the specified [index].
   ///
   /// Parameters:

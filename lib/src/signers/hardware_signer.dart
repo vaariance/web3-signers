@@ -1,6 +1,6 @@
 part of "../web3_signers_base.dart";
 
-class HardwareSigner implements HardwareInterface {
+class HardwareSigner implements HardwareSignerInterface {
   @override
   String dummySignature = "";
 
@@ -63,7 +63,7 @@ class HardwareSigner implements HardwareInterface {
   }
 }
 
-class P256Credential with SecureStorageMixin {
+class P256Credential {
   final String tag;
   final Uint8List credentialDer;
   final Uint8List credentialRaw;
@@ -71,21 +71,6 @@ class P256Credential with SecureStorageMixin {
 
   P256Credential(
       this.tag, this.credentialDer, this.credentialRaw, this.publicKey);
-
-  @override
-  SecureStorageMiddleware withSecureStorage(FlutterSecureStorage secureStorage,
-      {Authentication? authMiddleware}) {
-    return SecureStorageMiddleware(secureStorage,
-        authMiddleware: authMiddleware, credential: toJson());
-  }
-
-  static Future<P256Credential?> loadFromSecureStorage(
-      SecureStorageRepository storageMiddleware,
-      {StorageOptions? options}) {
-    return storageMiddleware
-        .readCredential(SignerType.hardware, options: options)
-        .then((value) => value != null ? P256Credential.fromJson(value) : null);
-  }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
