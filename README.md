@@ -137,26 +137,6 @@ log("s: ${signature.s}") // bigint
 
 > To verify the payload on the blockchain successfully, you must verify against the SHA256 hash of the payload.
 
-### Encryption and Decryption of data
-
-Data encryption and Decryption is done from the SecureP256 class.
-
-```dart
-// first get the publicKey based on your app tag
-final publicKey = await SecureP256.getPublicKey("my app tag");
-
-// get your shared secret from the device
-final sharedSecret = await SecureP256.getSharedSecret("my app tag", publicKey); // requires authentication
-
-// encrypt data
-final encrypted = await SecureP256.encrypt(sharedSecret: sharedSecret
-    message: utf8.encode("my message")); // returns a SecretBox
-
-// decrypt it back
-final decrypted = await SecureP256.decrypt(sharedSecret: sharedSecret
-    encrypted: encrypted).then((e) => utf8.decode(e));
-```
-
 ## Working with Privatey keys
 
 The private key signer conform to the `multi-signer-interface` and is the most basic signer.
@@ -189,21 +169,21 @@ log("r: ${signature.r}, s: ${signature.s}") // r and s are both bigint format
 
 ## Building an EOA wallet
 
-Beyond [EIP-1271](https://eips.ethereum.org/EIPS/eip-1271) messages. the [web3-signers](https://pub.dev/packages/web3_signers) package can be relied upon for developing fully featured [Externally Owned Accounts](https://ethereum.org/developers/docs/accounts) like [Metamask](https://metamask.io) using the [EOAWalletSigner](./lib/src/signers/eoa_wallet_signer.dart) class.
+Beyond [EIP-1271](https://eips.ethereum.org/EIPS/eip-1271) messages. the [web3-signers](https://pub.dev/packages/web3_signers) package can be relied upon for developing fully featured [Externally Owned Accounts](https://ethereum.org/developers/docs/accounts) like [Metamask](https://metamask.io) using the [EOAWallet](./lib/src/signers/eoa_wallet_signer.dart) class.
 The EOA wallet conforms to the multi-signer-interface, hence it can be used to create signers that are backed with a seed phrase.
 
 ```dart
 // creates a new EOA wallet
-EOAWalletSigner eoaWallet = EOAWalletSigner.createWallet();
+EOAWallet eoaWallet = EOAWallet.createWallet();
 
 // by the default a 12 word phrase signer is created, in order to create a 24 word phrase you need to specify it
-eoaWallet = EOAWalletSigner.createWallet(WordLength.word_24); // returns 24 word phrase signer
+eoaWallet = EOAWallet.createWallet(WordLength.word_24); // returns 24 word phrase signer
 
 // retrieve the account seed phrase
 final mnemonic = eoaWallet.exportMnemonic();
 
 // recover eoa wallet from seed phrase
-eoaWallet = EOAWalletSigner.recoverAccount(mnemonic);
+eoaWallet = EOAWallet.recoverAccount(mnemonic);
 
 // generate a new deterministic account
 final accountOne = eoaWallet.addAccount(1);
@@ -220,40 +200,6 @@ final accountOneAddress = eoaWallet.getAddress(index: 1);
 ```
 
 The `signToEc` and `personalSign` methods are available for signing transactions. optionally, you can use the exportedPrivateKey to sign transactions DIY.
-
-## Working with SecureStorage and Local authentication
-
-The secure storage middleware helps you to save and retrieve credential data from the secure storage. You can also restrict access to these credentials using the `BiometricMiddleware`
-
-- save a signer credential to device
-
-```dart
-await eoaWallet
-    .withSecureStorage(FlutterSecureStorage())
-    .saveCredential(SignerType.eoaWallet);
-
-await credential
-    .withSecureStorage(FlutterSecureStorage())
-    .saveCredential(SignerType.hardware);
-```
-
-- load a credential from the device
-
-```dart
-final ss = SecureStorageMiddleware(FlutterSecureStorage());
-final credential =
-    await P256Credential.loadFromSecureStorage(ss);
-print("P256Credential: ${credential?.toJson()}");
-```
-
-- interactions with secure storage can be authenticated when using `SecureStorageMiddleware`
-
-```dart
-final ss = SecureStorageMiddleware(FlutterSecureStorage(), authMiddleware: BiometricMiddleware());
-ss.save("key", "value", options: StorageOptions(requiresAuth: true, authReason: "authenticate!"));
-ss.read("key"); // default options are used i.e requiresAuth: false
-ss.delete("key", options: StorageOptions(requiresAuth: false)); // explicitly reject authentication
-```
 
 ## Handling Der Encoded data
 
@@ -323,13 +269,6 @@ abstract class MultiSignerInterface {
 
 - Configuring ios secure enclave
     1. Set your `platform :ios` to be minimum of 12.4
-    2. update your podfile to include the following to post_install
-
-        ```Podfile
-            target.build_configurations.each do |config|
-        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '<your platform i.e minimum 12.4>'
-        end
-        ```
 
 ### Android
 
@@ -349,7 +288,6 @@ abstract class MultiSignerInterface {
     <manifest>
     ```
 
-- Set your `compileSdkVersion` to 34
 - Set your `minSdkVersion` to 28
 - Configuring android passkeys
     1. Set up App Links. follow this [guide](https://docs.flutter.dev/cookbook/navigation/set-up-app-links).

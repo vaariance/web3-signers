@@ -1,6 +1,8 @@
 part of 'interfaces.dart';
 
-abstract class HardwareInterface extends MultiSignerInterface {
+typedef HSI = HardwareSignerInterface;
+
+abstract class HardwareSignerInterface extends MultiSignerInterface {
   /// Generates a key pair and returns a `Future` that completes with a `P256Credential`.
   ///
   /// This function is asynchronous and returns a `Future<P256Credential>`.

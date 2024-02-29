@@ -40,20 +40,10 @@ Uint8List arrayify(String hexString) {
 /// ```
 Future<Tuple<Uint256, Uint256>> getPublicKeyFromBytes(
     Uint8List publicKeyBytes) async {
-  final pKey =
-      await EcdsaPublicKey.importSpkiKey(publicKeyBytes, EllipticCurve.p256);
-  final jwk = await pKey.exportJsonWebKey();
-  if (jwk.containsKey('x') && jwk.containsKey('y')) {
-    final x = base64Url.normalize(jwk['x']);
-    final y = base64Url.normalize(jwk['y']);
-
-    final decodedX = hexlify(base64Url.decode(x));
-    final decodedY = hexlify(base64Url.decode(y));
-
-    return Tuple(Uint256.fromHex(decodedX), Uint256.fromHex(decodedY));
-  } else {
-    throw "Invalid public key";
-  }
+  final pKey = bytesUnwrapDer(publicKeyBytes, oidP256).sublist(1);
+  final decodedX = hexlify(pKey.sublist(0, 32));
+  final decodedY = hexlify(pKey.sublist(32, 64));
+  return Tuple(Uint256.fromHex(decodedX), Uint256.fromHex(decodedY));
 }
 
 /// Parses ASN1-encoded signature bytes and returns a List of two hex strings representing the `r` and `s` values.
@@ -143,12 +133,7 @@ require(bool requirement, String exception) {
 /// print("SHA-256 Hash: ${hash.toString()}");
 /// ```
 List<int> sha256Hash(List<int> input) {
-  final algo = const DartSha256();
-  final sink = algo.newHashSink();
-  sink.add(input);
-  sink.close();
-  final hash = sink.hashSync();
-  return hash.bytes;
+  return SHA256.hash(input);
 }
 
 /// Checks whether the leading zero should be removed from the byte array.
@@ -257,3 +242,5 @@ bool isHex(dynamic value, {int bits = -1, bool ignoreLength = false}) {
   }
   return false;
 }
+
+void main() {}

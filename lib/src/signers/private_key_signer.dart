@@ -1,6 +1,6 @@
 part of '../web3_signers_base.dart';
 
-class PrivateKeySigner with SecureStorageMixin implements MultiSignerInterface {
+class PrivateKeySigner implements MultiSignerInterface {
   final Wallet _credential;
 
   @override
@@ -87,37 +87,4 @@ class PrivateKeySigner with SecureStorageMixin implements MultiSignerInterface {
   }
 
   String toJson() => _credential.toJson();
-
-  @override
-  SecureStorageMiddleware withSecureStorage(FlutterSecureStorage secureStorage,
-      {Authentication? authMiddleware}) {
-    return SecureStorageMiddleware(secureStorage,
-        authMiddleware: authMiddleware, credential: toJson());
-  }
-
-  /// Loads a PrivateKeySigner encrypted credentialJson from secure storage.
-  ///
-  /// Parameters:
-  /// - [storageMiddleware]: The repository for secure storage.
-  /// - [password]: The password for decrypting the private key.
-  /// - [options]: Additional options for the authentication operation.
-  ///
-  /// Example:
-  /// ```dart
-  /// final storageMiddleware = SecureStorageRepository(); // Initialize your storage middleware
-  /// final password = 'your_password';
-  /// final privateKeySigner = await PrivateKeySigner.loadFromSecureStorage(
-  ///   storageMiddleware: storageMiddleware,
-  ///   password: password,
-  ///   options: yourSSAuthOperationOptions,
-  /// );
-  /// ```
-  static Future<PrivateKeySigner?> loadFromSecureStorage(
-      SecureStorageRepository storageMiddleware, String password,
-      {StorageOptions? options}) {
-    return storageMiddleware
-        .readCredential(SignerType.privateKey, options: options)
-        .then((value) =>
-            value != null ? PrivateKeySigner.fromJson(value, password) : null);
-  }
 }

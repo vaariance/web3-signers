@@ -2,7 +2,6 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:blockchain_utils/tuple/tuple.dart';
-import 'package:flutter/foundation.dart';
 import 'package:web3dart/crypto.dart';
 
 import '../utils/utils.dart' show hexToU8a;
@@ -50,7 +49,6 @@ class P256PublicKey implements PublicKey {
   }
 }
 
-@immutable
 abstract class PublicKey {
   const PublicKey();
 

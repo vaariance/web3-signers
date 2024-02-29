@@ -1,6 +1,6 @@
 part of '../web3_signers_base.dart';
 
-class EOAWalletSigner with SecureStorageMixin implements EOAInterface {
+class EOAWallet implements EOAWalletInterface {
   final Mnemonic _mnemonic;
 
   final List<int> _seed;
@@ -18,12 +18,11 @@ class EOAWalletSigner with SecureStorageMixin implements EOAInterface {
   /// // create a 24 word phrase wallet
   /// final walletSigner24 = HDWalletSigner.createWallet(WordLength.word_24); // defaults to 12 words
   /// ```
-  factory EOAWalletSigner.createWallet(
-      [WordLength wordLenth = WordLength.word_12]) {
+  factory EOAWallet.createWallet([WordLength wordLenth = WordLength.word_12]) {
     final generator = Bip39MnemonicGenerator();
     final Bip39WordsNum wordNumber = wordLenth.wordsNum;
     final phrase = generator.fromWordsNumber(wordNumber);
-    return EOAWalletSigner.recoverAccount(phrase.toStr());
+    return EOAWallet.recoverAccount(phrase.toStr());
   }
 
   /// Recovers an EOA wallet signer instance from a given mnemonic phrase.
@@ -36,15 +35,14 @@ class EOAWalletSigner with SecureStorageMixin implements EOAInterface {
   /// final mnemonicPhrase = 'word1 word2 word3 ...'; // Replace with an actual mnemonic phrase
   /// final recoveredSigner = HDWalletSigner.recoverAccount(mnemonicPhrase);
   /// ```
-  factory EOAWalletSigner.recoverAccount(String mnemonic) {
+  factory EOAWallet.recoverAccount(String mnemonic) {
     final Mnemonic words = Mnemonic.fromString(mnemonic);
     final seed = Bip39SeedGenerator(words).generate();
-    final signer = EOAWalletSigner._internal(seed: seed, mnemonic: words);
+    final signer = EOAWallet._internal(seed: seed, mnemonic: words);
     return signer;
   }
 
-  EOAWalletSigner._internal(
-      {required List<int> seed, required Mnemonic mnemonic})
+  EOAWallet._internal({required List<int> seed, required Mnemonic mnemonic})
       : _seed = seed,
         _mnemonic = mnemonic {
     assert(seed.isNotEmpty, "seed cannot be empty");
@@ -88,13 +86,6 @@ class EOAWalletSigner with SecureStorageMixin implements EOAInterface {
     return privKey.signToEcSignature(hash);
   }
 
-  @override
-  SecureStorageMiddleware withSecureStorage(FlutterSecureStorage secureStorage,
-      {Authentication? authMiddleware}) {
-    return SecureStorageMiddleware(secureStorage,
-        authMiddleware: authMiddleware, credential: exportMnemonic());
-  }
-
   EthereumAddress _add(List<int> seed, int index) {
     final hdKey = _deriveHdKey(seed, index);
     final privKey = _deriveEthPrivKey(hdKey.key.toHex());
@@ -127,29 +118,6 @@ class EOAWalletSigner with SecureStorageMixin implements EOAInterface {
     final hdKey = _getHdKey(index);
     final privateKey = _deriveEthPrivKey(hdKey.key.toHex());
     return privateKey;
-  }
-
-  /// Loads an EOA wallet signer instance from secure storage using the provided [SecureStorageRepository].
-  ///
-  /// Parameters:
-  /// - [storageMiddleware]: The secure storage repository used to retrieve the EOA wallet credentials.
-  /// - [options]: Optional authentication operation options. Defaults to `null`.
-  ///
-  /// Returns a `Future` that resolves to a `HDWalletSigner` instance if successfully loaded, or `null` otherwise.
-  ///
-  /// Example:
-  /// ```dart
-  /// final loadedSigner = await HDWalletSigner.loadFromSecureStorage(
-  ///    SecureStorageMiddleware(),
-  /// );
-  /// ```
-  static Future<EOAWalletSigner?> loadFromSecureStorage(
-      SecureStorageRepository storageMiddleware,
-      {StorageOptions? options}) {
-    return storageMiddleware
-        .readCredential(SignerType.eoaWallet, options: options)
-        .then((value) =>
-            value != null ? EOAWalletSigner.recoverAccount(value) : null);
   }
 }
 
