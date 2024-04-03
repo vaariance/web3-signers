@@ -1,5 +1,7 @@
 part of 'interfaces.dart';
 
+typedef EWI = EOAWalletInterface;
+
 /// An interface for hierarchical deterministic (HD) wallets.
 ///
 /// This interface defines the basic contract for interacting with Ethereum wallets,

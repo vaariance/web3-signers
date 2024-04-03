@@ -36,4 +36,15 @@ abstract class HardwareSignerInterface extends MultiSignerInterface {
   /// Tuple<Uint256, Uint256> publicKey = await getPublicKey();
   /// ```
   Future<Tuple<Uint256, Uint256>> getPublicKey();
+
+  /// Signs a hash and returns a `Future` that completes with a `P256Signature`.
+  ///
+  /// This function is asynchronous and returns a `Future<P256Signature>`.
+  /// The `P256Signature` object represents the signed hash.
+  ///
+  /// Example:
+  /// ```dart
+  /// P256Signature signature = await singToP256Signature(hash);
+  /// ```
+  Future<P256Signature> signToP256Signature(Uint8List hash);
 }

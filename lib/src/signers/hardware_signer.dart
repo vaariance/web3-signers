@@ -2,7 +2,8 @@ part of "../web3_signers_base.dart";
 
 class HardwareSigner implements HardwareSignerInterface {
   @override
-  String dummySignature = "";
+  String dummySignature =
+      "0x44dcb6ead69cff6d51ce5c978db2b8539b55b2190b356afb86fe7f586a58c699d0c5fee693d4f7a6dcd638ca35d23954ee8470c807e0f948251c05ff9d989e22";
 
   final String _tag;
 
@@ -27,10 +28,7 @@ class HardwareSigner implements HardwareSignerInterface {
 
   @override
   Future<Tuple<Uint256, Uint256>> getPublicKey() async {
-    final bool isKeyCreated = await SecureP256.isKeyCreated(_tag);
-    if (!isKeyCreated) {
-      throw KeyPairForTagDoesNotExist(_tag);
-    }
+    await _checkKey();
     final publicKeyBytes = await SecureP256.getPublicKey(_tag);
 
     return await getPublicKeyFromBytes(publicKeyBytes.derKey);
@@ -43,23 +41,31 @@ class HardwareSigner implements HardwareSignerInterface {
 
   @override
   Future<Uint8List> personalSign(Uint8List hash, {int? index}) async {
-    final bool isKeyCreated = await SecureP256.isKeyCreated(_tag);
-    if (!isKeyCreated) {
-      throw KeyPairForTagDoesNotExist(_tag);
-    }
-    return SecureP256.sign(_tag, hash);
+    final signature = await signToP256Signature(hash);
+    return signature.toUint8List();
   }
 
   @override
   Future<MsgSignature> signToEc(Uint8List hash, {int? index}) async {
+    final signature = await signToP256Signature(hash);
+    return MsgSignature(signature.r.value, signature.s.value, 0);
+  }
+
+  @override
+  Future<P256Signature> signToP256Signature(Uint8List hash) async {
+    await _checkKey();
+    final signatureBytes = await SecureP256.sign(_tag, hash);
+    final signature = getMessagingSignature(signatureBytes);
+
+    return P256Signature(
+        hash, signatureBytes, signature.item1, signature.item2);
+  }
+
+  Future<void> _checkKey() async {
     final bool isKeyCreated = await SecureP256.isKeyCreated(_tag);
     if (!isKeyCreated) {
       throw KeyPairForTagDoesNotExist(_tag);
     }
-    final signatureBytes = await SecureP256.sign(_tag, hash);
-    final signature = getMessagingSignature(signatureBytes);
-
-    return MsgSignature(signature.item1.value, signature.item2.value, 0);
   }
 }
 
@@ -104,6 +110,18 @@ class P256Signature {
   final Uint256 s;
 
   P256Signature(this.signedPayload, this.signatureRaw, this.r, this.s);
+
+  /// Converts the `P256Signature` to a `Uint8List` using the specified ABI encoding.
+  ///
+  /// Returns the encoded Uint8List.
+  ///
+  /// Example:
+  /// ```dart
+  /// final Uint8List encodedSig = p256Sig.toUint8List();
+  /// ```
+  Uint8List toUint8List() {
+    return abi.encode(['uint256', 'uint256'], [r.value, s.value]);
+  }
 }
 
 class KeyPairForTagDoesNotExist extends Error {

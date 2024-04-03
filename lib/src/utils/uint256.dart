@@ -72,6 +72,26 @@ class Uint256 implements Uint256Base {
   }
 
   @override
+  bool operator >(Uint256 other) {
+    return _value > other._value;
+  }
+
+  @override
+  bool operator >=(Uint256 other) {
+    return _value >= other._value;
+  }
+
+  @override
+  bool operator <(Uint256 other) {
+    return _value < other._value;
+  }
+
+  @override
+  bool operator <=(Uint256 other) {
+    return _value <= other._value;
+  }
+
+  @override
   BigInt toEther() {
     return toEtherAmount().getInEther;
   }
