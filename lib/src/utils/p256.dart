@@ -3,32 +3,6 @@ part of 'utils.dart';
 class SecureP256 {
   const SecureP256._();
 
-  static Future<Uint8List> decrypt({
-    required Uint8List sharedSecret,
-    required SecretBox encrypted,
-  }) async {
-    assert(sharedSecret.isNotEmpty);
-    assert(Uint8List.fromList(encrypted.nonce).lengthInBytes == 12);
-    assert(encrypted.cipherText.isNotEmpty);
-    final sharedX = sharedSecret.sublist(0, 32);
-    final decryptedMessage256 = await FlutterAesGcm.with256bits()
-        .decrypt(encrypted, secretKey: SecretKey(sharedX));
-    return Uint8List.fromList(decryptedMessage256);
-  }
-
-  static Future<SecretBox> encrypt({
-    required Uint8List sharedSecret,
-    required Uint8List message,
-  }) async {
-    assert(sharedSecret.isNotEmpty);
-    assert(message.isNotEmpty);
-    final sharedX = sharedSecret.sublist(0, 32);
-    final iv = Uint8List.fromList(randomAsU8a(12));
-    final encrypted = await FlutterAesGcm.with256bits()
-        .encrypt(message, secretKey: SecretKey(sharedX), nonce: iv);
-    return encrypted;
-  }
-
   static Future<P256PublicKey> getPublicKey(String tag) async {
     assert(tag.isNotEmpty);
     final raw = await SecureP256Platform.instance.getPublicKey(tag);
@@ -41,16 +15,21 @@ class SecureP256 {
   }
 
   static Future<Uint8List> getSharedSecret(
-      String tag, P256PublicKey publicKey) async {
+    String tag,
+    P256PublicKey publicKey, [
+    Tuple<FutureOr<void> Function(String, Uint8List)?,
+            FutureOr<Uint8List>? Function(Uint8List)?>?
+        hooks,
+  ]) async {
     assert(tag.isNotEmpty);
     Uint8List rawKey = publicKey.rawKey;
-    if (Platform.isAndroid) {
-      if (!isDerPublicKey(rawKey, oidP256)) {
-        rawKey = bytesWrapDer(rawKey, oidP256);
-      }
-      await BiometricMiddleware().authenticate(localizedReason: "Sign");
+    if (Platform.isAndroid && !isDerPublicKey(rawKey, oidP256)) {
+      rawKey = bytesWrapDer(rawKey, oidP256);
     }
-    return SecureP256Platform.instance.getSharedSecret(tag, rawKey);
+    hooks?.item1?.call(tag, rawKey);
+    final sharedSecret =
+        await SecureP256Platform.instance.getSharedSecret(tag, rawKey);
+    return hooks?.item2?.call(sharedSecret) ?? sharedSecret;
   }
 
   static Future<bool> isKeyCreated(String tag) async {
@@ -58,17 +37,21 @@ class SecureP256 {
     return SecureP256Platform.instance.isKeyCreated(tag);
   }
 
-  static Future<Uint8List> sign(String tag, Uint8List payload) async {
+  static Future<Uint8List> sign(
+    String tag,
+    Uint8List payload, [
+    Tuple<FutureOr<void> Function(String, Uint8List)?,
+            FutureOr<Uint8List>? Function(Uint8List)?>?
+        hooks,
+  ]) async {
     assert(tag.isNotEmpty);
     assert(payload.isNotEmpty);
-    if (Platform.isAndroid) {
-      await BiometricMiddleware().authenticate(localizedReason: "Sign");
-    }
-    final signature = await SecureP256Platform.instance.sign(tag, payload);
+    hooks?.item1?.call(tag, payload);
+    var signature = await SecureP256Platform.instance.sign(tag, payload);
     if (!isDerSignature(signature)) {
-      return bytesWrapDerSignature(signature);
+      signature = bytesWrapDerSignature(signature);
     }
-    return signature;
+    return hooks?.item2?.call(signature) ?? signature;
   }
 
   static Future<bool> verify(

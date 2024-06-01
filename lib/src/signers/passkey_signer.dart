@@ -11,7 +11,7 @@ class AuthData {
   AuthData(this.credentialHex, this.publicKey, this.aaGUID);
 }
 
-class PassKeyPair with SecureStorageMixin {
+class PassKeyPair {
   final Hex credentialHex;
 
   /// x and y coordinates of the public key
@@ -48,35 +48,6 @@ class PassKeyPair with SecureStorageMixin {
       'aaGUID': aaGUID,
       'registrationTime': registrationTime.millisecondsSinceEpoch,
     };
-  }
-
-  @override
-  SecureStorageMiddleware withSecureStorage(FlutterSecureStorage secureStorage,
-      {Authentication? authMiddleware}) {
-    return SecureStorageMiddleware(secureStorage,
-        authMiddleware: authMiddleware, credential: toJson());
-  }
-
-  /// Loads a passkey pair from secure storage using the provided [SecureStorageRepository].
-  ///
-  /// Parameters:
-  /// - [storageMiddleware]: The secure storage repository used to retrieve the passkey pair credentials.
-  /// - [options]: Optional authentication operation options. Defaults to `null`.
-  ///
-  /// Returns a `Future` that resolves to a `PassKeyPair` instance if successfully loaded, or `null` otherwise.
-  ///
-  /// Example:
-  /// ```dart
-  /// final loadedPassKeyPair = await PassKeyPair.loadFromSecureStorage(
-  ///   SecureStorageMiddleware(),
-  /// );
-  /// ```
-  static Future<PassKeyPair?> loadFromSecureStorage(
-      SecureStorageRepository storageMiddleware,
-      {StorageOptions? options}) {
-    return storageMiddleware
-        .readCredential(SignerType.passkey, options: options)
-        .then((value) => value != null ? PassKeyPair.fromJson(value) : null);
   }
 }
 
@@ -120,7 +91,7 @@ class PassKeySignature {
   }
 }
 
-class PassKeySigner implements PasskeyInterface {
+class PassKeySigner implements PasskeySignerInterface {
   final PassKeysOptions _opts;
 
   final PasskeyAuthenticator _auth;
@@ -299,14 +270,20 @@ class PassKeySigner implements PasskeyInterface {
     final aaGUID = base64Url.encode(authData.sublist(37, 53));
 
     // Decode the CBOR-encoded public key and convert it to a map.
-    final decodedPubKey = CborObject.fromDynamic(pKey).value as CborMapValue;
+    final decodedPubKey = CborObject.fromCbor(pKey) as CborMapValue;
+
+    final keyX = decodedPubKey.value.entries
+        .firstWhere((element) => element.key.value == -2);
+
+    final keyY = decodedPubKey.value.entries
+        .firstWhere((element) => element.key.value == -3);
 
     // Calculate the hash of the credential ID.
     final credentialHex = credentialIdToHex(credentialId);
 
     // Extract x and y coordinates from the decoded public key.
-    final x = Uint256.fromHex(hexlify(decodedPubKey.value[-2]));
-    final y = Uint256.fromHex(hexlify(decodedPubKey.value[-3]));
+    final x = Uint256.fromHex(hexlify(keyX.value.value));
+    final y = Uint256.fromHex(hexlify(keyY.value.value));
 
     return AuthData(credentialHex, Tuple(x, y), aaGUID);
   }
@@ -314,8 +291,13 @@ class PassKeySigner implements PasskeyInterface {
   AuthData _decodeAttestation(RegisterResponseType attestation) {
     final attestationAsCbor = b64d(attestation.attestationObject);
     final decodedAttestationAsCbor =
-        CborObject.fromDynamic(attestationAsCbor).value as CborMapValue;
-    final authData = List<int>.from(decodedAttestationAsCbor.value["authData"]);
+        CborObject.fromCbor(attestationAsCbor) as CborMapValue;
+
+    final key = decodedAttestationAsCbor.value.entries
+        .firstWhere((element) => element.key.value == "authData");
+    final value = key.value.value;
+
+    final authData = List<int>.from(value);
     return _decode(authData);
   }
 

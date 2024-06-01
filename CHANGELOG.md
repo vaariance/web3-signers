@@ -1,3 +1,17 @@
+## 0.0.7
+
+- Fix TypeError in incorrect Cbor data Decoding
+
+## 0.0.6
+
+- Add hardware signer dummy signature
+- Fix Signature conversion method in harware signer
+- Add comparism operators for uint256 class
+
+## 0.0.5
+
+- Remove unnecessary dependencies
+
 ## 0.0.4
 
 - Reduce external deps

@@ -3,19 +3,20 @@ library interfaces;
 import 'dart:typed_data';
 
 import 'package:blockchain_utils/tuple/tuple.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
-import '../utils/utils.dart'
-    show StorageOptions, SignerType, SecureStorageMiddleware, Uint256;
+import '../utils/utils.dart' show Uint256;
 import '../web3_signers_base.dart'
-    show P256Credential, PassKeyPair, PassKeySignature, PassKeysOptions;
+    show
+        P256Credential,
+        P256Signature,
+        PassKeyPair,
+        PassKeySignature,
+        PassKeysOptions;
 
-part 'eoa_interface.dart';
-part 'local_authentication.dart';
+part 'eoa_wallet_interface.dart';
 part 'multi_signer_interface.dart';
-part 'passkey_interface.dart';
-part 'secure_storage_repository.dart';
+part 'passkey_signer_interface.dart';
 part 'uint256_interface.dart';
-part 'hardware_interface.dart';
+part 'hardware_signer_interface.dart';
