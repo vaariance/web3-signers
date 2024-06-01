@@ -1,3 +1,7 @@
+## 0.0.7
+
+- Fix TypeError in incorrect Cbor data Decoding
+
 ## 0.0.6
 
 - Add hardware signer dummy signature

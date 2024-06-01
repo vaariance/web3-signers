@@ -270,14 +270,20 @@ class PassKeySigner implements PasskeySignerInterface {
     final aaGUID = base64Url.encode(authData.sublist(37, 53));
 
     // Decode the CBOR-encoded public key and convert it to a map.
-    final decodedPubKey = CborObject.fromDynamic(pKey).value as CborMapValue;
+    final decodedPubKey = CborObject.fromCbor(pKey) as CborMapValue;
+
+    final keyX = decodedPubKey.value.entries
+        .firstWhere((element) => element.key.value == -2);
+
+    final keyY = decodedPubKey.value.entries
+        .firstWhere((element) => element.key.value == -3);
 
     // Calculate the hash of the credential ID.
     final credentialHex = credentialIdToHex(credentialId);
 
     // Extract x and y coordinates from the decoded public key.
-    final x = Uint256.fromHex(hexlify(decodedPubKey.value[-2]));
-    final y = Uint256.fromHex(hexlify(decodedPubKey.value[-3]));
+    final x = Uint256.fromHex(hexlify(keyX.value.value));
+    final y = Uint256.fromHex(hexlify(keyY.value.value));
 
     return AuthData(credentialHex, Tuple(x, y), aaGUID);
   }
@@ -285,8 +291,13 @@ class PassKeySigner implements PasskeySignerInterface {
   AuthData _decodeAttestation(RegisterResponseType attestation) {
     final attestationAsCbor = b64d(attestation.attestationObject);
     final decodedAttestationAsCbor =
-        CborObject.fromDynamic(attestationAsCbor).value as CborMapValue;
-    final authData = List<int>.from(decodedAttestationAsCbor.value["authData"]);
+        CborObject.fromCbor(attestationAsCbor) as CborMapValue;
+
+    final key = decodedAttestationAsCbor.value.entries
+        .firstWhere((element) => element.key.value == "authData");
+    final value = key.value.value;
+
+    final authData = List<int>.from(value);
     return _decode(authData);
   }
 
