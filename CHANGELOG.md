@@ -1,3 +1,9 @@
+## 0.0.9
+- Fixed compileSdk not specified
+
+## 0.0.8
+- Changed compileSdk to default
+
 ## 0.0.7
 
 - Fix TypeError in incorrect Cbor data Decoding
