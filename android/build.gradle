@@ -27,7 +27,7 @@ apply plugin: 'kotlin-android'
 android {
     namespace 'com.variance.web3_signers'
 
-    compileSdkVersion 33
+    compileSdkVersion flutter.compileSdkVersion
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
