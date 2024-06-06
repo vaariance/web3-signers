@@ -1,5 +1,5 @@
 ## 0.0.10
-- Changed compileSdk
+- changed android api levels
 ## 0.0.9
 - Fixed compileSdk not specified
 
