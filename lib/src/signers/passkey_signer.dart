@@ -125,7 +125,7 @@ class PassKeySigner implements PasskeySignerInterface {
   PassKeysOptions get opts => _opts;
 
   @override
-  Uint8List clientDataHash(PassKeysOptions options, {String? challenge}) {
+  Uint8List clientDataHash(PassKeysOptions options, {String? challenge, String? secondChallenge}) {
     options.challenge = challenge ?? _randomBase64String();
     final clientDataJson = jsonEncode({
       "type": options.type,
@@ -175,9 +175,9 @@ class PassKeySigner implements PasskeySignerInterface {
 
   @override
   Future<PassKeyPair> register(String username,
-      [String displayname = "", bool requiresUserVerification = true]) async {
+      [String displayname = "", bool requiresUserVerification = true, String? challenge]) async {
     final attestation =
-        await _register(username, displayname, requiresUserVerification);
+        await _register(username, displayname, requiresUserVerification,challenge);
     final authData = _decodeAttestation(attestation);
 
     return PassKeyPair(
@@ -307,11 +307,11 @@ class PassKeySigner implements PasskeySignerInterface {
   }
 
   Future<RegisterResponseType> _register(String username,
-      [String? displayname, bool requiresUserVerification = true]) async {
+      [String? displayname, bool requiresUserVerification = true, String? challenge]) async {
     final options = _opts;
     options.type = "webauthn.create";
     final entity = RegisterRequestType(
-      challenge: b64e(clientDataHash(options)),
+      challenge: b64e(clientDataHash(options,challenge: challenge)),
       relyingParty: RelyingPartyType(
         id: options.namespace,
         name: options.name,
