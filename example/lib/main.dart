@@ -38,8 +38,8 @@ class _Web3SignerState extends State<Web3Signer> {
   }
 
   void _updatePkpPublicKey() => setState(() {
-        _textField1Controller.text = _pkp!.publicKey.item1.toHex();
-        _textField2Controller.text = _pkp!.publicKey.item2.toHex();
+        _textField1Controller.text = _pkp!.authData.publicKey.item1.toHex();
+        _textField2Controller.text = _pkp!.authData.publicKey.item2.toHex();
       });
 
   void _updateSePublicKey() => setState(() async {
@@ -69,8 +69,8 @@ class _Web3SignerState extends State<Web3Signer> {
           sha256Hash(sig.authData),
           sig.signature.item1.value,
           sig.signature.item2.value,
-          _pkp?.publicKey.item1.value,
-          _pkp?.publicKey.item2.value
+          _pkp?.authData.publicKey.item1.value,
+          _pkp?.authData.publicKey.item2.value
         ]));
       });
 

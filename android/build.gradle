@@ -27,7 +27,7 @@ apply plugin: 'kotlin-android'
 android {
     namespace 'com.variance.web3_signers'
 
-    compileSdkVersion flutter.compileSdkVersion
+    compileSdkVersion 34
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
@@ -43,7 +43,8 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 23
+        minSdkVersion 28
+        multiDexEnabled true
     }
 }
 
@@ -52,4 +53,5 @@ dependencies {
     implementation 'androidx.security:security-crypto-ktx:1.1.0-alpha06'
     implementation 'org.bouncycastle:bcprov-jdk15on:1.68'
     implementation 'org.conscrypt:conscrypt-android:2.5.2'
+    implementation 'androidx.multidex:multidex:2.0.1'
 }
