@@ -1,26 +1,26 @@
 part of '../web3_signers_base.dart';
 
 typedef Hex = String;
+typedef Bytes = Uint8List;
 
 class AuthData {
-  final Hex credentialHex;
+  final Hex hexCredential;
+  final Bytes rawCredential;
 
   /// x and y coordinates of the public key
   final Tuple<Uint256, Uint256> publicKey;
   final String aaGUID;
-  AuthData(this.credentialHex, this.publicKey, this.aaGUID);
+  AuthData(this.hexCredential, this.rawCredential, this.publicKey, this.aaGUID);
 }
 
 class PassKeyPair {
-  final Hex credentialHex;
+  final AuthData authData;
 
-  /// x and y coordinates of the public key
-  final Tuple<Uint256, Uint256> publicKey;
-  final String name;
-  final String aaGUID;
+  final String username;
+  final String? displayname;
   final DateTime registrationTime;
-  PassKeyPair(this.credentialHex, this.publicKey, this.name, this.aaGUID,
-      this.registrationTime);
+  PassKeyPair(
+      this.authData, this.username, this.displayname, this.registrationTime);
 
   factory PassKeyPair.fromJson(String source) =>
       PassKeyPair.fromMap(json.decode(source) as Map<String, dynamic>);
@@ -30,10 +30,14 @@ class PassKeyPair {
         .map((e) => Uint256.fromHex(e))
         .toList();
     return PassKeyPair(
-      map['credentialHex'],
-      Tuple(pKey[0], pKey[1]),
-      map['name'],
-      map['aaGUID'],
+      AuthData(
+        map['hexCredential'],
+        b64d(map['rawCredential']),
+        Tuple(pKey[0], pKey[1]),
+        map['aaGUID'],
+      ),
+      map['username'],
+      map['displayname'],
       DateTime.fromMillisecondsSinceEpoch(map['registrationTime']),
     );
   }
@@ -42,10 +46,13 @@ class PassKeyPair {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'credentialHex': credentialHex,
-      'publicKey': publicKey.toList().map((e) => e.toString()).toList(),
-      'name': name,
-      'aaGUID': aaGUID,
+      'hexCredential': authData.hexCredential,
+      'rawCredential': b64e(authData.rawCredential),
+      'publicKey':
+          authData.publicKey.toList().map((e) => e.toString()).toList(),
+      'username': username,
+      'displayname': displayname,
+      'aaGUID': authData.aaGUID,
       'registrationTime': registrationTime.millisecondsSinceEpoch,
     };
   }
@@ -105,15 +112,13 @@ class PassKeySigner implements PasskeySignerInterface {
   /// - [namespace] : the relying party entity id e.g "variance.space"
   /// - [name] : the relying party entity name e.g "Variance"
   /// - [origin] : the relying party entity origin. e.g "https://variance.space"
-  /// - [crossOrigin] : whether the relying party entity is cross-origin. Defaults to `false`.
   /// - [knownCredentials] : a set of known credentials. Defaults to an empty set.
   PassKeySigner(String namespace, String name, String origin,
-      {bool? crossOrigin, Set<Hex> knownCredentials = const {}})
+      {Set<Hex> knownCredentials = const {}})
       : _opts = PassKeysOptions(
           namespace: namespace,
           name: name,
           origin: origin,
-          crossOrigin: crossOrigin ?? false,
         ),
         _auth = PasskeyAuthenticator(),
         _knownCredentials = knownCredentials;
@@ -125,13 +130,12 @@ class PassKeySigner implements PasskeySignerInterface {
   PassKeysOptions get opts => _opts;
 
   @override
-  Uint8List clientDataHash(PassKeysOptions options, {String? challenge, String? secondChallenge}) {
+  Uint8List clientDataHash(PassKeysOptions options, [String? challenge]) {
     options.challenge = challenge ?? _randomBase64String();
     final clientDataJson = jsonEncode({
       "type": options.type,
       "challenge": options.challenge,
       "origin": options.origin,
-      "crossOrigin": options.crossOrigin
     });
     final dataBuffer = utf8.encode(clientDataJson);
     final hash = sha256Hash(dataBuffer);
@@ -140,11 +144,15 @@ class PassKeySigner implements PasskeySignerInterface {
 
   @override
   String credentialIdToHex(List<int> credentialId) {
-    require(credentialId.length <= 32, "exception: credentialId too long");
-    while (credentialId.length < 32) {
-      credentialId.insert(0, 0);
+    if (credentialId.length <= 32) {
+      while (credentialId.length < 32) {
+        credentialId.insert(0, 0);
+      }
+      return hexlify(credentialId);
     }
-    return hexlify(credentialId);
+    Logger.error(
+        "Credential ID too long: ${credentialId.length}, hex operation skipped");
+    return "";
   }
 
   @override
@@ -174,17 +182,23 @@ class PassKeySigner implements PasskeySignerInterface {
   }
 
   @override
-  Future<PassKeyPair> register(String username,
-      [String displayname = "", bool requiresUserVerification = true, String? challenge]) async {
-    final attestation =
-        await _register(username, displayname, requiresUserVerification,challenge);
+  Future<PassKeyPair> register(String username, String displayname,
+      {String? challenge,
+      bool requiresResidentKey = true,
+      bool requiresUserVerification = true}) async {
+    final attestation = await _register(
+      username,
+      displayname,
+      challenge,
+      requiresResidentKey,
+      requiresUserVerification,
+    );
     final authData = _decodeAttestation(attestation);
 
     return PassKeyPair(
-      authData.credentialHex,
-      authData.publicKey,
-      "$username $displayname".trimRight(),
-      authData.aaGUID,
+      authData,
+      username,
+      displayname,
       DateTime.now(),
     );
   }
@@ -246,7 +260,7 @@ class PassKeySigner implements PasskeySignerInterface {
     final entity = AuthenticateRequestType(
         relyingPartyId: _opts.namespace,
         challenge: challenge,
-        timeout: 180000,
+        timeout: 60000,
         userVerification: requiresUserVerification ? 'required' : 'preferred',
         allowCredentials: allowedCredentials,
         mediation: MediationType.Conditional);
@@ -279,13 +293,14 @@ class PassKeySigner implements PasskeySignerInterface {
         .firstWhere((element) => element.key.value == -3);
 
     // Calculate the hash of the credential ID.
-    final credentialHex = credentialIdToHex(credentialId);
+    String hexCredentialId = credentialIdToHex(credentialId);
 
     // Extract x and y coordinates from the decoded public key.
     final x = Uint256.fromHex(hexlify(keyX.value.value));
     final y = Uint256.fromHex(hexlify(keyY.value.value));
 
-    return AuthData(credentialHex, Tuple(x, y), aaGUID);
+    return AuthData(
+        hexCredentialId, Uint8List.fromList(credentialId), Tuple(x, y), aaGUID);
   }
 
   AuthData _decodeAttestation(RegisterResponseType attestation) {
@@ -306,24 +321,26 @@ class PassKeySigner implements PasskeySignerInterface {
     return b64e(UUID.toBuffer(uuid));
   }
 
-  Future<RegisterResponseType> _register(String username,
-      [String? displayname, bool requiresUserVerification = true, String? challenge]) async {
+  Future<RegisterResponseType> _register(String username, String displayname,
+      [String? challenge,
+      bool requiresResidentKey = true,
+      bool requiresUserVerification = true]) async {
     final options = _opts;
     options.type = "webauthn.create";
     final entity = RegisterRequestType(
-      challenge: b64e(clientDataHash(options,challenge: challenge)),
+      challenge: b64e(clientDataHash(options, challenge)),
       relyingParty: RelyingPartyType(
         id: options.namespace,
         name: options.name,
       ),
       user: UserType(
         id: _randomBase64String(),
-        displayName: displayname ?? username,
+        displayName: displayname,
         name: username,
       ),
       authSelectionType: AuthenticatorSelectionType(
-        requireResidentKey: true,
-        residentKey: 'required',
+        requireResidentKey: requiresResidentKey,
+        residentKey: requiresResidentKey ? 'preferred' : 'discouraged',
         authenticatorAttachment: 'platform',
         userVerification: requiresUserVerification ? 'required' : 'preferred',
       ),
@@ -333,7 +350,7 @@ class PassKeySigner implements PasskeySignerInterface {
           alg: -7,
         ),
       ],
-      timeout: 180000,
+      timeout: 60000,
       attestation: 'none',
       excludeCredentials: [],
     );
@@ -345,14 +362,12 @@ class PassKeysOptions {
   final String namespace;
   final String name;
   final String origin;
-  bool? crossOrigin;
   String? challenge;
   String? type;
   PassKeysOptions(
       {required this.namespace,
       required this.name,
       required this.origin,
-      this.crossOrigin,
       this.challenge,
       this.type});
 }

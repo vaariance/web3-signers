@@ -1,11 +1,23 @@
+## 0.0.12
+
+- register function requires display name
+- register function now needs to specify whether to use resident keys
+- bumped dependencies
+
 ## 0.0.11
+
 - Added optional challenge string to register function
+
 ## 0.0.10
+
 - changed android api levels
+
 ## 0.0.9
+
 - Fixed compileSdk not specified
 
 ## 0.0.8
+
 - Changed compileSdk to default
 
 ## 0.0.7

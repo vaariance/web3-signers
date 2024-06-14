@@ -22,7 +22,7 @@ abstract class PasskeySignerInterface extends MultiSignerInterface {
   /// final passKeysOptions = PassKeysOptions(type: 'webauthn', origin: 'https://example.com');
   /// final clientDataHash32 = clientDataHash32(passKeysOptions);
   /// ```
-  Uint8List clientDataHash(PassKeysOptions options, {String? challenge});
+  Uint8List clientDataHash(PassKeysOptions options, [String? challenge]);
 
   /// Converts a List<int> credentialId to a hex string representation with a length of 32 bytes.
   ///
@@ -55,9 +55,11 @@ abstract class PasskeySignerInterface extends MultiSignerInterface {
   /// Registers a new PassKeyPair.
   ///
   /// Parameters:
-  /// - [firstName]: The name associated with the PassKeyPair.
-  /// - [lastName]: Optional last name associated with the PassKeyPair.
+  /// - [username]: The name/email address associated with the PassKeyPair.
+  /// - [displayname]: (Optional android 14+) display name associated with the PassKeyPair.
   /// - [requiresUserVerification]: A boolean indicating whether user verification is required. Defaults to true.
+  /// - [requiresResidentKey]: A boolean indicating whether a resident key is required. Defaults to false.
+  /// - [challenge]: Optional challenge value. Defaults to a randomly generated challenge if not provided.
   ///
   /// Returns a Future<PassKeyPair> representing the registered PassKeyPair.
   ///
@@ -66,8 +68,10 @@ abstract class PasskeySignerInterface extends MultiSignerInterface {
   /// final pkps = PassKeySigner("example", "example.com", "https://example.com");
   /// final passKeyPair = await pkps.register('geffy', true);
   /// ```
-  Future<PassKeyPair> register(String firstName,
-      [String lastName = "", bool requiresUserVerification = true]);
+  Future<PassKeyPair> register(String username, String displayname,
+      {String? challenge,
+      bool requiresResidentKey = false,
+      bool requiresUserVerification = true});
 
   /// Signs a hash using the PassKeyPair associated with the given credentialId.
   ///
