@@ -1,3 +1,5 @@
+## 0.0.11
+- Added optional challenge string to register function
 ## 0.0.10
 - changed android api levels
 ## 0.0.9

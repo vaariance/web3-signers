@@ -1,6 +1,6 @@
 name: web3_signers
 description: Web3 signers provides a uniform interface for signing EIP-1271 messages with different EC algorithms.
-version: 0.0.10
+version: 0.0.11
 homepage: https://variance.space
 repository: https://github.com/vaariance/web3-signers
 issue_tracker: https://github.com/vaariance/web3-signers/issues
