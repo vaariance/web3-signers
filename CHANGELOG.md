@@ -3,6 +3,7 @@
 - register function requires display name
 - register function now needs to specify whether to use resident keys
 - bumped dependencies
+- returned raw credential from PKP
 
 ## 0.0.11
 
