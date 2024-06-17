@@ -1,3 +1,8 @@
+## 0.0.13
+
+- returned raw credential from Passkey Signature
+- made random challenge generator public
+
 ## 0.0.12
 
 - register function requires display name

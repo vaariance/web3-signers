@@ -18,7 +18,7 @@ class PassKeyPair {
 
   final String username;
   final String? displayname;
-  final DateTime registrationTime;
+  final DateTime? registrationTime;
   PassKeyPair(
       this.authData, this.username, this.displayname, this.registrationTime);
 
@@ -38,7 +38,9 @@ class PassKeyPair {
       ),
       map['username'],
       map['displayname'],
-      DateTime.fromMillisecondsSinceEpoch(map['registrationTime']),
+      map['registrationTime'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['registrationTime'])
+          : null,
     );
   }
 
@@ -53,13 +55,14 @@ class PassKeyPair {
       'username': username,
       'displayname': displayname,
       'aaGUID': authData.aaGUID,
-      'registrationTime': registrationTime.millisecondsSinceEpoch,
+      'registrationTime': registrationTime?.millisecondsSinceEpoch,
     };
   }
 }
 
 class PassKeySignature {
-  final Hex credentialHex;
+  final Hex hexCredential;
+  final Bytes rawCredential;
 
   /// r and s values of the signature.
   final Tuple<Uint256, Uint256> signature;
@@ -70,8 +73,8 @@ class PassKeySignature {
   /// not decodable.
   final String userId;
 
-  PassKeySignature(this.credentialHex, this.signature, this.authData,
-      this.clientDataPrefix, this.clientDataSuffix, this.userId);
+  PassKeySignature(this.hexCredential, this.rawCredential, this.signature,
+      this.authData, this.clientDataPrefix, this.clientDataSuffix, this.userId);
 
   /// Converts the `PassKeySignature` to a `Uint8List` using the specified ABI encoding.
   ///
@@ -103,7 +106,7 @@ class PassKeySigner implements PasskeySignerInterface {
 
   final PasskeyAuthenticator _auth;
 
-  final Set<Hex> _knownCredentials;
+  final Set<Bytes> _knownCredentials;
 
   @override
   String dummySignature =
@@ -114,7 +117,7 @@ class PassKeySigner implements PasskeySignerInterface {
   /// - [origin] : the relying party entity origin. e.g "https://variance.space"
   /// - [knownCredentials] : a set of known credentials. Defaults to an empty set.
   PassKeySigner(String namespace, String name, String origin,
-      {Set<Hex> knownCredentials = const {}})
+      {Set<Bytes> knownCredentials = const {}})
       : _opts = PassKeysOptions(
           namespace: namespace,
           name: name,
@@ -124,14 +127,14 @@ class PassKeySigner implements PasskeySignerInterface {
         _knownCredentials = knownCredentials;
 
   @override
-  Set<Hex> get credentialIds => _knownCredentials;
+  Set<Bytes> get credentialIds => _knownCredentials;
 
   @override
   PassKeysOptions get opts => _opts;
 
   @override
   Uint8List clientDataHash(PassKeysOptions options, [String? challenge]) {
-    options.challenge = challenge ?? _randomBase64String();
+    options.challenge = challenge ?? randomBase64String();
     final clientDataJson = jsonEncode({
       "type": options.type,
       "challenge": options.challenge,
@@ -157,8 +160,7 @@ class PassKeySigner implements PasskeySignerInterface {
 
   @override
   String getAddress({int? index}) {
-    return base64Url
-        .encode(hexToCredentialId(_knownCredentials.elementAt(index ?? 0)));
+    return base64Url.encode(_knownCredentials.elementAt(index ?? 0));
   }
 
   @override
@@ -177,8 +179,30 @@ class PassKeySigner implements PasskeySignerInterface {
 
   @override
   Future<Uint8List> personalSign(Uint8List hash, {int? index}) async {
-    final signature = await signToPasskeySignature(hash, index: index);
+    final knownCredentials = _getKnownCredentials(index);
+    final signature =
+        await signToPasskeySignature(hash, knownCredentials: knownCredentials);
     return signature.toUint8List();
+  }
+
+  List<CredentialType> _getKnownCredentials([int? index]) {
+    // Retrive known credentials if any
+    final List<Bytes> credentialIds;
+    if (index != null) {
+      credentialIds = _knownCredentials.elementAtOrNull(index) != null
+          ? [_knownCredentials.elementAt(index)]
+          : _knownCredentials.toList();
+    } else {
+      credentialIds = _knownCredentials.toList();
+    }
+
+    // convert credentialIds to CredentialType
+    final List<CredentialType> credentials = credentialIds
+        .map((e) =>
+            CredentialType(type: "public-key", id: b64e(e), transports: []))
+        .toList();
+
+    return credentials;
   }
 
   @override
@@ -205,35 +229,21 @@ class PassKeySigner implements PasskeySignerInterface {
 
   @override
   Future<MsgSignature> signToEc(Uint8List hash, {int? index}) async {
-    final signature = await signToPasskeySignature(hash, index: index);
+    final knownCredentials = _getKnownCredentials(index);
+    final signature =
+        await signToPasskeySignature(hash, knownCredentials: knownCredentials);
     return MsgSignature(
         signature.signature.item1.value, signature.signature.item2.value, 0);
   }
 
   @override
   Future<PassKeySignature> signToPasskeySignature(Uint8List hash,
-      {int? index}) async {
+      {List<CredentialType>? knownCredentials}) async {
     // Prepare hash
     final hashBase64 = b64e(hash);
 
-    // Retrive known credentials if any
-    final List<Hex> credentialIds;
-    if (index != null) {
-      credentialIds = _knownCredentials.elementAtOrNull(index) != null
-          ? [_knownCredentials.elementAt(index)]
-          : _knownCredentials.toList();
-    } else {
-      credentialIds = _knownCredentials.toList();
-    }
-
-    // convert credentialIds to CredentialType
-    final List<CredentialType> credentials = credentialIds
-        .map((e) => CredentialType(
-            type: "public-key", id: b64e(hexToCredentialId(e)), transports: []))
-        .toList();
-
     // Authenticate with passkey
-    final assertion = await _authenticate(hashBase64, credentials, true);
+    final assertion = await _authenticate(hashBase64, knownCredentials, true);
 
     // Extract signature from response
     final sig = getMessagingSignature(b64d(assertion.signature));
@@ -247,6 +257,7 @@ class PassKeySigner implements PasskeySignerInterface {
 
     return PassKeySignature(
         credentialIdToHex(b64d(assertion.id).toList()),
+        b64d(assertion.rawId),
         sig,
         b64d(assertion.authenticatorData),
         challengePrefix,
@@ -316,7 +327,8 @@ class PassKeySigner implements PasskeySignerInterface {
     return _decode(authData);
   }
 
-  String _randomBase64String() {
+  @override
+  String randomBase64String() {
     final uuid = UUID.generateUUIDv4();
     return b64e(UUID.toBuffer(uuid));
   }
@@ -334,7 +346,7 @@ class PassKeySigner implements PasskeySignerInterface {
         name: options.name,
       ),
       user: UserType(
-        id: _randomBase64String(),
+        id: randomBase64String(),
         displayName: displayname,
         name: username,
       ),
