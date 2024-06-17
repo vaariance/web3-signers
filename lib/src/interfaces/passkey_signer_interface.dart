@@ -7,7 +7,7 @@ abstract class PasskeySignerInterface extends MultiSignerInterface {
   PassKeysOptions get opts;
 
   /// Gets the credential IDs used by the passkey signer.
-  Set<String> get credentialIds;
+  Set<Uint8List> get credentialIds;
 
   /// Generates the 32-byte client data hash for the given [PassKeysOptions] and optional challenge.
   ///
@@ -77,7 +77,7 @@ abstract class PasskeySignerInterface extends MultiSignerInterface {
   ///
   /// Parameters:
   /// - [hash]: The hash to be signed.
-  /// - [index]: Optional index of the credentialId associated with the PassKeyPair.
+  /// - [knownCredentials]: Optional credentials to be used for signing.
   ///
   /// Returns a Future<PassKeySignature> representing the PassKeySignature of the signed hash.
   ///
@@ -88,5 +88,9 @@ abstract class PasskeySignerInterface extends MultiSignerInterface {
   /// final pkps = PassKeySigner("example", "example.com", "https://example.com");
   /// final passKeySignature = await pkps.signToPasskeySignature(hash);
   /// ```
-  Future<PassKeySignature> signToPasskeySignature(Uint8List hash, {int? index});
+  Future<PassKeySignature> signToPasskeySignature(Uint8List hash,
+      {List<CredentialType>? knownCredentials});
+
+  /// Generates a random base64 string.
+  String randomBase64String();
 }
