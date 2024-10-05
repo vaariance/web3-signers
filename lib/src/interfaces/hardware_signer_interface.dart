@@ -2,6 +2,8 @@ part of 'interfaces.dart';
 
 typedef HSI = HardwareSignerInterface;
 
+@Deprecated(
+    'The hardware signer interface will be removed in a future release. please switch to a passkey signer interface instead')
 abstract class HardwareSignerInterface extends MultiSignerInterface {
   /// Generates a key pair and returns a `Future` that completes with a `P256Credential`.
   ///

@@ -1,10 +1,7 @@
 part of "../web3_signers_base.dart";
 
+@Deprecated("please use passkeys signers intead")
 class HardwareSigner implements HardwareSignerInterface {
-  @override
-  String dummySignature =
-      "0x44dcb6ead69cff6d51ce5c978db2b8539b55b2190b356afb86fe7f586a58c699d0c5fee693d4f7a6dcd638ca35d23954ee8470c807e0f948251c05ff9d989e22";
-
   final String _tag;
 
   HardwareSigner._internal(this._tag);
@@ -60,6 +57,10 @@ class HardwareSigner implements HardwareSignerInterface {
     return P256Signature(
         hash, signatureBytes, signature.item1, signature.item2);
   }
+
+  @override
+  String getDummySignature<T>({String prefix = "0x", T? getOptions}) =>
+      "${prefix}44dcb6ead69cff6d51ce5c978db2b8539b55b2190b356afb86fe7f586a58c699d0c5fee693d4f7a6dcd638ca35d23954ee8470c807e0f948251c05ff9d989e22";
 
   Future<void> _checkKey() async {
     final bool isKeyCreated = await SecureP256.isKeyCreated(_tag);

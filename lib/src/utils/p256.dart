@@ -1,5 +1,7 @@
 part of 'utils.dart';
 
+@Deprecated(
+    "SecureP256 is part of the hardware signer and will be removed. Please use passkeys instead")
 class SecureP256 {
   const SecureP256._();
 
