@@ -83,7 +83,7 @@ class PrivateKeySigner implements MultiSignerInterface {
   }
 
   @override
-  String getDummySignature<T>({String prefix = "0x", T? getOptions}) =>
+  String getDummySignature<T>({required String prefix, T? getOptions}) =>
       "${prefix}fffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
 
   String toJson() => _credential.toJson();

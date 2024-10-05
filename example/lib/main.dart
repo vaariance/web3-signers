@@ -52,26 +52,7 @@ class _Web3SignerState extends State<Web3Signer> {
         final sig = await _pkpSigner.signToPasskeySignature(Uint8List(32));
         _textField3Controller.text =
             "[r:${sig.signature.item1.toHex()}, s:${sig.signature.item2.toHex()}]";
-
-        // extracting calldata
-        final hb64e = b64e(Uint8List(32));
-        final cldj = sha256Hash(
-            utf8.encode(sig.clientDataPrefix + hb64e + sig.clientDataSuffix));
-        sig.authData.toList().addAll(cldj);
-        print(hexlify(sha256Hash(sig.authData)));
-        _calldata = hexlify(abi.encode([
-          "bytes32",
-          "uint256",
-          "uint256",
-          "uint256",
-          "uint256"
-        ], [
-          sha256Hash(sig.authData),
-          sig.signature.item1.value,
-          sig.signature.item2.value,
-          _pkp?.authData.publicKey.item1.value,
-          _pkp?.authData.publicKey.item2.value
-        ]));
+        _calldata = hexlify(sig.toUint8List());
       });
 
   void _updateSeSignature() => setState(() async {

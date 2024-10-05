@@ -59,7 +59,7 @@ class HardwareSigner implements HardwareSignerInterface {
   }
 
   @override
-  String getDummySignature<T>({String prefix = "0x", T? getOptions}) =>
+  String getDummySignature<T>({required String prefix, T? getOptions}) =>
       "${prefix}44dcb6ead69cff6d51ce5c978db2b8539b55b2190b356afb86fe7f586a58c699d0c5fee693d4f7a6dcd638ca35d23954ee8470c807e0f948251c05ff9d989e22";
 
   Future<void> _checkKey() async {

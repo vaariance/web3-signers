@@ -24,34 +24,6 @@ abstract class PasskeySignerInterface extends MultiSignerInterface {
   /// ```
   Uint8List clientDataHash(PassKeysOptions options, [String? challenge]);
 
-  /// Converts a List<int> credentialId to a hex string representation with a length of 32 bytes.
-  ///
-  /// Parameters:
-  /// - [credentialId]: List of integers representing the credentialId.
-  ///
-  /// Returns the hex string representation of the credentialId padded to 32 bytes.
-  ///
-  /// Example:
-  /// ```dart
-  /// final credentialId = [1, 2, 3];
-  /// final hexString = credentialIdToBytes32Hex(credentialId);
-  /// ```
-  String credentialIdToHex(List<int> credentialId);
-
-  /// Converts an hex encoded credential with a length of 32 bytes to Uin8List.
-  ///
-  /// Parameters:
-  /// - [credentialHex]: representing the credentialId hex encoded.
-  ///
-  /// Returns the bytes representation of the credentialId.
-  ///
-  /// Example:
-  /// ```dart
-  /// final credentialHex =  "0x54efBC...";
-  /// final bytes = hexToCredentialId(credentialHex);
-  /// ```
-  Uint8List hexToCredentialId(String credentialHex);
-
   /// Registers a new PassKeyPair.
   ///
   /// Parameters:

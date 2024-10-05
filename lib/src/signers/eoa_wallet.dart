@@ -83,7 +83,7 @@ class EOAWallet implements EOAWalletInterface {
   }
 
   @override
-  String getDummySignature<T>({String prefix = "0x", T? getOptions}) =>
+  String getDummySignature<T>({required String prefix, T? getOptions}) =>
       "${prefix}fffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
 
   EthereumAddress _add(List<int> seed, int index) {

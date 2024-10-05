@@ -1,16 +1,15 @@
 part of '../web3_signers_base.dart';
 
-typedef Hex = String;
 typedef Bytes = Uint8List;
 
 class AuthData {
-  final Hex hexCredential;
+  final String b64Credential;
   final Bytes rawCredential;
 
   /// x and y coordinates of the public key
   final Tuple<Uint256, Uint256> publicKey;
   final String aaGUID;
-  AuthData(this.hexCredential, this.rawCredential, this.publicKey, this.aaGUID);
+  AuthData(this.b64Credential, this.rawCredential, this.publicKey, this.aaGUID);
 }
 
 class PassKeyPair {
@@ -31,7 +30,7 @@ class PassKeyPair {
         .toList();
     return PassKeyPair(
       AuthData(
-        map['hexCredential'],
+        map['b64Credential'],
         b64d(map['rawCredential']),
         Tuple(pKey[0], pKey[1]),
         map['aaGUID'],
@@ -48,7 +47,7 @@ class PassKeyPair {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'hexCredential': authData.hexCredential,
+      'b64Credential': authData.b64Credential,
       'rawCredential': b64e(authData.rawCredential),
       'publicKey':
           authData.publicKey.toList().map((e) => e.toString()).toList(),
@@ -61,42 +60,46 @@ class PassKeyPair {
 }
 
 class PassKeySignature {
-  final Hex hexCredential;
-  final Bytes rawCredential;
+  final String b64Credential;
+  final Bytes credentialId;
 
   /// r and s values of the signature.
   final Tuple<Uint256, Uint256> signature;
   final Uint8List authData;
-  final String clientDataPrefix;
-  final String clientDataSuffix;
+  final String clientDataJSON;
+  final int challengePos;
 
   /// not decodable.
   final String userId;
 
-  PassKeySignature(this.hexCredential, this.rawCredential, this.signature,
-      this.authData, this.clientDataPrefix, this.clientDataSuffix, this.userId);
+  PassKeySignature(this.b64Credential, this.credentialId, this.signature,
+      this.authData, this.clientDataJSON, this.challengePos, this.userId);
 
-  /// Converts the `PassKeySignature` to a `Uint8List` using the specified ABI encoding.
+  /// Converts the `PassKeySignature` to a FCL compatible `Uint8List` using the specified ABI encoding.
   ///
   /// Returns the encoded Uint8List.
+  /// abi.encode(['bytes', 'bytes', 'uint256[2]'], [authData, clientDataJSON, [r, s]])
+  ///
   ///
   /// Example:
   /// ```dart
   /// final Uint8List encodedSig = pkpSig.toUint8List();
   /// ```
   Uint8List toUint8List() {
+    final cdjRgExp = RegExp(
+        r'^\{"type":"webauthn.get","challenge":"[A-Za-z0-9\-_]{43}",(.*)\}$');
+    final match = cdjRgExp.firstMatch(clientDataJSON)!;
     return abi.encode([
-      'uint256',
-      'uint256',
       'bytes',
-      'string',
-      'string'
+      'bytes',
+      'uint256[2]'
     ], [
-      signature.item1.value,
-      signature.item2.value,
       authData,
-      clientDataPrefix,
-      clientDataSuffix
+      utf8.encode(match[0]!),
+      [
+        signature.item1.value,
+        signature.item2.value,
+      ]
     ]);
   }
 }
@@ -142,35 +145,40 @@ class PassKeySigner implements PasskeySignerInterface {
   }
 
   @override
-  String credentialIdToHex(List<int> credentialId) {
-    if (credentialId.length <= 32) {
-      while (credentialId.length < 32) {
-        credentialId.insert(0, 0);
-      }
-      return hexlify(credentialId);
-    }
-    Logger.error(
-        "Credential ID too long: ${credentialId.length}, hex operation skipped");
-    return "";
-  }
-
-  @override
   String getAddress({int? index}) {
-    return base64Url.encode(_knownCredentials.elementAt(index ?? 0));
+    return b64e(_knownCredentials.elementAt(index ?? 0));
   }
 
   @override
-  Uint8List hexToCredentialId(String credentialHex) {
-    if (credentialHex.startsWith("0x")) {
-      credentialHex = credentialHex.substring(2);
-    }
+  String getDummySignature<T>({required String prefix, T? getOptions}) {
+    getOptions as Map<String, dynamic>;
+    final signer = getOptions["signer"];
+    final uv = getOptions["userVerification"] == "required" ? 0x04 : 0x01;
+    final dummyCdField = [
+      '"origin":"http://safe.global"',
+      '"padding":"This pads the clientDataJSON so that we can leave room for additional implementation specific fields for a more accurate \'preVerificationGas\' estimate."',
+    ].join(",");
+    final dummyAdField = Uint8List(37);
+    dummyAdField.fillRange(0, dummyAdField.length, 0xfe);
+    dummyAdField[32] = uv;
 
-    List<int> credentialId = hexToBytes(credentialHex).toList();
+    return buildSafeSignatureBytes(
+        signer,
+        PassKeySignature(
+            "",
+            Uint8List(0),
+            Tuple<Uint256, Uint256>(Uint256.fromHex("0x${'ec' * 32}"),
+                Uint256.fromHex("0x${'d5a' * 21}f")),
+            dummyAdField,
+            dummyCdField,
+            0,
+            ""));
+  }
 
-    while (credentialId.isNotEmpty && credentialId[0] == 0) {
-      credentialId.removeAt(0);
-    }
-    return Uint8List.fromList(credentialId);
+  @override
+  String randomBase64String() {
+    final uuid = UUID.generateUUIDv4();
+    return b64e(UUID.toBuffer(uuid));
   }
 
   @override
@@ -181,24 +189,40 @@ class PassKeySigner implements PasskeySignerInterface {
     return signature.toUint8List();
   }
 
-  List<CredentialType> _getKnownCredentials([int? index]) {
-    // Retrive known credentials if any
-    final List<Bytes> credentialIds;
-    if (index != null) {
-      credentialIds = _knownCredentials.elementAtOrNull(index) != null
-          ? [_knownCredentials.elementAt(index)]
-          : _knownCredentials.toList();
-    } else {
-      credentialIds = _knownCredentials.toList();
-    }
+  @override
+  Future<MsgSignature> signToEc(Uint8List hash, {int? index}) async {
+    final knownCredentials = _getKnownCredentials(index);
+    final signature =
+        await signToPasskeySignature(hash, knownCredentials: knownCredentials);
+    return MsgSignature(
+        signature.signature.item1.value, signature.signature.item2.value, 0);
+  }
 
-    // convert credentialIds to CredentialType
-    final List<CredentialType> credentials = credentialIds
-        .map((e) =>
-            CredentialType(type: "public-key", id: b64e(e), transports: []))
-        .toList();
+  @override
+  Future<PassKeySignature> signToPasskeySignature(Uint8List hash,
+      {List<CredentialType>? knownCredentials}) async {
+    // Prepare hash
+    final hashBase64 = b64e(hash);
 
-    return credentials;
+    // Authenticate with passkey
+    final assertion =
+        await _authenticate(hashBase64, false, knownCredentials, true);
+
+    // Extract signature from response
+    final sig = getMessagingSignature(b64d(assertion.signature));
+
+    // Prepare challenge for response
+    final clientDataJSON = utf8.decode(b64d(assertion.clientDataJSON));
+    int challengePos = clientDataJSON.indexOf(hashBase64);
+
+    return PassKeySignature(
+        assertion.id,
+        b64d(assertion.rawId),
+        sig,
+        b64d(assertion.authenticatorData),
+        clientDataJSON,
+        challengePos,
+        assertion.userHandle);
   }
 
   @override
@@ -221,62 +245,6 @@ class PassKeySigner implements PasskeySignerInterface {
       displayname,
       DateTime.now(),
     );
-  }
-
-  @override
-  Future<MsgSignature> signToEc(Uint8List hash, {int? index}) async {
-    final knownCredentials = _getKnownCredentials(index);
-    final signature =
-        await signToPasskeySignature(hash, knownCredentials: knownCredentials);
-    return MsgSignature(
-        signature.signature.item1.value, signature.signature.item2.value, 0);
-  }
-
-  @override
-  Future<PassKeySignature> signToPasskeySignature(Uint8List hash,
-      {List<CredentialType>? knownCredentials}) async {
-    // Prepare hash
-    final hashBase64 = b64e(hash);
-
-    // Authenticate with passkey
-    final assertion = await _authenticate(hashBase64, knownCredentials, true);
-
-    // Extract signature from response
-    final sig = getMessagingSignature(b64d(assertion.signature));
-
-    // Prepare challenge for response
-    final clientDataJSON = utf8.decode(b64d(assertion.clientDataJSON));
-    int challengePos = clientDataJSON.indexOf(hashBase64);
-    String challengePrefix = clientDataJSON.substring(0, challengePos);
-    String challengeSuffix =
-        clientDataJSON.substring(challengePos + hashBase64.length);
-
-    return PassKeySignature(
-        credentialIdToHex(b64d(assertion.id).toList()),
-        b64d(assertion.rawId),
-        sig,
-        b64d(assertion.authenticatorData),
-        challengePrefix,
-        challengeSuffix,
-        assertion.userHandle);
-  }
-
-  @override
-  String getDummySignature<T>({String prefix = "0x", T? getOptions}) {
-    return "${prefix}e017c9b829f0d550c9a0f1d791d460485b774c5e157d2eaabdf690cba2a62726b3e3a3c5022dc5301d272a752c05053941b1ca608bf6bc8ec7c71dfe15d5305900000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001600000000000000000000000000000000000000000000000000000000000000025205f5f63c4a6cebdc67844b75186367e6d2e4f19b976ab0affefb4e981c22435050000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000247b2274797065223a22776562617574686e2e676574222c226368616c6c656e6765223a2200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001d222c226f726967696e223a226170692e776562617574686e2e696f227d000000";
-  }
-
-  Future<AuthenticateResponseType> _authenticate(String challenge,
-      [List<CredentialType>? allowedCredentials,
-      bool requiresUserVerification = true]) async {
-    final entity = AuthenticateRequestType(
-        relyingPartyId: _opts.namespace,
-        challenge: challenge,
-        timeout: 60000,
-        userVerification: requiresUserVerification ? 'required' : 'preferred',
-        allowCredentials: allowedCredentials,
-        mediation: MediationType.Conditional);
-    return await _auth.authenticate(entity);
   }
 
   AuthData _decode(List<int> authData) {
@@ -304,15 +272,12 @@ class PassKeySigner implements PasskeySignerInterface {
     final keyY = decodedPubKey.value.entries
         .firstWhere((element) => element.key.value == -3);
 
-    // Calculate the hash of the credential ID.
-    String hexCredentialId = credentialIdToHex(credentialId);
-
     // Extract x and y coordinates from the decoded public key.
     final x = Uint256.fromHex(hexlify(keyX.value.value));
     final y = Uint256.fromHex(hexlify(keyY.value.value));
 
-    return AuthData(
-        hexCredentialId, Uint8List.fromList(credentialId), Tuple(x, y), aaGUID);
+    return AuthData(b64e(credentialId), Uint8List.fromList(credentialId),
+        Tuple(x, y), aaGUID);
   }
 
   AuthData _decodeAttestation(RegisterResponseType attestation) {
@@ -328,10 +293,38 @@ class PassKeySigner implements PasskeySignerInterface {
     return _decode(authData);
   }
 
-  @override
-  String randomBase64String() {
-    final uuid = UUID.generateUUIDv4();
-    return b64e(UUID.toBuffer(uuid));
+  static String _getSignatureBytes(PassKeySignature signature) {
+    String encodeUint256(BigInt x) => x.toRadixString(16).padLeft(64, '0');
+    int byteSize(Uint8List data) => 32 * (((data.length + 31) ~/ 32) + 1);
+    String encodeBytes(Uint8List data) {
+      String hexData = hexlify(data);
+      String result = encodeUint256(BigInt.from(data.length)) + hexData;
+      return result.padRight(byteSize(data) * 2, '0');
+    }
+
+    int adOffset = 32 * 4;
+    int cdjOffset = adOffset + byteSize(signature.authData);
+
+    return '${encodeUint256(BigInt.from(adOffset))}${encodeUint256(BigInt.from(cdjOffset))}${encodeUint256(signature.signature.item1.value)}${encodeUint256(signature.signature.item2.value)}${encodeBytes(signature.authData)}${encodeBytes(Uint8List.fromList(utf8.encode(signature.clientDataJSON)))}';
+  }
+
+  List<CredentialType> _getKnownCredentials([int? index]) {
+    return _getCredentialIds(index)
+        .map(_convertToCredentialType)
+        .toList(growable: false);
+  }
+
+  Iterable<Bytes> _getCredentialIds(int? index) {
+    if (index == null) return _knownCredentials;
+    return _knownCredentials.elementAtOrNull(index)?.let((e) => [e]) ?? [];
+  }
+
+  CredentialType _convertToCredentialType(Bytes credentialId) {
+    return CredentialType(
+      type: 'public-key',
+      id: b64e(credentialId),
+      transports: const ['usb', 'ble', 'nfc', 'internal'],
+    );
   }
 
   Future<RegisterResponseType> _register(String username, String displayname,
@@ -369,6 +362,54 @@ class PassKeySigner implements PasskeySignerInterface {
     );
     return await _auth.register(entity);
   }
+
+  Future<AuthenticateResponseType> _authenticate(String challenge,
+      [bool preferImmediatelyAvailableCredentials = false,
+      List<CredentialType>? allowedCredentials,
+      bool requiresUserVerification = true]) async {
+    final entity = AuthenticateRequestType(
+        preferImmediatelyAvailableCredentials:
+            preferImmediatelyAvailableCredentials,
+        relyingPartyId: _opts.namespace,
+        challenge: challenge,
+        timeout: 60000,
+        userVerification: requiresUserVerification ? 'required' : 'preferred',
+        allowCredentials: allowedCredentials,
+        mediation: MediationType.Conditional);
+    return await _auth.authenticate(entity);
+  }
+
+  static String buildSafeSignatureBytes(
+    EthereumAddress signer,
+    PassKeySignature signature,
+  ) {
+    // parse the passkey signature data
+    final dataNo0x = _getSignatureBytes(signature);
+
+    // Static part length in bytes
+    const int signatureLengthBytes = 65;
+
+    // Ensure signer address is 32 bytes (64 hex chars)
+    String signerNo0x = signer.hexNo0x.padLeft(64, '0');
+
+    // Convert dynamic part position to hex and pad to 32 bytes (64 hex chars)
+    String dynamicPartPosition =
+        signatureLengthBytes.toRadixString(16).padLeft(64, '0');
+
+    // Convert dynamic part length to hex and pad to 32 bytes (64 hex chars)
+    String dynamicPartLength =
+        (dataNo0x.length ~/ 2).toRadixString(16).padLeft(64, '0');
+
+    // Build the static part of the signature
+    String staticSignature = '0x$signerNo0x${dynamicPartPosition}00';
+
+    // Build the dynamic part with length
+    // {32-bytes signature length}{bytes signature data}
+    String dynamicPartWithLength = dynamicPartLength + dataNo0x;
+
+    // Return the complete signature bytes
+    return "$staticSignature$dynamicPartWithLength";
+  }
 }
 
 class PassKeysOptions {
@@ -383,4 +424,8 @@ class PassKeysOptions {
       required this.origin,
       this.challenge,
       this.type});
+}
+
+extension IterableExtension on Uint8List {
+  R? let<R>(R Function(Uint8List) block) => block(this);
 }

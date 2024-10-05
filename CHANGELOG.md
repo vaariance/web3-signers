@@ -1,3 +1,16 @@
+## 0.0.14-beta-01
+
+- modify dummy signatures for passkey signers to surpport safe.
+- add return FCL compatible signature bytes from passkey signer personalSign
+- add static function to handle safe signature encoding for passkeys
+- upgrade dependencies
+
+## 0.0.14-alpha-01
+
+- Marked hardware signers are deprecated. will be removed in v0.1.0
+- exported utility functions marked as private in passkey signer
+- modified dummy signatures in MSI
+
 ## 0.0.13
 
 - returned raw credential from Passkey Signature
