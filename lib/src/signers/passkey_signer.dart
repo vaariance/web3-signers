@@ -205,8 +205,7 @@ class PassKeySigner implements PasskeySignerInterface {
     final hashBase64 = b64e(hash);
 
     // Authenticate with passkey
-    final assertion =
-        await _authenticate(hashBase64, false, knownCredentials, true);
+    final assertion = await _authenticate(hashBase64, knownCredentials);
 
     // Extract signature from response
     final sig = getMessagingSignature(b64d(assertion.signature));
@@ -364,8 +363,8 @@ class PassKeySigner implements PasskeySignerInterface {
   }
 
   Future<AuthenticateResponseType> _authenticate(String challenge,
-      [bool preferImmediatelyAvailableCredentials = false,
-      List<CredentialType>? allowedCredentials,
+      [List<CredentialType>? allowedCredentials,
+      bool preferImmediatelyAvailableCredentials = false,
       bool requiresUserVerification = true]) async {
     final entity = AuthenticateRequestType(
         preferImmediatelyAvailableCredentials:

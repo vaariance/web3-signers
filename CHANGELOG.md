@@ -1,7 +1,7 @@
 ## 0.0.14-beta-01
 
 - modify dummy signatures for passkey signers to surpport safe.
-- add return FCL compatible signature bytes from passkey signer personalSign
+- add FCL compatible signature bytes from passkey signer personalSign
 - add static function to handle safe signature encoding for passkeys
 - upgrade dependencies
 
