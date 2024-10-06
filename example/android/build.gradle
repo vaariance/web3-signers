@@ -3,6 +3,19 @@ allprojects {
         google()
         mavenCentral()
     }
+    // don't do this. as corbado to add a namespace to thier passkeys_android package instead
+    // and support gradle 8+
+    subprojects {
+        afterEvaluate { project ->
+            if (project.hasProperty('android')) {
+                project.android {
+                    if (namespace == null) {
+                        namespace project.group
+                    }
+                }
+            }
+        }
+    }
 }
 
 rootProject.buildDir = "../build"
