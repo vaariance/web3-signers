@@ -1,5 +1,9 @@
 part of 'vendor.dart';
 
+typedef BinaryBlob = Uint8List;
+
+enum BlobType { binary, der, nonce, requestId }
+
 extension ExtBinaryBlob on BinaryBlob {
   BlobType get blobType => BlobType.binary;
 

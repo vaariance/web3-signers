@@ -12,7 +12,7 @@ abstract class MultiSignerInterface {
   /// The dummy signature is a valid signature that can be used for testing purposes.
   /// specifically, this will be used to simulate user operation on the entrypoint.
   /// You must specify a dummy signature that matches your transaction signature standard.
-  String dummySignature = "0x";
+  String getDummySignature<T>({required String prefix, T? getOptions});
 
   /// Generates an Ethereum address of the signer.
   ///

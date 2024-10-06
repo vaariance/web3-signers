@@ -5,10 +5,6 @@ class EOAWallet implements EOAWalletInterface {
 
   final List<int> _seed;
 
-  @override
-  String dummySignature =
-      "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
-
   /// Creates a new EOA wallet signer instance by generating a random mnemonic phrase.
   ///
   /// Example:
@@ -85,6 +81,10 @@ class EOAWallet implements EOAWalletInterface {
     final privKey = _getPrivateKey(index ?? 0);
     return privKey.signToEcSignature(hash);
   }
+
+  @override
+  String getDummySignature<T>({required String prefix, T? getOptions}) =>
+      "${prefix}fffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
 
   EthereumAddress _add(List<int> seed, int index) {
     final hdKey = _deriveHdKey(seed, index);

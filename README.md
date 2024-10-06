@@ -94,49 +94,6 @@ final PassKeySignature sig = await pkpSigner.signToPasskeySignature(Uint8List(32
 > For each of the method above you can pass in an index if you have knownCredentials. prompting the authenticator to specifically sign with a particular credential.
 > e.g  `await pkpSigner.signToPasskeySignature(Uint8List(32), 2); // signing with knowwnCredential at index 2`
 
-## Working with secure enclave/keystore
-
-The hardware signers conform to the `multi-signer-interface` and enables your app to generate keypairs inside the security chip of your device. For iOS it is the secure enclave, while in android it is the android keystore. This allows you to sign payloads with your device hardware.
-
-```dart
-final HardwareSigner hwdSigner = HardwareSigner.withTag("my app tag");
-
-// generates a new key pair for tag. if already existing, returns it.
-final P256Credential credential = await hwdSigner.generateKeyPair();
-
-// gets an existing publickey from the device.
-// throws if publickey does not exist.
-final publicKey = await hwdSigner.getPublicKey() // returns a tuple(x, y)
-
-// checks if a public has been created for the app
-final bool isCreated =  await hwdSigner.isKeyCreated()
-```
-
-The hardware signer provides a high level abstraction for the [SecureP256](./lib/src/utils/p256.dart) class in order to conform to the mult-signer-interface. However, you can access the `SecureP256` class directly which supports additional operations like `encrypt`, `decrypt` and `verify`.
-
-### Signing a payload
-
-The hardware signer surports both `personalSign` and `signToEc` as defined in the multi-signer-interface
-
-- method 1: `personalSign`
-
-```dart
-final Uint8List payload = Uint8List(32); // bytes32(0)
-final Uint8List derEncodedSignature = hwdSigner.personalSign(payload);
-```
-
-- method 2: `signToEc`
-
-```dart
-final Uint8List payload = Uint8List(32); // bytes32(0)
-final signature = hwdSigner.signToEc(payload);// returns MsgSignature(r, s)
-
-log("r: ${signature.r}") // bigint
-log("s: ${signature.s}") // bigint
-```
-
-> To verify the payload on the blockchain successfully, you must verify against the SHA256 hash of the payload.
-
 ## Working with Privatey keys
 
 The private key signer conform to the `multi-signer-interface` and is the most basic signer.
@@ -203,8 +160,6 @@ The `signToEc` and `personalSign` methods are available for signing transactions
 
 ## Handling Der Encoded data
 
-By default the data returned from hardware getPublicKey/sign methods are DerEncoded. also this package intrinsically handles the derDecoding of passkey signatures.
-
 - convert a Der Encoded public key to `Tuple(x,y)`
 
 ```dart
@@ -243,7 +198,6 @@ abstract class MultiSignerInterface {
 | generate passkeypair           | ✅      | ✅  | ✅  |
 | sign with passkey              | ✅      | ✅  | ✅  |
 | generate p256 keypair          | ✅      | ✅  |    |
-| sign with secure enclave       | ✅      | ✅  |    |
 | encrypt                        | ✅      | ✅  |    |
 | decrypt                        | ✅      | ✅  |    |
 | Generate EOA wallet            | ✅      | ✅  | ✅  |
@@ -255,13 +209,6 @@ abstract class MultiSignerInterface {
 ## Platform specific configuration
 
 ### iOS
-
-- HardwareSignatures on iOS requires user prescence. update `info.plist` to enable face-id.
-
-    ```plist
-     <key>NSFaceIDUsageDescription</key>
-     <string>Why is my app authenticating using face id?</string>
-    ```
 
 - Configuring passkeys for iOS
 

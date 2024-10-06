@@ -1,3 +1,29 @@
+## 0.1.0
+
+- remove hardware signers
+- update readme and documentations
+
+## 0.0.14
+
+- fix safe dummy sig
+- add FCLSignature class
+- update example code
+- fix regex match in converting passkey signature to FCL compat uint8list
+- last version that surpports hardware signers (pleasse use passkeys)
+
+## 0.0.14-beta-01
+
+- modify dummy signatures for passkey signers to surpport safe.
+- add FCL compatible signature bytes from passkey signer personalSign
+- add static function to handle safe signature encoding for passkeys
+- upgrade dependencies
+
+## 0.0.14-alpha-01
+
+- Marked hardware signers are deprecated. will be removed in v0.1.0
+- exported utility functions marked as private in passkey signer
+- modified dummy signatures in MSI
+
 ## 0.0.13
 
 - returned raw credential from Passkey Signature

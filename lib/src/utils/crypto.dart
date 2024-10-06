@@ -36,7 +36,7 @@ Uint8List arrayify(String hexString) {
 /// ```dart
 /// final publicKeyBytes = Uint8List.fromList([4, 1, 2, 3]); // Replace with actual public key bytes
 /// final components = await getPublicKeyFromBytes(publicKeyBytes);
-/// print(components); // Output: ['01', '02']
+/// log(components); // Output: ['01', '02']
 /// ```
 Future<Tuple<Uint256, Uint256>> getPublicKeyFromBytes(
     Uint8List publicKeyBytes) async {
@@ -89,7 +89,7 @@ Tuple<Uint256, Uint256> getMessagingSignature(Uint8List signatureBytes) {
 /// ```dart
 /// final intArray = [1, 15, 255];
 /// final hexString = hexlify(intArray);
-/// print(hexString); // Output: '0x01ff'
+/// log(hexString); // Output: '0x01ff'
 /// ```
 String hexlify(List<int> intArray) {
   var ss = <String>[];
@@ -111,7 +111,7 @@ String hexlify(List<int> intArray) {
 /// ```dart
 /// final value = 42;
 /// require(value > 0, "Value must be greater than 0");
-/// print("Value is valid: $value");
+/// log("Value is valid: $value");
 /// ```
 require(bool requirement, String exception) {
   if (!requirement) {
@@ -130,7 +130,7 @@ require(bool requirement, String exception) {
 /// ```dart
 /// final data = utf8.encode("Hello, World!");
 /// final hash = sha256Hash(data);
-/// print("SHA-256 Hash: ${hash.toString()}");
+/// log("SHA-256 Hash: ${hash.toString()}");
 /// ```
 List<int> sha256Hash(List<int> input) {
   return SHA256.hash(input);
@@ -147,7 +147,7 @@ List<int> sha256Hash(List<int> input) {
 /// ```dart
 /// final byteData = Uint8List.fromList([0x00, 0x01, 0x02, 0x03]);
 /// final removeZero = shouldRemoveLeadingZero(byteData);
-/// print("Remove Leading Zero: $removeZero");
+/// log("Remove Leading Zero: $removeZero");
 /// ```
 bool shouldRemoveLeadingZero(Uint8List bytes) {
   return bytes[0] == 0x0 && (bytes[1] & (1 << 7)) != 0;
@@ -165,7 +165,7 @@ bool shouldRemoveLeadingZero(Uint8List bytes) {
 /// final list1 = [1, 2, 3];
 /// final list2 = [4, 5, 6];
 /// final combinedList = toBuffer([list1, list2]);
-/// print("Combined List: $combinedList");
+/// log("Combined List: $combinedList");
 /// ```
 List<int> toBuffer(List<List<int>> buff) {
   return List<int>.from(buff.expand((element) => element).toList());
@@ -242,5 +242,3 @@ bool isHex(dynamic value, {int bits = -1, bool ignoreLength = false}) {
   }
   return false;
 }
-
-void main() {}

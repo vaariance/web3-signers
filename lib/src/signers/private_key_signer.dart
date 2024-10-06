@@ -3,10 +3,6 @@ part of '../web3_signers_base.dart';
 class PrivateKeySigner implements MultiSignerInterface {
   final Wallet _credential;
 
-  @override
-  String dummySignature =
-      "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
-
   /// Creates a PrivateKeySigner instance using the provided EthPrivateKey.
   ///
   /// Parameters:
@@ -85,6 +81,10 @@ class PrivateKeySigner implements MultiSignerInterface {
   Future<MsgSignature> signToEc(Uint8List hash, {int? index}) async {
     return _credential.privateKey.signToEcSignature(hash);
   }
+
+  @override
+  String getDummySignature<T>({required String prefix, T? getOptions}) =>
+      "${prefix}fffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
 
   String toJson() => _credential.toJson();
 }
