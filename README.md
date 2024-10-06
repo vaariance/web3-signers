@@ -1,11 +1,10 @@
 # web3 signers
 
-A flutter plugin that provides a uniform interface for signing EIP-1271 messages on dart.
+A flutter plugin that provides a uniform interface for signing [EIP-1271](https://eips.ethereum.org/EIPS/eip-1271) messages on dart.
 
 supports:
 
     ✅ passkey signatures
-    ✅ secure enclave/android keystore signatures
     ✅ EOA wallet (mnemonic backed)
     ✅ privateKey signatures
 
@@ -29,7 +28,7 @@ final PassKeySigner pkpSigner = PassKeySigner(
 // register a new passkey
 PassKeyPair pkp = await pkpSigner.register("user@variance.space", "test user"); 
 // username is `user@variance.space` and is required
-// diplay name is `test user` and is optional
+// diplay name is `test user` and is recommended to provide it during registration
 ```
 
 If you already know the `credentialIds` created for the user, you can pass the `knownCredentials` as thus:
@@ -39,27 +38,14 @@ final PassKeySigner pkpSigner = PassKeySigner(
   "variance.space", // replace with your relying party Id (domain name)
   "variance", // replace with your relying party name
   "https://variance.space", // replace with your relying party origin
-  knownCredentials: {"0xcredentialId1", "0xcredentialId2", "0xcredentialId3"}
+  knownCredentials: Set<Bytes>.from(<Uint8List>[Uint8List(32), Uint8List(32)])>
 );
 ```
 
 This enables the authenticator to filter the passkeys presented to the user for signing operations.
 
-### credential Id
-
-In order to comform to `bytes32`, all credential id's are Hex encoded to emulate the `getAddress()` function of the multi-signer-interface. this makes the credential Id  stand in as the public address for a passkey signer.
-
-> credential Id's are always converted to Hex before returned.
-
-To convert a credentialId to and from hex format use the following:
-
-```dart
-final credentialHex = "0xbf34ed6a...32 bytes in length";
-final Uint8List fromHex = pkpSigner.hexToCredentialId(credentialHex); 
-final String toHex = pkpSigner.credentialIdToHex(fromHex);
-
-final id = Base64url.encode(fromHex); // base 64 version of the credential id
-```
+> **Note**
+> credential Id's are returned in the passkeyPair in both raw format and base64 format.
 
 ### Passkey signatures
 
@@ -197,13 +183,8 @@ abstract class MultiSignerInterface {
 | ------------------------------ | :-----: | :-: | :-: |
 | generate passkeypair           | ✅      | ✅  | ✅  |
 | sign with passkey              | ✅      | ✅  | ✅  |
-| generate p256 keypair          | ✅      | ✅  |    |
-| encrypt                        | ✅      | ✅  |    |
-| decrypt                        | ✅      | ✅  |    |
 | Generate EOA wallet            | ✅      | ✅  | ✅  |
 | Sign For EOA account           | ✅      | ✅  | ✅  |
-| Biometric Middleware           | ✅      | ✅  |    |
-| Secure Storage middleware      | ✅      | ✅  | ✅  |
 | Private key signer             | ✅      | ✅  | ✅  |
 
 ## Platform specific configuration
@@ -226,7 +207,7 @@ abstract class MultiSignerInterface {
   - Set up App Links. follow this [guide](https://docs.flutter.dev/cookbook/navigation/set-up-app-links).
   - Make sure your have `"delegate_permission/common.get_login_creds"` in your `assetlinks.json`. Refer to this [guide](https://developer.android.com/training/sign-in/passkeys).
 
-- Use the following command to get you app SHA256 certificate required in your `assetlinks.json`:
+- Example: how to get your app SHA256 certificate required in your `assetlinks.json` file. Use this [guide](https://docs.flutter.dev/cookbook/navigation/set-up-app-links).
 
     ```sh
     keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android/

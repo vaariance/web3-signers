@@ -41,9 +41,8 @@ class _Web3SignerState extends State<Web3Signer> {
 
   void _updatePkpSignature() => setState(() async {
         final sig = await _pkpSigner.signToPasskeySignature(Uint8List(32));
-        _textField3Controller.text =
-            "[r:${sig.signature.item1.toHex()}, s:${sig.signature.item2.toHex()}]";
         final calldata = hexlify(sig.toUint8List());
+        _textField3Controller.text = calldata;
         log(calldata);
       });
 
@@ -134,7 +133,7 @@ class _Web3SignerState extends State<Web3Signer> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   const Text(
-                    'Signature:',
+                    'Dummy:',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
                   Expanded(
@@ -200,7 +199,7 @@ class _Web3SignerState extends State<Web3Signer> {
                       ),
                     ),
                     onPressed: _clearAllFields,
-                    child: const Text('Clear field'),
+                    child: const Text('Clear fields'),
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -211,7 +210,7 @@ class _Web3SignerState extends State<Web3Signer> {
                       ),
                     ),
                     onPressed: _getDummySig,
-                    child: const Text('get dummy data'),
+                    child: const Text('Get dummy Signature'),
                   ),
                 ],
               ),

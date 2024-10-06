@@ -1,3 +1,8 @@
+## 0.1.1
+
+- add platform for web
+- update readme and example app
+
 ## 0.1.0
 
 - remove hardware signers
