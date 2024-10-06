@@ -95,7 +95,7 @@ class PassKeySignature {
       'uint256[2]'
     ], [
       authData,
-      utf8.encode(match[0]!),
+      utf8.encode(match[1]!),
       [
         signature.item1.value,
         signature.item2.value,
