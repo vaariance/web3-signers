@@ -1,3 +1,16 @@
+## 0.1.0
+
+- remove hardware signers
+- update readme and documentations
+
+## 0.0.14
+
+- fix safe dummy sig
+- add FCLSignature class
+- update example code
+- fix regex match in converting passkey signature to FCL compat uint8list
+- last version that surpports hardware signers (pleasse use passkeys)
+
 ## 0.0.14-beta-01
 
 - modify dummy signatures for passkey signers to surpport safe.

@@ -1,6 +1,6 @@
 name: web3_signers
 description: Web3 signers provides a uniform interface for signing EIP-1271 messages with different EC algorithms.
-version: 0.0.14-beta-01
+version: 0.1.0
 homepage: https://variance.space
 repository: https://github.com/vaariance/web3-signers
 issue_tracker: https://github.com/vaariance/web3-signers/issues
@@ -14,12 +14,9 @@ platforms:
   ios:
 
 dependencies:
-  flutter:
-    sdk: flutter
   asn1lib: ^1.5.5
   passkeys: ^2.1.0
   web3dart: ^2.7.3
-  plugin_platform_interface: ^2.1.8
   blockchain_utils: ^3.4.0
 
 dev_dependencies:
@@ -31,13 +28,3 @@ topics:
   - ethereum
   - wallets
   - passkey
-  - secure-enclave
-
-flutter:
-  plugin:
-    platforms:
-      android:
-        package: com.variance.web3_signers
-        pluginClass: SecureP256Plugin
-      ios:
-        pluginClass: SecureP256Plugin

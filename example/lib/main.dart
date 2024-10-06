@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,6 +19,7 @@ class _Web3SignerState extends State<Web3Signer> {
   final TextEditingController _textField1Controller = TextEditingController();
   final TextEditingController _textField2Controller = TextEditingController();
   final TextEditingController _textField3Controller = TextEditingController();
+  final TextEditingController _textField4Controller = TextEditingController();
 
   final PassKeySigner _pkpSigner = PassKeySigner(
     "variance.space", // id
@@ -26,11 +27,7 @@ class _Web3SignerState extends State<Web3Signer> {
     "https://variance.space", // origin
   );
 
-  final HardwareSigner _seSigner = HardwareSigner.withTag("variance");
-
-  String? _calldata;
   PassKeyPair? _pkp;
-  P256Credential? _seCredential;
 
   void _auth() async {
     _pkp = await _pkpSigner.register("user@variance.space", "test user");
@@ -42,43 +39,29 @@ class _Web3SignerState extends State<Web3Signer> {
         _textField2Controller.text = _pkp!.authData.publicKey.item2.toHex();
       });
 
-  void _updateSePublicKey() => setState(() async {
-        _seCredential = await _seSigner.generateKeyPair();
-        _textField1Controller.text = _seCredential!.publicKey.item1.toHex();
-        _textField2Controller.text = _seCredential!.publicKey.item2.toHex();
-      });
-
   void _updatePkpSignature() => setState(() async {
         final sig = await _pkpSigner.signToPasskeySignature(Uint8List(32));
         _textField3Controller.text =
             "[r:${sig.signature.item1.toHex()}, s:${sig.signature.item2.toHex()}]";
-        _calldata = hexlify(sig.toUint8List());
-      });
-
-  void _updateSeSignature() => setState(() async {
-        final sig = await _seSigner.signToEc(Uint8List(32));
-        _textField3Controller.text =
-            "[r:${Uint256(sig.r).toHex()}, s:${Uint256(sig.s).toHex()}]";
-        print(hexlify(sha256Hash(Uint8List(32))));
-        _calldata = hexlify(abi.encode([
-          "bytes32",
-          "uint256",
-          "uint256",
-          "uint256",
-          "uint256"
-        ], [
-          sha256Hash(Uint8List(32)),
-          sig.r,
-          sig.s,
-          _seCredential?.publicKey.item1.value,
-          _seCredential?.publicKey.item2.value
-        ]));
+        final calldata = hexlify(sig.toUint8List());
+        log(calldata);
       });
 
   void _clearAllFields() => setState(() {
         _textField1Controller.clear();
         _textField2Controller.clear();
         _textField3Controller.clear();
+        _textField4Controller.clear();
+      });
+
+  void _getDummySig() => setState(() {
+        final prefix = hexlify(Uint8List(0));
+        final dummy = _pkpSigner.getDummySignature(prefix: prefix, getOptions: {
+          "signer": "0xfD90FAd33ee8b58f32c00aceEad1358e4AFC23f9",
+          "userVerification": "required"
+        });
+        log(dummy);
+        _textField4Controller.text = dummy;
       });
 
   @override
@@ -147,6 +130,27 @@ class _Web3SignerState extends State<Web3Signer> {
                   ),
                 ],
               ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    'Signature:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  Expanded(
+                    child: TextField(
+                      controller: _textField4Controller,
+                      decoration: const InputDecoration(),
+                      onChanged: (value) {
+                        //detect user input
+                      },
+                      onSubmitted: (value) {
+                        //when the user indicates they are done with editing textfield
+                      },
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 100.0),
               Row(
                 children: [
@@ -185,42 +189,6 @@ class _Web3SignerState extends State<Web3Signer> {
                 height: 20,
               ),
               Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        elevation: 1,
-                        padding: const EdgeInsets.all(20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                      onPressed: _updateSePublicKey,
-                      child: const Text('Register with Secure enclave'),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 50,
-                  ),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        elevation: 1,
-                        padding: const EdgeInsets.all(20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                      ),
-                      onPressed: _updateSeSignature,
-                      child: const Text('Sign with Secure enclave'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   ElevatedButton(
@@ -236,18 +204,14 @@ class _Web3SignerState extends State<Web3Signer> {
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                        elevation: 1,
-                        padding: const EdgeInsets.all(20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        )),
-                    onPressed: () async {
-                      Clipboard.setData(ClipboardData(text: _calldata ?? ""));
-                    },
-                    child: const Row(children: [
-                      Text('Copy callData'),
-                      Icon(Icons.copy_all)
-                    ]),
+                      elevation: 1,
+                      padding: const EdgeInsets.all(20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    onPressed: _getDummySig,
+                    child: const Text('get dummy data'),
                   ),
                 ],
               ),

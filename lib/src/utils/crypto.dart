@@ -242,5 +242,3 @@ bool isHex(dynamic value, {int bits = -1, bool ignoreLength = false}) {
   }
   return false;
 }
-
-void main() {}

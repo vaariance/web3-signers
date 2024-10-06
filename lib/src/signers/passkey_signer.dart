@@ -149,30 +149,35 @@ class PassKeySigner implements PasskeySignerInterface {
     return b64e(_knownCredentials.elementAt(index ?? 0));
   }
 
+  /// returns an FCL compatible signature as a string literal or Hex data.
+  /// the [FCLSignature] class can be used to convert the dummy signature to a [Map] [JSON] or [Uint8List] string.
   @override
   String getDummySignature<T>({required String prefix, T? getOptions}) {
     getOptions as Map<String, dynamic>;
-    final signer = getOptions["signer"];
+    final EthereumAddress signer = isHex(getOptions["signer"])
+        ? EthereumAddress.fromHex(getOptions["signer"])
+        : getOptions["signer"];
     final uv = getOptions["userVerification"] == "required" ? 0x04 : 0x01;
     final dummyCdField = [
-      '"origin":"http://safe.global"',
-      '"padding":"This pads the clientDataJSON so that we can leave room for additional implementation specific fields for a more accurate \'preVerificationGas\' estimate."',
+      '"origin":"android:apk-key-hash:5--XhhrpNeH_K2aYpxYxOupzRZZkBz1dGUTuwDUaDNI"',
+      '"androidPackageName":"com.example.web3_signers"',
     ].join(",");
     final dummyAdField = Uint8List(37);
     dummyAdField.fillRange(0, dummyAdField.length, 0xfe);
     dummyAdField[32] = uv;
 
     return buildSafeSignatureBytes(
-        signer,
-        PassKeySignature(
-            "",
-            Uint8List(0),
-            Tuple<Uint256, Uint256>(Uint256.fromHex("0x${'ec' * 32}"),
-                Uint256.fromHex("0x${'d5a' * 21}f")),
-            dummyAdField,
-            dummyCdField,
-            0,
-            ""));
+            signer,
+            PassKeySignature(
+                "",
+                Uint8List(0),
+                Tuple<Uint256, Uint256>(Uint256.fromHex("0x${'ec' * 32}"),
+                    Uint256.fromHex("0x${'d5a' * 21}f")),
+                dummyAdField,
+                dummyCdField,
+                0,
+                ""))
+        .toString();
   }
 
   @override
@@ -297,14 +302,20 @@ class PassKeySigner implements PasskeySignerInterface {
     int byteSize(Uint8List data) => 32 * (((data.length + 31) ~/ 32) + 1);
     String encodeBytes(Uint8List data) {
       String hexData = hexlify(data);
-      String result = encodeUint256(BigInt.from(data.length)) + hexData;
+      String result =
+          encodeUint256(BigInt.from(data.length)) + hexData.substring(2);
       return result.padRight(byteSize(data) * 2, '0');
     }
 
     int adOffset = 32 * 4;
     int cdjOffset = adOffset + byteSize(signature.authData);
 
-    return '${encodeUint256(BigInt.from(adOffset))}${encodeUint256(BigInt.from(cdjOffset))}${encodeUint256(signature.signature.item1.value)}${encodeUint256(signature.signature.item2.value)}${encodeBytes(signature.authData)}${encodeBytes(Uint8List.fromList(utf8.encode(signature.clientDataJSON)))}';
+    return '${encodeUint256(BigInt.from(adOffset))}'
+        '${encodeUint256(BigInt.from(cdjOffset))}'
+        '${encodeUint256(signature.signature.item1.value)}'
+        '${encodeUint256(signature.signature.item2.value)}'
+        '${encodeBytes(signature.authData)}'
+        '${encodeBytes(Uint8List.fromList(utf8.encode(signature.clientDataJSON)))}';
   }
 
   List<CredentialType> _getKnownCredentials([int? index]) {
@@ -378,7 +389,7 @@ class PassKeySigner implements PasskeySignerInterface {
     return await _auth.authenticate(entity);
   }
 
-  static String buildSafeSignatureBytes(
+  static FCLSignature buildSafeSignatureBytes(
     EthereumAddress signer,
     PassKeySignature signature,
   ) {
@@ -400,14 +411,8 @@ class PassKeySigner implements PasskeySignerInterface {
         (dataNo0x.length ~/ 2).toRadixString(16).padLeft(64, '0');
 
     // Build the static part of the signature
-    String staticSignature = '0x$signerNo0x${dynamicPartPosition}00';
-
-    // Build the dynamic part with length
-    // {32-bytes signature length}{bytes signature data}
-    String dynamicPartWithLength = dynamicPartLength + dataNo0x;
-
-    // Return the complete signature bytes
-    return "$staticSignature$dynamicPartWithLength";
+    String staticSignature = '$signerNo0x${dynamicPartPosition}00';
+    return FCLSignature(staticSignature, dynamicPartLength, dataNo0x);
   }
 }
 
@@ -423,6 +428,43 @@ class PassKeysOptions {
       required this.origin,
       this.challenge,
       this.type});
+}
+
+class FCLSignature {
+  final String staticSignature;
+  final String dynamicPartLength;
+  final String data;
+  FCLSignature(this.staticSignature, this.dynamicPartLength, this.data);
+
+  Uint8List toUint8List() {
+    return hexToBytes(toString());
+  }
+
+  Map<String, String> toMap() {
+    return {
+      'staticSignature': "0x$staticSignature",
+      'dynamicPartLength': "0x$dynamicPartLength",
+      'data': "0x$data",
+    };
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory FCLSignature.fromMap(Map<String, String> map) {
+    return FCLSignature(
+        hexStripPrefix(map['staticSignature']!),
+        hexStripPrefix(map['dynamicPartLength']!),
+        hexStripPrefix(map['data']!));
+  }
+
+  factory FCLSignature.fromJson(String json) {
+    return FCLSignature.fromMap(Map<String, String>.from(jsonDecode(json)));
+  }
+
+  @override
+  String toString() {
+    return "0x$staticSignature$dynamicPartLength$data";
+  }
 }
 
 extension IterableExtension on Uint8List {
