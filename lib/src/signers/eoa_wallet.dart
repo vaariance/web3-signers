@@ -5,6 +5,8 @@ class EOAWallet implements EOAWalletInterface {
 
   final List<int> _seed;
 
+  final SignatureOptions _options;
+
   /// Creates a new EOA wallet signer instance by generating a random mnemonic phrase.
   ///
   /// Example:
@@ -14,7 +16,9 @@ class EOAWallet implements EOAWalletInterface {
   /// // create a 24 word phrase wallet
   /// final walletSigner24 = HDWalletSigner.createWallet(WordLength.word_24); // defaults to 12 words
   /// ```
-  factory EOAWallet.createWallet([WordLength wordLenth = WordLength.word_12]) {
+  factory EOAWallet.createWallet(
+      [WordLength wordLenth = WordLength.word_12,
+      SignatureOptions options = const SignatureOptions()]) {
     final generator = Bip39MnemonicGenerator();
     final Bip39WordsNum wordNumber = wordLenth.wordsNum;
     final phrase = generator.fromWordsNumber(wordNumber);
@@ -25,22 +29,29 @@ class EOAWallet implements EOAWalletInterface {
   ///
   /// Parameters:
   /// - [mnemonic]: The mnemonic phrase used for recovering the HD wallet signer.
+  /// - [options]: The signature options used to construct final signature.
   ///
   /// Example:
   /// ```dart
   /// final mnemonicPhrase = 'word1 word2 word3 ...'; // Replace with an actual mnemonic phrase
   /// final recoveredSigner = HDWalletSigner.recoverAccount(mnemonicPhrase);
   /// ```
-  factory EOAWallet.recoverAccount(String mnemonic) {
+  factory EOAWallet.recoverAccount(String mnemonic,
+      [SignatureOptions options = const SignatureOptions()]) {
     final Mnemonic words = Mnemonic.fromString(mnemonic);
     final seed = Bip39SeedGenerator(words).generate();
-    final signer = EOAWallet._internal(seed: seed, mnemonic: words);
+    final signer =
+        EOAWallet._internal(seed: seed, mnemonic: words, options: options);
     return signer;
   }
 
-  EOAWallet._internal({required List<int> seed, required Mnemonic mnemonic})
+  EOAWallet._internal(
+      {required List<int> seed,
+      required Mnemonic mnemonic,
+      required SignatureOptions options})
       : _seed = seed,
-        _mnemonic = mnemonic {
+        _mnemonic = mnemonic,
+        _options = options {
     assert(seed.isNotEmpty, "seed cannot be empty");
   }
 
@@ -73,7 +84,7 @@ class EOAWallet implements EOAWalletInterface {
   @override
   Future<Uint8List> personalSign(Uint8List hash, {int? index}) async {
     final privKey = _getPrivateKey(index ?? 0);
-    return privKey.signPersonalMessageToUint8List(hash);
+    return _options.prefix.concat(privKey.signPersonalMessageToUint8List(hash));
   }
 
   @override
@@ -83,8 +94,8 @@ class EOAWallet implements EOAWalletInterface {
   }
 
   @override
-  String getDummySignature<T>({required String prefix, T? getOptions}) =>
-      "${prefix}fffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
+  String getDummySignature() =>
+      "${hexlify(_options.prefix)}fffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
 
   EthereumAddress _add(List<int> seed, int index) {
     final hdKey = _deriveHdKey(seed, index);

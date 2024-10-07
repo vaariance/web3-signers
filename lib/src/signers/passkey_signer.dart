@@ -115,13 +115,10 @@ class PassKeySigner implements PasskeySignerInterface {
   /// - [name] : the relying party entity name e.g "Variance"
   /// - [origin] : the relying party entity origin. e.g "https://variance.space"
   /// - [knownCredentials] : a set of known credentials. Defaults to an empty set.
-  PassKeySigner(String namespace, String name, String origin,
-      {Set<Bytes> knownCredentials = const {}})
-      : _opts = PassKeysOptions(
-          namespace: namespace,
-          name: name,
-          origin: origin,
-        ),
+  PassKeySigner(
+      {required PassKeysOptions options,
+      Set<Bytes> knownCredentials = const {}})
+      : _opts = options,
         _auth = PasskeyAuthenticator(),
         _knownCredentials = knownCredentials;
 
@@ -152,12 +149,9 @@ class PassKeySigner implements PasskeySignerInterface {
   /// returns an FCL compatible signature as a string literal or Hex data.
   /// the [FCLSignature] class can be used to convert the dummy signature to a [Map] [JSON] or [Uint8List] string.
   @override
-  String getDummySignature<T>({required String prefix, T? getOptions}) {
-    getOptions as Map<String, dynamic>;
-    final EthereumAddress signer = isHex(getOptions["signer"])
-        ? EthereumAddress.fromHex(getOptions["signer"])
-        : getOptions["signer"];
-    final uv = getOptions["userVerification"] == "required" ? 0x04 : 0x01;
+  String getDummySignature() {
+    final signer = _opts.sharedWebauthnSigner;
+    final uv = _opts.userVerification == "required" ? 0x04 : 0x01;
     final dummyCdField = [
       '"origin":"android:apk-key-hash:5--XhhrpNeH_K2aYpxYxOupzRZZkBz1dGUTuwDUaDNI"',
       '"androidPackageName":"com.example.web3_signers"',
@@ -231,15 +225,11 @@ class PassKeySigner implements PasskeySignerInterface {
 
   @override
   Future<PassKeyPair> register(String username, String displayname,
-      {String? challenge,
-      bool requiresResidentKey = true,
-      bool requiresUserVerification = true}) async {
+      {String? challenge}) async {
     final attestation = await _register(
       username,
       displayname,
       challenge,
-      requiresResidentKey,
-      requiresUserVerification,
     );
     final authData = _decodeAttestation(attestation);
 
@@ -338,9 +328,7 @@ class PassKeySigner implements PasskeySignerInterface {
   }
 
   Future<RegisterResponseType> _register(String username, String displayname,
-      [String? challenge,
-      bool requiresResidentKey = true,
-      bool requiresUserVerification = true]) async {
+      [String? challenge]) async {
     final options = _opts;
     options.type = "webauthn.create";
     final entity = RegisterRequestType(
@@ -355,10 +343,10 @@ class PassKeySigner implements PasskeySignerInterface {
         name: username,
       ),
       authSelectionType: AuthenticatorSelectionType(
-        requireResidentKey: requiresResidentKey,
-        residentKey: requiresResidentKey ? 'preferred' : 'discouraged',
+        requireResidentKey: _opts.requireResidentKey,
+        residentKey: _opts.requireResidentKey ? 'preferred' : 'discouraged',
         authenticatorAttachment: 'platform',
-        userVerification: requiresUserVerification ? 'required' : 'preferred',
+        userVerification: _opts.userVerification,
       ),
       pubKeyCredParams: [
         PubKeyCredParamType(
@@ -375,15 +363,14 @@ class PassKeySigner implements PasskeySignerInterface {
 
   Future<AuthenticateResponseType> _authenticate(String challenge,
       [List<CredentialType>? allowedCredentials,
-      bool preferImmediatelyAvailableCredentials = false,
-      bool requiresUserVerification = true]) async {
+      bool preferImmediatelyAvailableCredentials = false]) async {
     final entity = AuthenticateRequestType(
         preferImmediatelyAvailableCredentials:
             preferImmediatelyAvailableCredentials,
         relyingPartyId: _opts.namespace,
         challenge: challenge,
         timeout: 60000,
-        userVerification: requiresUserVerification ? 'required' : 'preferred',
+        userVerification: _opts.userVerification,
         allowCredentials: allowedCredentials,
         mediation: MediationType.Conditional);
     return await _auth.authenticate(entity);
@@ -414,59 +401,4 @@ class PassKeySigner implements PasskeySignerInterface {
     String staticSignature = '$signerNo0x${dynamicPartPosition}00';
     return FCLSignature(staticSignature, dynamicPartLength, dataNo0x);
   }
-}
-
-class PassKeysOptions {
-  final String namespace;
-  final String name;
-  final String origin;
-  String? challenge;
-  String? type;
-  PassKeysOptions(
-      {required this.namespace,
-      required this.name,
-      required this.origin,
-      this.challenge,
-      this.type});
-}
-
-class FCLSignature {
-  final String staticSignature;
-  final String dynamicPartLength;
-  final String data;
-  FCLSignature(this.staticSignature, this.dynamicPartLength, this.data);
-
-  Uint8List toUint8List() {
-    return hexToBytes(toString());
-  }
-
-  Map<String, String> toMap() {
-    return {
-      'staticSignature': "0x$staticSignature",
-      'dynamicPartLength': "0x$dynamicPartLength",
-      'data': "0x$data",
-    };
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory FCLSignature.fromMap(Map<String, String> map) {
-    return FCLSignature(
-        hexStripPrefix(map['staticSignature']!),
-        hexStripPrefix(map['dynamicPartLength']!),
-        hexStripPrefix(map['data']!));
-  }
-
-  factory FCLSignature.fromJson(String json) {
-    return FCLSignature.fromMap(Map<String, String>.from(jsonDecode(json)));
-  }
-
-  @override
-  String toString() {
-    return "0x$staticSignature$dynamicPartLength$data";
-  }
-}
-
-extension IterableExtension on Uint8List {
-  R? let<R>(R Function(Uint8List) block) => block(this);
 }

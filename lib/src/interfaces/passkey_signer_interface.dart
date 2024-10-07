@@ -41,9 +41,7 @@ abstract class PasskeySignerInterface extends MultiSignerInterface {
   /// final passKeyPair = await pkps.register('geffy', true);
   /// ```
   Future<PassKeyPair> register(String username, String displayname,
-      {String? challenge,
-      bool requiresResidentKey = false,
-      bool requiresUserVerification = true});
+      {String? challenge});
 
   /// Signs a hash using the PassKeyPair associated with the given credentialId.
   ///

@@ -35,4 +35,13 @@ extension U8aExtension on Uint8List {
     }
     return true;
   }
+
+  Uint8List concat(Uint8List other) {
+    final result = Uint8List(length + other.length);
+    result.setRange(0, length, this);
+    result.setRange(length, length + other.length, other);
+    return result;
+  }
+
+  R? let<R>(R Function(Uint8List) block) => block(this);
 }

@@ -22,10 +22,14 @@ class _Web3SignerState extends State<Web3Signer> {
   final TextEditingController _textField4Controller = TextEditingController();
 
   final PassKeySigner _pkpSigner = PassKeySigner(
-    "variance.space", // id
-    "variance", // name
-    "https://variance.space", // origin
-  );
+      options: PassKeysOptions(
+          name: "variance",
+          namespace: "variance.space",
+          origin: "https://variance.space",
+          requireResidentKey: true,
+          userVerification: "required",
+          sharedWebauthnSigner: EthereumAddress.fromHex(
+              "0xfD90FAd33ee8b58f32c00aceEad1358e4AFC23f9")));
 
   PassKeyPair? _pkp;
 
@@ -54,11 +58,7 @@ class _Web3SignerState extends State<Web3Signer> {
       });
 
   void _getDummySig() => setState(() {
-        final prefix = hexlify(Uint8List(0));
-        final dummy = _pkpSigner.getDummySignature(prefix: prefix, getOptions: {
-          "signer": "0xfD90FAd33ee8b58f32c00aceEad1358e4AFC23f9",
-          "userVerification": "required"
-        });
+        final dummy = _pkpSigner.getDummySignature();
         log(dummy);
         _textField4Controller.text = dummy;
       });
