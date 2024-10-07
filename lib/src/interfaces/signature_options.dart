@@ -32,38 +32,18 @@ class PassKeysOptions<T> extends SignatureOptions {
 }
 
 class FCLSignature {
-  final String staticSignature;
-  final String dynamicPartLength;
-  final String data;
+  final Uint8List staticSignature;
+  final Uint8List dynamicPartLength;
+  final Uint8List data;
+
   const FCLSignature(this.staticSignature, this.dynamicPartLength, this.data);
 
   Uint8List toUint8List() {
-    return hexToBytes(toString());
-  }
-
-  Map<String, String> toMap() {
-    return {
-      'staticSignature': "0x$staticSignature",
-      'dynamicPartLength': "0x$dynamicPartLength",
-      'data': "0x$data",
-    };
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory FCLSignature.fromMap(Map<String, String> map) {
-    return FCLSignature(
-        hexStripPrefix(map['staticSignature']!),
-        hexStripPrefix(map['dynamicPartLength']!),
-        hexStripPrefix(map['data']!));
-  }
-
-  factory FCLSignature.fromJson(String json) {
-    return FCLSignature.fromMap(Map<String, String>.from(jsonDecode(json)));
+    return staticSignature.concat(dynamicPartLength).concat(data);
   }
 
   @override
   String toString() {
-    return "0x$staticSignature$dynamicPartLength$data";
+    return hexlify(toUint8List());
   }
 }

@@ -44,4 +44,28 @@ extension U8aExtension on Uint8List {
   }
 
   R? let<R>(R Function(Uint8List) block) => block(this);
+
+  Uint8List padLeftTo32Bytes() {
+    if (length > 32) {
+      throw ArgumentError('Uint8List length exceeds 32 bytes.');
+    }
+    if (length == 32) {
+      return this;
+    }
+    final padded = Uint8List(32);
+    padded.setRange(32 - length, 32, this);
+    return padded;
+  }
+
+  Uint8List padRightTo32Bytes() {
+    if (length > 32) {
+      throw ArgumentError('Uint8List length exceeds 32 bytes.');
+    }
+    if (length == 32) {
+      return this;
+    }
+    final padded = Uint8List(32);
+    padded.setRange(0, length, this);
+    return padded;
+  }
 }
