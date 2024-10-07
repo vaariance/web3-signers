@@ -1,3 +1,9 @@
+## 0.1.2
+
+- optimize signature options
+- globalize prefix
+- passkey configurations now require user verification and resident key fields.
+
 ## 0.1.1
 
 - add platform for web
