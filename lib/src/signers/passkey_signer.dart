@@ -109,21 +109,18 @@ class PassKeySigner implements PasskeySignerInterface {
 
   final PasskeyAuthenticator _auth;
 
-  final Set<Bytes> _knownCredentials;
+  final Set<Bytes> credentialIds;
 
-  /// - [namespace] : the relying party entity id e.g "variance.space"
-  /// - [name] : the relying party entity name e.g "Variance"
-  /// - [origin] : the relying party entity origin. e.g "https://variance.space"
-  /// - [knownCredentials] : a set of known credentials. Defaults to an empty set.
+  /// - [options] : options for the signer
+  /// - [auth] : optional authenticator injected for testing purposes
+  /// - [knownCredentials] : optional known credentials to inject into the signer
   PassKeySigner(
       {required PassKeysOptions options,
+      Authenticator? auth,
       Set<Bytes> knownCredentials = const {}})
       : _opts = options,
-        _auth = PasskeyAuthenticator(),
-        _knownCredentials = knownCredentials;
-
-  @override
-  Set<Bytes> get credentialIds => _knownCredentials;
+        _auth = auth ?? PasskeyAuthenticator(),
+        credentialIds = Set<Bytes>.from(knownCredentials);
 
   @override
   PassKeysOptions get opts => _opts;
@@ -143,7 +140,7 @@ class PassKeySigner implements PasskeySignerInterface {
 
   @override
   String getAddress({int? index}) {
-    return b64e(_knownCredentials.elementAt(index ?? 0));
+    return base64Url.encode(credentialIds.elementAt(index ?? 0));
   }
 
   /// returns an FCL compatible signature as a string literal or Hex data.
@@ -152,26 +149,24 @@ class PassKeySigner implements PasskeySignerInterface {
   String getDummySignature() {
     final signer = _opts.sharedWebauthnSigner;
     final uv = _opts.userVerification == "required" ? 0x04 : 0x01;
-    final dummyCdField = [
-      '"origin":"android:apk-key-hash:5--XhhrpNeH_K2aYpxYxOupzRZZkBz1dGUTuwDUaDNI"',
-      '"androidPackageName":"com.example.web3_signers"',
-    ].join(",");
+    final dummyCdField =
+        '{"type":"webauthn.get","challenge":"p5aV2uHXr0AOqUk7HQitvi-Ny1p5aV2uHXr0AOqUk7H","origin":"android:apk-key-hash:5--XhhrpNeH_K2aYpxYxOupzRZZkBz1dGUTuwDUaDNI","androidPackageName":"com.example.web3_signers"}';
     final dummyAdField = Uint8List(37);
     dummyAdField.fillRange(0, dummyAdField.length, 0xfe);
     dummyAdField[32] = uv;
 
-    return buildSafeSignatureBytes(
-            signer,
-            PassKeySignature(
-                "",
-                Uint8List(0),
-                Tuple<Uint256, Uint256>(Uint256.fromHex("0x${'ec' * 32}"),
-                    Uint256.fromHex("0x${'d5a' * 21}f")),
-                dummyAdField,
-                dummyCdField,
-                0,
-                ""))
-        .toString();
+    final dummySig = PassKeySignature(
+            "",
+            Uint8List(0),
+            Tuple<Uint256, Uint256>(Uint256.fromHex("0x${'ec' * 32}"),
+                Uint256.fromHex("0x${'d5a' * 21}f")),
+            dummyAdField,
+            dummyCdField,
+            0,
+            "")
+        .toUint8List();
+
+    return _buildSafeSignatureBytes(signer, dummySig).toString();
   }
 
   @override
@@ -185,7 +180,9 @@ class PassKeySigner implements PasskeySignerInterface {
     final knownCredentials = _getKnownCredentials(index);
     final signature =
         await signToPasskeySignature(hash, knownCredentials: knownCredentials);
-    return signature.toUint8List();
+    return _buildSafeSignatureBytes(
+            _opts.sharedWebauthnSigner, signature.toUint8List())
+        .toUint8List();
   }
 
   @override
@@ -270,8 +267,8 @@ class PassKeySigner implements PasskeySignerInterface {
     final x = Uint256.fromHex(hexlify(keyX.value.value));
     final y = Uint256.fromHex(hexlify(keyY.value.value));
 
-    return AuthData(b64e(credentialId), Uint8List.fromList(credentialId),
-        Tuple(x, y), aaGUID);
+    return AuthData(base64Url.encode(credentialId),
+        Uint8List.fromList(credentialId), Tuple(x, y), aaGUID);
   }
 
   AuthData _decodeAttestation(RegisterResponseType attestation) {
@@ -287,27 +284,6 @@ class PassKeySigner implements PasskeySignerInterface {
     return _decode(authData);
   }
 
-  static String _getSignatureBytes(PassKeySignature signature) {
-    String encodeUint256(BigInt x) => x.toRadixString(16).padLeft(64, '0');
-    int byteSize(Uint8List data) => 32 * (((data.length + 31) ~/ 32) + 1);
-    String encodeBytes(Uint8List data) {
-      String hexData = hexlify(data);
-      String result =
-          encodeUint256(BigInt.from(data.length)) + hexData.substring(2);
-      return result.padRight(byteSize(data) * 2, '0');
-    }
-
-    int adOffset = 32 * 4;
-    int cdjOffset = adOffset + byteSize(signature.authData);
-
-    return '${encodeUint256(BigInt.from(adOffset))}'
-        '${encodeUint256(BigInt.from(cdjOffset))}'
-        '${encodeUint256(signature.signature.item1.value)}'
-        '${encodeUint256(signature.signature.item2.value)}'
-        '${encodeBytes(signature.authData)}'
-        '${encodeBytes(Uint8List.fromList(utf8.encode(signature.clientDataJSON)))}';
-  }
-
   List<CredentialType> _getKnownCredentials([int? index]) {
     return _getCredentialIds(index)
         .map(_convertToCredentialType)
@@ -315,8 +291,8 @@ class PassKeySigner implements PasskeySignerInterface {
   }
 
   Iterable<Bytes> _getCredentialIds(int? index) {
-    if (index == null) return _knownCredentials;
-    return _knownCredentials.elementAtOrNull(index)?.let((e) => [e]) ?? [];
+    if (index == null) return credentialIds;
+    return credentialIds.elementAtOrNull(index)?.let((e) => [e]) ?? [];
   }
 
   CredentialType _convertToCredentialType(Bytes credentialId) {
@@ -376,29 +352,17 @@ class PassKeySigner implements PasskeySignerInterface {
     return await _auth.authenticate(entity);
   }
 
-  static FCLSignature buildSafeSignatureBytes(
-    EthereumAddress signer,
-    PassKeySignature signature,
+  FCLSignature _buildSafeSignatureBytes(
+    EthereumAddress sharedSigner,
+    Uint8List data,
   ) {
-    // parse the passkey signature data
-    final dataNo0x = _getSignatureBytes(signature);
+    final signerBytes = sharedSigner.addressBytes.padLeftTo32Bytes();
+    final dynamicPartPosition = intToBytes(BigInt.from(65)).padLeftTo32Bytes();
+    final dynamicPartLength =
+        intToBytes(BigInt.from((data.length))).padLeftTo32Bytes();
+    final staticSignature =
+        signerBytes.concat(dynamicPartPosition).concat(Uint8List(1));
 
-    // Static part length in bytes
-    const int signatureLengthBytes = 65;
-
-    // Ensure signer address is 32 bytes (64 hex chars)
-    String signerNo0x = signer.hexNo0x.padLeft(64, '0');
-
-    // Convert dynamic part position to hex and pad to 32 bytes (64 hex chars)
-    String dynamicPartPosition =
-        signatureLengthBytes.toRadixString(16).padLeft(64, '0');
-
-    // Convert dynamic part length to hex and pad to 32 bytes (64 hex chars)
-    String dynamicPartLength =
-        (dataNo0x.length ~/ 2).toRadixString(16).padLeft(64, '0');
-
-    // Build the static part of the signature
-    String staticSignature = '$signerNo0x${dynamicPartPosition}00';
-    return FCLSignature(staticSignature, dynamicPartLength, dataNo0x);
+    return FCLSignature(staticSignature, dynamicPartLength, data);
   }
 }

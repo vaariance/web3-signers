@@ -2,12 +2,11 @@ part of 'interfaces.dart';
 
 typedef PSI = PasskeySignerInterface;
 
+abstract class Authenticator implements PasskeyAuthenticator {}
+
 abstract class PasskeySignerInterface extends MultiSignerInterface {
   /// Gets the PassKeysOptions used by the PasskeyInterface.
   PassKeysOptions get opts;
-
-  /// Gets the credential IDs used by the passkey signer.
-  Set<Uint8List> get credentialIds;
 
   /// Generates the 32-byte client data hash for the given [PassKeysOptions] and optional challenge.
   ///

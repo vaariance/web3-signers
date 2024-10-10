@@ -78,7 +78,7 @@ class EOAWallet implements EOAWalletInterface {
 
   @override
   String getAddress({int? index}) {
-    return _getEthereumAddress(index: index ?? 0).hex;
+    return _getEthereumAddress(index ?? 0).hex;
   }
 
   @override
@@ -115,10 +115,8 @@ class EOAWallet implements EOAWalletInterface {
     return Bip44PrivateKey(privKey, chain.coinConf);
   }
 
-  EthereumAddress _getEthereumAddress({int index = 0}) {
-    Bip44PrivateKey hdKey = _getHdKey(index);
-    final privKey = _deriveEthPrivKey(hdKey.key.toHex());
-    return privKey.address;
+  EthereumAddress _getEthereumAddress(int index) {
+    return _getPrivateKey(index).address;
   }
 
   Bip44PrivateKey _getHdKey(int index) {
@@ -127,8 +125,7 @@ class EOAWallet implements EOAWalletInterface {
 
   EthPrivateKey _getPrivateKey(int index) {
     final hdKey = _getHdKey(index);
-    final privateKey = _deriveEthPrivKey(hdKey.key.toHex());
-    return privateKey;
+    return _deriveEthPrivKey(hdKey.key.toHex());
   }
 }
 

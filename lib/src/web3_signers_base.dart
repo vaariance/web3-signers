@@ -1,4 +1,4 @@
-library variance;
+library;
 
 import 'dart:async';
 import 'dart:convert';

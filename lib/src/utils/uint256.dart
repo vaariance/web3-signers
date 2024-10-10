@@ -17,6 +17,16 @@ class Uint256 implements Uint256Base {
     return Uint256(hexToInt(hex));
   }
 
+  /// Creates a [Uint256] instance from a [Uint8List].
+  ///
+  /// Example:
+  /// ```dart
+  /// final value = Uint256.fromList([0xa]); // Creates Uint256 with value 10
+  /// ```
+  factory Uint256.fromList(List<int> list) {
+    return Uint256(bytesToInt(list));
+  }
+
   /// Creates a [Uint256] instance from an [EtherAmount] value [inWei].
   ///
   /// Example:

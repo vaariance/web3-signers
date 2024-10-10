@@ -1,3 +1,14 @@
+## 0.1.4
+
+- export vendor files
+- tests and code documentations
+
+## 0.1.3
+
+- seperate passkey build signature bytes
+- use abi.encode instead instead of manual encoding
+- Use Uint8list instead of strings
+
 ## 0.1.2
 
 - optimize signature options
