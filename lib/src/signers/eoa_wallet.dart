@@ -22,7 +22,7 @@ class EOAWallet implements EOAWalletInterface {
     final generator = Bip39MnemonicGenerator();
     final Bip39WordsNum wordNumber = wordLenth.wordsNum;
     final phrase = generator.fromWordsNumber(wordNumber);
-    return EOAWallet.recoverAccount(phrase.toStr());
+    return EOAWallet.recoverAccount(phrase.toStr(), options);
   }
 
   /// Recovers an EOA wallet signer instance from a given mnemonic phrase.

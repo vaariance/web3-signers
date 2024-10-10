@@ -1,3 +1,8 @@
+## 0.1.5
+
+- replace Random with web3Dart randomBridge
+- fix SignatureOptions not applied in eo wallet create.
+
 ## 0.1.4
 
 - export vendor files

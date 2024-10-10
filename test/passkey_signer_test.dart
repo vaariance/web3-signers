@@ -135,7 +135,7 @@ void main() {
     });
 
     test('Get Address with credentials', () {
-      final credentialId = randomAsU8a(32);
+      final credentialId = getRandomValues();
       passKeySigner.credentialIds.add(credentialId);
       final address = passKeySigner.getAddress();
       expect(address, equals(base64Url.encode(credentialId)));
