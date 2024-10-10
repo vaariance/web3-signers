@@ -2,6 +2,34 @@ part of 'utils.dart';
 
 RegExp _hexadecimal = RegExp(r'^[0-9a-fA-F]+$');
 
+/// Generates a Uint8List of random values.
+///
+/// Parameters:
+/// - [length]: The length of the random byte array to generate. Defaults to [_defaultLength].
+///
+/// Returns a Uint8List of random bytes.
+///
+/// Example:
+/// ```dart
+/// final randomBytes = getRandomValues(16);
+/// print(randomBytes.length); // Prints: 16
+/// ```
+Uint8List getRandomValues([int length = 32]) {
+  final RandomBridge rn = RandomBridge(Random.secure());
+  String entropy = rn.nextBigInteger(length * 8).toRadixString(16);
+
+  if (entropy.length > length * 2) {
+    entropy = entropy.substring(0, length * 2);
+  }
+
+  String randomPers = rn.nextBigInteger(length * 8).toRadixString(16);
+
+  if (randomPers.length > length * 2) {
+    randomPers = randomPers.substring(0, length * 2);
+  }
+  return hexToBytes(randomPers);
+}
+
 /// Converts a hex string to a 32bytes `Uint8List`.
 ///
 /// Parameters:

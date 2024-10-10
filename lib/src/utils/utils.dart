@@ -8,6 +8,8 @@ import 'dart:developer' as dev;
 
 import 'package:blockchain_utils/blockchain_utils.dart';
 import 'package:web3dart/crypto.dart';
+// ignore: implementation_imports
+import 'package:web3dart/src/crypto/random_bridge.dart';
 import 'package:web3dart/web3dart.dart';
 
 import '../interfaces/interfaces.dart';
