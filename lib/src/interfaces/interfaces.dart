@@ -2,6 +2,7 @@ library interfaces;
 
 import 'dart:typed_data';
 
+import 'package:passkeys/authenticator.dart' show PasskeyAuthenticator;
 import 'package:passkeys/types.dart';
 import 'package:web3_signers/src/vendor/vendor.dart' show U8aExtension;
 import 'package:web3dart/crypto.dart';

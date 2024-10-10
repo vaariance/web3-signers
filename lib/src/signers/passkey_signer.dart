@@ -109,21 +109,18 @@ class PassKeySigner implements PasskeySignerInterface {
 
   final PasskeyAuthenticator _auth;
 
-  final Set<Bytes> _knownCredentials;
+  final Set<Bytes> credentialIds;
 
-  /// - [namespace] : the relying party entity id e.g "variance.space"
-  /// - [name] : the relying party entity name e.g "Variance"
-  /// - [origin] : the relying party entity origin. e.g "https://variance.space"
-  /// - [knownCredentials] : a set of known credentials. Defaults to an empty set.
+  /// - [options] : options for the signer
+  /// - [auth] : optional authenticator injected for testing purposes
+  /// - [knownCredentials] : optional known credentials to inject into the signer
   PassKeySigner(
       {required PassKeysOptions options,
+      Authenticator? auth,
       Set<Bytes> knownCredentials = const {}})
       : _opts = options,
-        _auth = PasskeyAuthenticator(),
-        _knownCredentials = knownCredentials;
-
-  @override
-  Set<Bytes> get credentialIds => _knownCredentials;
+        _auth = auth ?? PasskeyAuthenticator(),
+        credentialIds = Set<Bytes>.from(knownCredentials);
 
   @override
   PassKeysOptions get opts => _opts;
@@ -143,7 +140,7 @@ class PassKeySigner implements PasskeySignerInterface {
 
   @override
   String getAddress({int? index}) {
-    return b64e(_knownCredentials.elementAt(index ?? 0));
+    return base64Url.encode(credentialIds.elementAt(index ?? 0));
   }
 
   /// returns an FCL compatible signature as a string literal or Hex data.
@@ -270,8 +267,8 @@ class PassKeySigner implements PasskeySignerInterface {
     final x = Uint256.fromHex(hexlify(keyX.value.value));
     final y = Uint256.fromHex(hexlify(keyY.value.value));
 
-    return AuthData(b64e(credentialId), Uint8List.fromList(credentialId),
-        Tuple(x, y), aaGUID);
+    return AuthData(base64Url.encode(credentialId),
+        Uint8List.fromList(credentialId), Tuple(x, y), aaGUID);
   }
 
   AuthData _decodeAttestation(RegisterResponseType attestation) {
@@ -294,8 +291,8 @@ class PassKeySigner implements PasskeySignerInterface {
   }
 
   Iterable<Bytes> _getCredentialIds(int? index) {
-    if (index == null) return _knownCredentials;
-    return _knownCredentials.elementAtOrNull(index)?.let((e) => [e]) ?? [];
+    if (index == null) return credentialIds;
+    return credentialIds.elementAtOrNull(index)?.let((e) => [e]) ?? [];
   }
 
   CredentialType _convertToCredentialType(Bytes credentialId) {

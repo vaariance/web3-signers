@@ -1,3 +1,8 @@
+## 0.1.4
+
+- export vendor files
+- tests and code documentations
+
 ## 0.1.3
 
 - seperate passkey build signature bytes

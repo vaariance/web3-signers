@@ -54,8 +54,8 @@ There are 3 methods of signing a payload using the paskey signer.
 - method 1: using `personalSign`
 
 personal sign returns a `Uint8List` which is an encoded representation of the [passkeySignature object](./lib/src/signers/passkey_signer.dart#L85) needed onchain.
-in order to extract the individual values, you have to `abi.decode()` it.
-The signed `challenge` is excluded from this object. It is assumed your relying party is aware of this challenge which should be `Base64Url` encoded.
+in order to extract the individual values, you have to split it according to [FCLSignature](./lib/src/interfaces/signature_options.dart) and decode the `data` using `abi.decode(bytes, bytes, uint256[2])`.
+The signed `challenge` is only known to you. It is assumed your relying party is aware of this challenge which should be `Base64Url` encoded.
 
 ```dart
 final sig = await pkpSigner.personalSign(Uint8List(32));
@@ -68,6 +68,8 @@ Similar to personalSign, it conforms to the multi-signer-interface and returns a
 ```dart
 final sig = await pkpSigner.signToEc(Uint8List(32));
 ```
+
+> This returns only the r and s values. This is not recommended for verifications as the `clientDataJson` is not available with it.
 
 - method 3: using `signToPasskeySignature`
 
@@ -167,7 +169,7 @@ Any class inheriting the MSI must adhere to the following:
 ```dart
 abstract class MultiSignerInterface {
     /// You must specify a dummy signature that matches your transaction signature standard.
-    String dummySignature = "0x";
+    String getDummySignature();
     /// Generates a public address of the signer.
     String getAddress({int? index});
     /// Signs the provided [hash] using the personal sign method.

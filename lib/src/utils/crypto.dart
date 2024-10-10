@@ -41,9 +41,9 @@ Uint8List arrayify(String hexString) {
 Future<Tuple<Uint256, Uint256>> getPublicKeyFromBytes(
     Uint8List publicKeyBytes) async {
   final pKey = bytesUnwrapDer(publicKeyBytes, oidP256).sublist(1);
-  final decodedX = hexlify(pKey.sublist(0, 32));
-  final decodedY = hexlify(pKey.sublist(32, 64));
-  return Tuple(Uint256.fromHex(decodedX), Uint256.fromHex(decodedY));
+  final decodedX = pKey.sublist(0, 32);
+  final decodedY = pKey.sublist(32, 64);
+  return Tuple(Uint256.fromList(decodedX), Uint256.fromList(decodedY));
 }
 
 /// Parses ASN1-encoded signature bytes and returns a List of two hex strings representing the `r` and `s` values.
@@ -59,23 +59,11 @@ Future<Tuple<Uint256, Uint256>> getPublicKeyFromBytes(
 /// final signatureHexValues = await getMessagingSignature(signatureBytes);
 /// ```
 Tuple<Uint256, Uint256> getMessagingSignature(Uint8List signatureBytes) {
-  ASN1Parser parser = ASN1Parser(signatureBytes);
-  ASN1Sequence parsedSignature = parser.nextObject() as ASN1Sequence;
-  ASN1Integer rValue = parsedSignature.elements[0] as ASN1Integer;
-  ASN1Integer sValue = parsedSignature.elements[1] as ASN1Integer;
-  Uint8List rBytes = rValue.valueBytes();
-  Uint8List sBytes = sValue.valueBytes();
-
-  if (shouldRemoveLeadingZero(rBytes)) {
-    rBytes = rBytes.sublist(1);
-  }
-  if (shouldRemoveLeadingZero(sBytes)) {
-    sBytes = sBytes.sublist(1);
-  }
-
-  final r = hexlify(rBytes);
-  final s = hexlify(sBytes);
-  return Tuple(Uint256.fromHex(r), Uint256.fromHex(s));
+  final sig = bytesUnwrapDerSignature(signatureBytes);
+  return Tuple(
+    Uint256.fromList(sig[0]),
+    Uint256.fromList(sig[1]),
+  );
 }
 
 /// Converts a list of integers to a hexadecimal string.
@@ -171,21 +159,80 @@ List<int> toBuffer(List<List<int>> buff) {
   return List<int>.from(buff.expand((element) => element).toList());
 }
 
+/// Pads a Base64 string with '=' characters to ensure its length is a multiple of 4.
+///
+/// Parameters:
+/// - [b64]: The Base64 string to pad.
+///
+/// Returns the padded Base64 string.
+///
+/// Example:
+/// ```dart
+/// final paddedB64 = padBase64('SGVsbG8gV29ybGQ');
+/// print(paddedB64); // Prints: SGVsbG8gV29ybGQ=
+/// ```
 String padBase64(String b64) {
   final padding = 4 - b64.length % 4;
   return padding < 4 ? '$b64${"=" * padding}' : b64;
 }
 
-/// Decode a Base64 URL encoded string adding in any required '='
+/// Decodes a Base64 URL encoded string, adding any required '=' padding.
+///
+/// Parameters:
+/// - [b64]: The Base64 URL encoded string to decode.
+///
+/// Returns a Uint8List containing the decoded bytes.
+///
+/// Example:
+/// ```dart
+/// final decoded = b64d('SGVsbG8gV29ybGQ');
+/// print(decoded); // Prints: [72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100]
+/// ```
 Uint8List b64d(String b64) => base64Url.decode(padBase64(b64));
 
-/// Encode a byte list into Base64 URL encoding, stripping any trailing '='
+/// Encodes a byte list into Base64 URL encoding, stripping any trailing '='.
+///
+/// Parameters:
+/// - [bytes]: The list of bytes to encode.
+///
+/// Returns a Base64 URL encoded string without padding.
+///
+/// Example:
+/// ```dart
+/// final encoded = b64e([72, 101, 108, 108, 111]);
+/// print(encoded); // Prints: SGVsbG8
+/// ```
 String b64e(List<int> bytes) => base64Url.encode(bytes).replaceAll('=', '');
 
+/// Checks if a hexadecimal string has the '0x' prefix.
+///
+/// Parameters:
+/// - [value]: The string to check.
+///
+/// Returns true if the string is a valid hex string with '0x' prefix, false otherwise.
+///
+/// Example:
+/// ```dart
+/// print(hexHasPrefix('0x1234')); // Prints: true
+/// print(hexHasPrefix('1234')); // Prints: false
+/// ```
 bool hexHasPrefix(String value) {
   return isHex(value, ignoreLength: true) && value.substring(0, 2) == '0x';
 }
 
+/// Strips the '0x' prefix from a hexadecimal string if present.
+///
+/// Parameters:
+/// - [value]: The hexadecimal string.
+///
+/// Returns the hexadecimal string without the '0x' prefix.
+/// Throws an exception if the input is not a valid hexadecimal string.
+///
+/// Example:
+/// ```dart
+/// print(hexStripPrefix('0x1234')); // Prints: 1234
+/// print(hexStripPrefix('1234')); // Prints: 1234
+/// ```
 String hexStripPrefix(String value) {
   if (value.isEmpty) {
     return '';
@@ -200,29 +247,21 @@ String hexStripPrefix(String value) {
   throw Exception("unable to reach prefix");
 }
 
-/// [value] should be `0x` hex string.
-Uint8List hexToU8a(String value, [int bitLength = -1]) {
-  if (!isHex(value)) {
-    throw ArgumentError.value(value, 'value', 'Not a valid hex string');
-  }
-  final newValue = hexStripPrefix(value);
-  final valLength = newValue.length / 2;
-  final bufLength = (bitLength == -1 ? valLength : bitLength / 8).ceil();
-  final result = Uint8List(bufLength);
-  final offset = max(0, bufLength - valLength).toInt();
-  for (int index = 0; index < bufLength - offset; index++) {
-    final subStart = index * 2;
-    final subEnd =
-        subStart + 2 <= newValue.length ? subStart + 2 : newValue.length;
-    final arrIndex = index + offset;
-    result[arrIndex] = int.parse(
-      newValue.substring(subStart, subEnd),
-      radix: 16,
-    );
-  }
-  return result;
-}
-
+/// Checks if a value is a valid hexadecimal string.
+///
+/// Parameters:
+/// - [value]: The value to check.
+/// - [bits]: Optional bit length to validate against. Defaults to -1 (no length check).
+/// - [ignoreLength]: If true, ignores odd-length strings. Defaults to false.
+///
+/// Returns true if the value is a valid hexadecimal string, false otherwise.
+///
+/// Example:
+/// ```dart
+/// print(isHex('0x1234')); // Prints: true
+/// print(isHex('0x123')); // Prints: false
+/// print(isHex('0x123', ignoreLength: true)); // Prints: true
+/// ```
 bool isHex(dynamic value, {int bits = -1, bool ignoreLength = false}) {
   if (value is! String) {
     return false;
