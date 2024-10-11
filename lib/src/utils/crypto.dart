@@ -87,11 +87,21 @@ Future<Tuple<Uint256, Uint256>> getPublicKeyFromBytes(
 /// final signatureHexValues = await getMessagingSignature(signatureBytes);
 /// ```
 Tuple<Uint256, Uint256> getMessagingSignature(Uint8List signatureBytes) {
-  final sig = bytesUnwrapDerSignature(signatureBytes);
-  return Tuple(
-    Uint256.fromList(sig[0]),
-    Uint256.fromList(sig[1]),
-  );
+  ASN1Parser parser = ASN1Parser(signatureBytes);
+  ASN1Sequence parsedSignature = parser.nextObject() as ASN1Sequence;
+  ASN1Integer rValue = parsedSignature.elements[0] as ASN1Integer;
+  ASN1Integer sValue = parsedSignature.elements[1] as ASN1Integer;
+  Uint8List rBytes = rValue.valueBytes();
+  Uint8List sBytes = sValue.valueBytes();
+  if (shouldRemoveLeadingZero(rBytes)) {
+    rBytes = rBytes.sublist(1);
+  }
+  if (shouldRemoveLeadingZero(sBytes)) {
+    sBytes = sBytes.sublist(1);
+  }
+  final r = hexlify(rBytes);
+  final s = hexlify(sBytes);
+  return Tuple(Uint256.fromHex(r), Uint256.fromHex(s));
 }
 
 /// Converts a list of integers to a hexadecimal string.

@@ -1,3 +1,7 @@
+## 0.1.6
+
+- revert getMessaging signature implementation
+
 ## 0.1.5
 
 - replace Random with web3Dart randomBridge
