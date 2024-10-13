@@ -92,21 +92,6 @@ extension U8aExtension on Uint8List {
     return result;
   }
 
-  /// Applies a function to this Uint8List and returns the result.
-  ///
-  /// Parameters:
-  /// - [block]: A function that takes a Uint8List and returns a value of type R.
-  ///
-  /// Returns the result of applying [block] to this Uint8List.
-  ///
-  /// Example:
-  /// ```dart
-  /// final list = Uint8List.fromList([1, 2, 3]);
-  /// final sum = list.let((it) => it.reduce((a, b) => a + b));
-  /// print(sum); // Prints: 6
-  /// ```
-  R? let<R>(R Function(Uint8List) block) => block(this);
-
   /// Pads this Uint8List to 32 bytes by adding zeros to the left.
   ///
   /// Returns a new Uint8List of 32 bytes with this list's elements right-aligned.
@@ -156,4 +141,23 @@ extension U8aExtension on Uint8List {
     padded.setRange(0, length, this);
     return padded;
   }
+}
+
+typedef Bytes = List<int>;
+
+extension BytesExtension on Bytes {
+  /// Applies a function to this Bytes and returns the result.
+  ///
+  /// Parameters:
+  /// - [block]: A function that takes a Bytes and returns a value of type R.
+  ///
+  /// Returns the result of applying [block] to this Bytes.
+  ///
+  /// Example:
+  /// ```dart
+  /// final list = [1, 2, 3];
+  /// final sum = list.let((it) => it.reduce((a, b) => a + b));
+  /// print(sum); // Prints: 6
+  /// ```
+  R? let<R>(R Function(Bytes) block) => block(this);
 }

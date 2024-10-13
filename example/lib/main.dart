@@ -21,15 +21,16 @@ class _Web3SignerState extends State<Web3Signer> {
   final TextEditingController _textField3Controller = TextEditingController();
   final TextEditingController _textField4Controller = TextEditingController();
 
-  final PassKeySigner _pkpSigner = PassKeySigner(
-      options: PassKeysOptions(
-          name: "variance",
-          namespace: "variance.space",
-          origin: "https://variance.space",
-          requireResidentKey: true,
-          userVerification: "required",
-          sharedWebauthnSigner: EthereumAddress.fromHex(
-              "0xfD90FAd33ee8b58f32c00aceEad1358e4AFC23f9")));
+  static final sharedSigner =
+      EthereumAddress.fromHex("0xfD90FAd33ee8b58f32c00aceEad1358e4AFC23f9");
+  static final passkeyOpts = PassKeysOptions(
+      name: "variance",
+      namespace: "variance.space",
+      origin: "https://variance.space",
+      residentKey: "required",
+      requireResidentKey: false,
+      sharedWebauthnSigner: sharedSigner);
+  final PassKeySigner _pkpSigner = PassKeySigner(options: passkeyOpts);
 
   PassKeyPair? _pkp;
 
@@ -38,16 +39,23 @@ class _Web3SignerState extends State<Web3Signer> {
     _updatePkpPublicKey();
   }
 
+  void _signin() async {
+    if (_pkp != null) {
+      print("credentialIds: ${_pkp!.authData.b64Credential}");
+      _pkpSigner.credentialIds.add(_pkp!.authData.rawCredential);
+    }
+    final sig = await _pkpSigner.personalSign(Uint8List(32), index: 2);
+    final calldata = hexlify(sig);
+    _updatePkpSignature(calldata);
+  }
+
   void _updatePkpPublicKey() => setState(() {
         _textField1Controller.text = _pkp!.authData.publicKey.item1.toHex();
         _textField2Controller.text = _pkp!.authData.publicKey.item2.toHex();
       });
 
-  void _updatePkpSignature() => setState(() async {
-        final sig = await _pkpSigner.signToPasskeySignature(Uint8List(32));
-        final calldata = hexlify(sig.toUint8List());
+  void _updatePkpSignature(String calldata) => setState(() {
         _textField3Controller.text = calldata;
-        log(calldata);
       });
 
   void _clearAllFields() => setState(() {
@@ -178,7 +186,7 @@ class _Web3SignerState extends State<Web3Signer> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                       ),
-                      onPressed: _updatePkpSignature,
+                      onPressed: _signin,
                       child: const Text('Sign with Passkey'),
                     ),
                   ),

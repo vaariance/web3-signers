@@ -94,17 +94,11 @@ void main() {
       expect(passKeySigner.credentialIds, isEmpty);
     });
 
-    test('Generating clientDataHash', () {
-      final hash = passKeySigner.clientDataHash(options, 'test-challenge');
-      expect(hash, isA<Uint8List>());
-      expect(hash.length, equals(32)); // SHA-256 hash length
-    });
-
     test('Random Base64 String Generation', () {
       final randomString = passKeySigner.randomBase64String();
       expect(randomString, isA<String>());
       // Base64 URL-safe encoding without padding
-      expect(RegExp(r'^[A-Za-z0-9\-_]{22}$').hasMatch(randomString), isTrue);
+      expect(RegExp(r'^[A-Za-z0-9\-_]{43}$').hasMatch(randomString), isTrue);
     });
 
     test('Get Dummy Signature', () {

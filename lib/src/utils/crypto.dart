@@ -14,20 +14,8 @@ RegExp _hexadecimal = RegExp(r'^[0-9a-fA-F]+$');
 /// final randomBytes = getRandomValues(16);
 /// print(randomBytes.length); // Prints: 16
 /// ```
-Uint8List getRandomValues([int length = 32]) {
-  final RandomBridge rn = RandomBridge(Random.secure());
-  String entropy = rn.nextBigInteger(length * 8).toRadixString(16);
-
-  if (entropy.length > length * 2) {
-    entropy = entropy.substring(0, length * 2);
-  }
-
-  String randomPers = rn.nextBigInteger(length * 8).toRadixString(16);
-
-  if (randomPers.length > length * 2) {
-    randomPers = randomPers.substring(0, length * 2);
-  }
-  return hexToBytes(randomPers);
+List<int> getRandomValues([int length = 32]) {
+  return QuickCrypto.generateRandom(length);
 }
 
 /// Converts a hex string to a 32bytes `Uint8List`.
@@ -177,24 +165,6 @@ List<int> sha256Hash(List<int> input) {
 /// ```
 bool shouldRemoveLeadingZero(Uint8List bytes) {
   return bytes[0] == 0x0 && (bytes[1] & (1 << 7)) != 0;
-}
-
-/// Combines multiple lists of integers into a single list.
-///
-/// Parameters:
-/// - [buff]: List of lists of integers to be combined.
-///
-/// Returns a new list containing all the integers from the input lists.
-///
-/// Example:
-/// ```dart
-/// final list1 = [1, 2, 3];
-/// final list2 = [4, 5, 6];
-/// final combinedList = toBuffer([list1, list2]);
-/// log("Combined List: $combinedList");
-/// ```
-List<int> toBuffer(List<List<int>> buff) {
-  return List<int>.from(buff.expand((element) => element).toList());
 }
 
 /// Pads a Base64 string with '=' characters to ensure its length is a multiple of 4.

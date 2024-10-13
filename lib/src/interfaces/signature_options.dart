@@ -47,14 +47,6 @@ class PassKeysOptions extends SignatureOptions {
   /// e.g "https://variance.space"
   final String origin;
 
-  /// An user defined challenge string for the attestation process.
-  /// if not provided, a random string will be generated
-  String? challenge;
-
-  /// An optional type identifier for the PassKeys operation.
-  /// ["webauthn.create"] or ["webauthn.get"]
-  String? type;
-
   /// The Ethereum address of the shared WebAuthn signer.
   final EthereumAddress sharedWebauthnSigner;
 
@@ -65,8 +57,21 @@ class PassKeysOptions extends SignatureOptions {
 
   /// Indicates whether a resident key is required.
   ///
-  /// Defaults to true.
+  /// Defaults to false.
   final bool requireResidentKey;
+
+  /// The type of resident key requirement.
+  /// ["required"] or ["preferred"] or ["discouraged"].
+  ///
+  /// Defaults to "preferred".
+  final String residentKey;
+
+  /// The mediation type for the PassKeys operation.
+  ///
+  /// ["conditional"] or ["optional"] or ["silent"] or ["required"].
+  ///
+  /// Defaults to "optional".
+  final String mediation;
 
   /// Creates a new instance of PassKeysOptions.
   ///
@@ -78,8 +83,8 @@ class PassKeysOptions extends SignatureOptions {
   /// - [sharedWebauthnSigner]: The Ethereum address of the shared WebAuthn signer.
   /// - [userVerification]: The level of user verification required. Defaults to "required".
   /// - [requireResidentKey]: Indicates whether a resident key is required. Defaults to true.
-  /// - [challenge]: An optional challenge string for the authentication process.
-  /// - [type]: An optional type identifier for the PassKeys operation.
+  /// - [residentKey]: The type of resident key. Defaults to "preferred".
+  /// - [mediation]: The mediation type for the PassKeys operation. Defaults to "conditional".
   ///
   /// Example:
   /// ```dart
@@ -92,16 +97,17 @@ class PassKeysOptions extends SignatureOptions {
   ///   type: 'webauthn'
   /// );
   /// ```
-  PassKeysOptions(
-      {super.prefix,
-      required this.namespace,
-      required this.name,
-      required this.origin,
-      required this.sharedWebauthnSigner,
-      this.userVerification = "required",
-      this.requireResidentKey = true,
-      this.challenge,
-      this.type});
+  const PassKeysOptions({
+    super.prefix,
+    required this.namespace,
+    required this.name,
+    required this.origin,
+    required this.sharedWebauthnSigner,
+    this.userVerification = "required",
+    this.requireResidentKey = false,
+    this.residentKey = "preferred",
+    this.mediation = "optional",
+  });
 }
 
 /// Represents a FCL (Flow Client Library) signature.
