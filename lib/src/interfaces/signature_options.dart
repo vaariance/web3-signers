@@ -43,10 +43,6 @@ class PassKeysOptions extends SignatureOptions {
   /// e.g variance
   final String name;
 
-  /// The origin (typically a domain) of the relying party.
-  /// e.g "https://variance.space"
-  final String origin;
-
   /// The Ethereum address of the shared WebAuthn signer.
   final EthereumAddress sharedWebauthnSigner;
 
@@ -57,7 +53,7 @@ class PassKeysOptions extends SignatureOptions {
 
   /// Indicates whether a resident key is required.
   ///
-  /// Defaults to false.
+  /// Defaults to true.
   final bool requireResidentKey;
 
   /// The type of resident key requirement.
@@ -65,6 +61,12 @@ class PassKeysOptions extends SignatureOptions {
   ///
   /// Defaults to "preferred".
   final String residentKey;
+
+  /// The authenticator attachment to use
+  /// ["cross-platform"] or ["platform"]
+  ///
+  /// Defaults to "cross-platform"
+  final String authenticatorAttachment;
 
   /// The mediation type for the PassKeys operation.
   ///
@@ -79,11 +81,11 @@ class PassKeysOptions extends SignatureOptions {
   /// - [prefix]: An optional prefix inherited from SignatureOptions.
   /// - [namespace]: The namespace for the PassKeys operation.
   /// - [name]: The name associated with the PassKeys operation.
-  /// - [origin]: The origin (typically a domain) for the PassKeys operation.
   /// - [sharedWebauthnSigner]: The Ethereum address of the shared WebAuthn signer.
   /// - [userVerification]: The level of user verification required. Defaults to "required".
   /// - [requireResidentKey]: Indicates whether a resident key is required. Defaults to true.
   /// - [residentKey]: The type of resident key. Defaults to "preferred".
+  /// - [authenticatorAttachment]: The cross-platform or platform.
   /// - [mediation]: The mediation type for the PassKeys operation. Defaults to "conditional".
   ///
   /// Example:
@@ -101,11 +103,11 @@ class PassKeysOptions extends SignatureOptions {
     super.prefix,
     required this.namespace,
     required this.name,
-    required this.origin,
     required this.sharedWebauthnSigner,
     this.userVerification = "required",
-    this.requireResidentKey = false,
+    this.requireResidentKey = true,
     this.residentKey = "preferred",
+    this.authenticatorAttachment = "cross-platform",
     this.mediation = "optional",
   });
 }

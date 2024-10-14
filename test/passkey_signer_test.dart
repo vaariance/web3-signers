@@ -22,7 +22,6 @@ void main() {
     final options = PassKeysOptions(
         namespace: 'variance.space',
         name: 'Variance',
-        origin: 'https://variance.space',
         requireResidentKey: true,
         userVerification: "required",
         sharedWebauthnSigner: EthereumAddress.fromHex(
@@ -90,7 +89,6 @@ void main() {
     test('Initialization of PassKeySigner', () {
       expect(passKeySigner.opts.namespace, equals('variance.space'));
       expect(passKeySigner.opts.name, equals('Variance'));
-      expect(passKeySigner.opts.origin, equals('https://variance.space'));
       expect(passKeySigner.credentialIds, isEmpty);
     });
 

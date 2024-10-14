@@ -1,3 +1,10 @@
+## 0.1.7
+
+- simplify attestation challenge
+- temmporarily handle ios user id base64 encoding
+- expose configuration options
+- change crypto.getRandomValues to use QuickCrypto
+
 ## 0.1.6
 
 - revert getMessaging signature implementation

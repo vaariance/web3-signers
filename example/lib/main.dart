@@ -26,7 +26,6 @@ class _Web3SignerState extends State<Web3Signer> {
   static final passkeyOpts = PassKeysOptions(
       name: "variance",
       namespace: "variance.space",
-      origin: "https://variance.space",
       residentKey: "required",
       requireResidentKey: false,
       sharedWebauthnSigner: sharedSigner);
