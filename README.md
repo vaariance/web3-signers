@@ -19,11 +19,15 @@ import 'package:web3_signers/web3_signers.dart';
 passkeys signer conforms to the `multi-signer-interface` and allows you to sign payloads using your device passkeys. It falls under the secp256r1 category and can be verified on-chain using the [P256Verifier](https://p256.eth.limo/) precompile.
 
 ```dart
-final PassKeySigner pkpSigner = PassKeySigner(
-  "variance.space", // replace with your relying party Id (domain name)
-  "variance", // replace with your relying party name
-  "https://variance.space", // replace with your relying party origin
-);
+final sharedSigner = EthereumAddress.fromHex("0xfD90FAd33ee8b58f32c00aceEad1358e4AFC23f9");
+final options =  PassKeysOptions(
+          name: "variance", // replace with your relying party name
+          namespace: "variance.space", // replace with your relying party Id (domain name)
+          origin: "https://variance.space", // replace with your relying party origin
+          residentKey: "required",
+          sharedWebauthnSigner: sharedSigner)
+
+final PassKeySigner pkpSigner = PassKeySigner(options: options);
 
 // register a new passkey
 PassKeyPair pkp = await pkpSigner.register("user@variance.space", "test user"); 
@@ -35,9 +39,7 @@ If you already know the `credentialIds` created for the user, you can pass the `
 
 ```dart
 final PassKeySigner pkpSigner = PassKeySigner(
-  "variance.space", // replace with your relying party Id (domain name)
-  "variance", // replace with your relying party name
-  "https://variance.space", // replace with your relying party origin
+  ...
   knownCredentials: Set<Bytes>.from(<Uint8List>[Uint8List(32), Uint8List(32)])>
 );
 ```
@@ -195,10 +197,19 @@ abstract class MultiSignerInterface {
 
 - Configuring passkeys for iOS
 
-    1. Set up Universal Links. follow this [guide](https://docs.flutter.dev/cookbook/navigation/set-up-universal-links).
+  - Set mininum iOS version/target deployment to 16.0
 
-- Configuring ios secure enclave
-    1. Set your `platform :ios` to be minimum of 12.4
+    > **Note:** passkeys requires iOS 16.0 or later.
+
+  - You need an apple developer account. [Apply](developer.apple.com) if you don't have.
+
+  - Set up your Associated Domain to your app `capabilities` in Xcode. [follow this guide](https://developer.apple.com/documentation/xcode/configuring-an-associated-domain).
+    - this should look like `webcredentials:variance.space?mode= developer` [follow this guide](https://developer.apple.com/documentation/xcode/configuring-an-associated-domain#Enable-alternate-mode-for-unreachable-servers) to understand how to work in development mode to bypass Apple’s CDN service.
+
+  - Host an `apple-app-site-association` in your website. [follow this guide](https://developer.apple.com/documentation/xcode/supporting-associated-domains)
+    - you can verify this via [https://app-site-association.cdn-apple.com/a/v1/<YOUR_DOMAIN>](https://app-site-association.cdn-apple.com/a/v1/variance.space) (replace the domain with yours)
+
+  - (optionally) Add `keychain sharing` to your app `capabilities` in xcode.
 
 ### Android
 

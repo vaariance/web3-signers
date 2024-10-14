@@ -6,6 +6,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:developer' as dev;
 
+import 'package:asn1lib/asn1lib.dart';
 import 'package:blockchain_utils/blockchain_utils.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';

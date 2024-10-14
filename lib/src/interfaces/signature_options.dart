@@ -43,18 +43,6 @@ class PassKeysOptions extends SignatureOptions {
   /// e.g variance
   final String name;
 
-  /// The origin (typically a domain) of the relying party.
-  /// e.g "https://variance.space"
-  final String origin;
-
-  /// An user defined challenge string for the attestation process.
-  /// if not provided, a random string will be generated
-  String? challenge;
-
-  /// An optional type identifier for the PassKeys operation.
-  /// ["webauthn.create"] or ["webauthn.get"]
-  String? type;
-
   /// The Ethereum address of the shared WebAuthn signer.
   final EthereumAddress sharedWebauthnSigner;
 
@@ -68,18 +56,37 @@ class PassKeysOptions extends SignatureOptions {
   /// Defaults to true.
   final bool requireResidentKey;
 
+  /// The type of resident key requirement.
+  /// ["required"] or ["preferred"] or ["discouraged"].
+  ///
+  /// Defaults to "preferred".
+  final String residentKey;
+
+  /// The authenticator attachment to use
+  /// ["cross-platform"] or ["platform"]
+  ///
+  /// Defaults to "cross-platform"
+  final String authenticatorAttachment;
+
+  /// The mediation type for the PassKeys operation.
+  ///
+  /// ["conditional"] or ["optional"] or ["silent"] or ["required"].
+  ///
+  /// Defaults to "optional".
+  final String mediation;
+
   /// Creates a new instance of PassKeysOptions.
   ///
   /// Parameters:
   /// - [prefix]: An optional prefix inherited from SignatureOptions.
   /// - [namespace]: The namespace for the PassKeys operation.
   /// - [name]: The name associated with the PassKeys operation.
-  /// - [origin]: The origin (typically a domain) for the PassKeys operation.
   /// - [sharedWebauthnSigner]: The Ethereum address of the shared WebAuthn signer.
   /// - [userVerification]: The level of user verification required. Defaults to "required".
   /// - [requireResidentKey]: Indicates whether a resident key is required. Defaults to true.
-  /// - [challenge]: An optional challenge string for the authentication process.
-  /// - [type]: An optional type identifier for the PassKeys operation.
+  /// - [residentKey]: The type of resident key. Defaults to "preferred".
+  /// - [authenticatorAttachment]: The cross-platform or platform.
+  /// - [mediation]: The mediation type for the PassKeys operation. Defaults to "conditional".
   ///
   /// Example:
   /// ```dart
@@ -92,16 +99,17 @@ class PassKeysOptions extends SignatureOptions {
   ///   type: 'webauthn'
   /// );
   /// ```
-  PassKeysOptions(
-      {super.prefix,
-      required this.namespace,
-      required this.name,
-      required this.origin,
-      required this.sharedWebauthnSigner,
-      this.userVerification = "required",
-      this.requireResidentKey = true,
-      this.challenge,
-      this.type});
+  const PassKeysOptions({
+    super.prefix,
+    required this.namespace,
+    required this.name,
+    required this.sharedWebauthnSigner,
+    this.userVerification = "required",
+    this.requireResidentKey = true,
+    this.residentKey = "preferred",
+    this.authenticatorAttachment = "cross-platform",
+    this.mediation = "optional",
+  });
 }
 
 /// Represents a FCL (Flow Client Library) signature.

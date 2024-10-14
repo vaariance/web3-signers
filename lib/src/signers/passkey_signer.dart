@@ -1,7 +1,5 @@
 part of '../web3_signers_base.dart';
 
-typedef Bytes = Uint8List;
-
 class AuthData {
   final String b64Credential;
   final Bytes rawCredential;
@@ -126,19 +124,6 @@ class PassKeySigner implements PasskeySignerInterface {
   PassKeysOptions get opts => _opts;
 
   @override
-  Uint8List clientDataHash(PassKeysOptions options, [String? challenge]) {
-    options.challenge = challenge ?? randomBase64String();
-    final clientDataJson = jsonEncode({
-      "type": options.type,
-      "challenge": options.challenge,
-      "origin": options.origin,
-    });
-    final dataBuffer = utf8.encode(clientDataJson);
-    final hash = sha256Hash(dataBuffer);
-    return Uint8List.fromList(hash);
-  }
-
-  @override
   String getAddress({int? index}) {
     return base64Url.encode(credentialIds.elementAt(index ?? 0));
   }
@@ -171,8 +156,7 @@ class PassKeySigner implements PasskeySignerInterface {
 
   @override
   String randomBase64String() {
-    final uuid = UUID.generateUUIDv4();
-    return b64e(UUID.toBuffer(uuid));
+    return b64e(getRandomValues());
   }
 
   @override
@@ -238,7 +222,7 @@ class PassKeySigner implements PasskeySignerInterface {
     );
   }
 
-  AuthData _decode(List<int> authData) {
+  AuthData _decode(Bytes authData) {
     // Extract the length of the public key from the authentication data.
     final l = (authData[53] << 8) + authData[54];
 
@@ -249,7 +233,7 @@ class PassKeySigner implements PasskeySignerInterface {
     final pKey = authData.sublist(publicKeyOffset);
 
     // Extract the credential ID from the authentication data.
-    final List<int> credentialId = authData.sublist(55, publicKeyOffset);
+    final Bytes credentialId = authData.sublist(55, publicKeyOffset);
 
     // Extract and encode the aaGUID from the authentication data.
     final aaGUID = base64Url.encode(authData.sublist(37, 53));
@@ -280,7 +264,7 @@ class PassKeySigner implements PasskeySignerInterface {
         .firstWhere((element) => element.key.value == "authData");
     final value = key.value.value;
 
-    final authData = List<int>.from(value);
+    final authData = Bytes.from(value);
     return _decode(authData);
   }
 
@@ -303,25 +287,35 @@ class PassKeySigner implements PasskeySignerInterface {
     );
   }
 
+  String _generateUserId() {
+    final uuid = UUID.generateUUIDv4();
+    final uuidBytes = UUID.toBuffer(uuid);
+    if (Platform.isIOS) {
+      // we have to encode it to base64 instead of base64url
+      // because corbado passkeys package expected a
+      // base64 encoded user id on iOS
+      return base64.encode(uuidBytes);
+    }
+    return base64Url.encode(uuidBytes);
+  }
+
   Future<RegisterResponseType> _register(String username, String displayname,
       [String? challenge]) async {
-    final options = _opts;
-    options.type = "webauthn.create";
     final entity = RegisterRequestType(
-      challenge: b64e(clientDataHash(options, challenge)),
+      challenge: challenge ?? randomBase64String(),
       relyingParty: RelyingPartyType(
-        id: options.namespace,
-        name: options.name,
+        id: _opts.namespace,
+        name: _opts.name,
       ),
       user: UserType(
-        id: randomBase64String(),
+        id: _generateUserId(),
         displayName: displayname,
         name: username,
       ),
       authSelectionType: AuthenticatorSelectionType(
         requireResidentKey: _opts.requireResidentKey,
-        residentKey: _opts.requireResidentKey ? 'preferred' : 'discouraged',
-        authenticatorAttachment: 'platform',
+        residentKey: _opts.residentKey,
+        authenticatorAttachment: 'cross-platform',
         userVerification: _opts.userVerification,
       ),
       pubKeyCredParams: [
@@ -348,7 +342,8 @@ class PassKeySigner implements PasskeySignerInterface {
         timeout: 60000,
         userVerification: _opts.userVerification,
         allowCredentials: allowedCredentials,
-        mediation: MediationType.Conditional);
+        mediation: MediationType.values.firstWhere(
+            (m) => m.name.toLowerCase() == _opts.mediation.toLowerCase()));
     return await _auth.authenticate(entity);
   }
 

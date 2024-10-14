@@ -2,6 +2,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -9,7 +10,7 @@ import 'package:blockchain_utils/blockchain_utils.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
 import 'package:web3_signers/src/vendor/vendor.dart'
-    show TupleExtension, U8aExtension;
+    show Bytes, BytesExtension, TupleExtension, U8aExtension;
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
