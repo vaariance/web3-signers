@@ -23,7 +23,6 @@ final sharedSigner = EthereumAddress.fromHex("0xfD90FAd33ee8b58f32c00aceEad1358e
 final options =  PassKeysOptions(
           name: "variance", // replace with your relying party name
           namespace: "variance.space", // replace with your relying party Id (domain name)
-          origin: "https://variance.space", // replace with your relying party origin
           residentKey: "required",
           sharedWebauthnSigner: sharedSigner)
 

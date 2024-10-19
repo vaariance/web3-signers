@@ -43,7 +43,7 @@ class _Web3SignerState extends State<Web3Signer> {
       print("credentialIds: ${_pkp!.authData.b64Credential}");
       _pkpSigner.credentialIds.add(_pkp!.authData.rawCredential);
     }
-    final sig = await _pkpSigner.personalSign(Uint8List(32), index: 2);
+    final sig = await _pkpSigner.personalSign(Uint8List(32));
     final calldata = hexlify(sig);
     _updatePkpSignature(calldata);
   }

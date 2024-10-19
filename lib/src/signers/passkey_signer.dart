@@ -315,7 +315,7 @@ class PassKeySigner implements PasskeySignerInterface {
       authSelectionType: AuthenticatorSelectionType(
         requireResidentKey: _opts.requireResidentKey,
         residentKey: _opts.residentKey,
-        authenticatorAttachment: 'cross-platform',
+        authenticatorAttachment: _opts.authenticatorAttachment,
         userVerification: _opts.userVerification,
       ),
       pubKeyCredParams: [

@@ -1,3 +1,7 @@
+## 0.1.8
+
+- fix hardcoded auth attachment
+
 ## 0.1.7
 
 - simplify attestation challenge
