@@ -1,9 +1,12 @@
+import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:web3_signers/web3_signers.dart';
+
+import 'constant.dart';
 
 void main() {
   group('PrivateKeySigner Tests', () {
@@ -66,6 +69,25 @@ void main() {
       final recoveredSigner = PrivateKeySigner.fromJson(json, password);
       expect(recoveredSigner, isA<PrivateKeySigner>());
       expect(recoveredSigner.address, equals(signer.address));
+    });
+
+    test("isValidSignature", () async {
+      final hash = Uint8List.fromList(List.generate(32, (index) => index));
+      final signature = await signer.personalSign(hash);
+
+      final isValid =
+          await signer.isValidSignature(hash, signature, signer.address);
+      expect(isValid, equals(ERC1271IsValidSignatureResponse.sucess));
+    });
+
+    test("signed typed data v4 isValidSignature", () async {
+      final hash = TypedDataUtil.hashMessage(
+          jsonData: jsonData, version: TypedDataVersion.V4);
+      final signature =
+          await signer.signTypedData(jsonData, TypedDataVersion.V4);
+      final isValid =
+          await signer.isValidSignature(hash, signature, signer.address);
+      expect(isValid, equals(ERC1271IsValidSignatureResponse.sucess));
     });
   });
 }

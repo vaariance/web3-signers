@@ -127,6 +127,31 @@ class EOAWallet implements EOAWalletInterface {
     final hdKey = _getHdKey(index);
     return _deriveEthPrivKey(hdKey.key.toHex());
   }
+
+  @override
+  Future<Uint8List> signTypedData(String jsonData, TypedDataVersion version,
+      {int? index}) {
+    final hash =
+        TypedDataUtil.hashMessage(jsonData: jsonData, version: version);
+    return personalSign(hash, index: index);
+  }
+
+  @override
+  Future<ERC1271IsValidSignatureResponse> isValidSignature<T, U>(
+      Uint8List hash, U signature, T address) {
+    require(signature is Uint8List || signature is MsgSignature,
+        'Signature must be of type Uint8List or MsgSignature');
+    require(
+        address is EthereumAddress, 'Address must be of type EthereumAddress');
+    address as EthereumAddress;
+    if (signature is Uint8List) {
+      return Future.value(isValidPersonalSignature(hash, signature, address));
+    } else {
+      final signer = ecRecover(keccak256(hash), signature as MsgSignature);
+      return Future.value(ERC1271IsValidSignatureResponse.isValid(
+          EthereumAddress.fromPublicKey(signer).hex == address.hex));
+    }
+  }
 }
 
 enum WordLength {

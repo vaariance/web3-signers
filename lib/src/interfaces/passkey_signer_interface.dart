@@ -43,6 +43,40 @@ abstract class PasskeySignerInterface extends MultiSignerInterface {
   Future<PassKeySignature> signToPasskeySignature(Uint8List hash,
       {List<CredentialType>? knownCredentials});
 
+  /// {@macro isValidSignature}
+  /// - [p256Verifier]: The public key of the P256 verifier.
+  /// - [rpcUrl]: The URL of the Ethereum JSON-RPC endpoint.
+  ///
+  /// Returns a Future<ERC1271IsValidSignatureResponse> representing the validity of the signature.
+  ///
+  /// Example:
+  /// ```dart
+  /// final hash = Uint8List.fromList([0x01, 0x02, 0x03, 0x04]);
+  /// final signature = await signToPasskeySignature(hash);
+  /// final isValid = await isValidPassKeySignature(hash, signature, keypair, p256Verifier, rpcUrl);
+  /// ```
+  Future<ERC1271IsValidSignatureResponse> isValidPassKeySignature(
+      Uint8List hash,
+      PassKeySignature signature,
+      PassKeyPair keypair,
+      EthereumAddress p256Verifier,
+      String rpcUrl);
+
+  /// Converts a PassKeySignature to an Safe Smart Account verifiable signature.
+  ///
+  /// Parameters:
+  /// - [signature]: The PassKeySignature to be converted.
+  ///
+  /// Returns an FCLSignature representing the converted signature.
+  ///
+  /// Example:
+  /// ```dart
+  /// final hash = Uint8List.fromList([0x01, 0x02, 0x03, 0x04]);
+  /// final signature = await signToPasskeySignature(hash);
+  /// final fclSignature = passkeySignatureToFCLSignature(signature);
+  /// ```
+  FCLSignature passkeySignatureToFCLSignature(PassKeySignature signature);
+
   /// Generates a random base64 string.
   String randomBase64String();
 }

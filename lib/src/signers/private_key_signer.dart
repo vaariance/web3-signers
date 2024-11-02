@@ -93,4 +93,29 @@ class PrivateKeySigner implements MultiSignerInterface {
       "${hexlify(_options.prefix)}fffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
 
   String toJson() => _credential.toJson();
+
+  @override
+  Future<Uint8List> signTypedData(String jsonData, TypedDataVersion version,
+      {int? index}) {
+    final hash =
+        TypedDataUtil.hashMessage(jsonData: jsonData, version: version);
+    return personalSign(hash);
+  }
+
+  @override
+  Future<ERC1271IsValidSignatureResponse> isValidSignature<T, U>(
+      Uint8List hash, U signature, T address) {
+    require(signature is Uint8List || signature is MsgSignature,
+        'Signature must be of type Uint8List or MsgSignature');
+    require(
+        address is EthereumAddress, 'Address must be of type EthereumAddress');
+    address as EthereumAddress;
+    if (signature is Uint8List) {
+      return Future.value(isValidPersonalSignature(hash, signature, address));
+    } else {
+      final signer = ecRecover(keccak256(hash), signature as MsgSignature);
+      return Future.value(ERC1271IsValidSignatureResponse.isValid(
+          EthereumAddress.fromPublicKey(signer).hex == address.hex));
+    }
+  }
 }

@@ -84,8 +84,6 @@ class PassKeySignature {
   /// final Uint8List encodedSig = pkpSig.toUint8List();
   /// ```
   Uint8List toUint8List() {
-    final cdjRgExp = RegExp(
-        r'^\{"type":"webauthn.get","challenge":"[A-Za-z0-9\-_]{43}",(.*)\}$');
     final match = cdjRgExp.firstMatch(clientDataJSON)!;
     return abi.encode([
       'bytes',
@@ -205,6 +203,65 @@ class PassKeySigner implements PasskeySignerInterface {
   }
 
   @override
+  Future<Uint8List> signTypedData(String jsonData, TypedDataVersion version,
+      {int? index}) {
+    final hash =
+        TypedDataUtil.hashMessage(jsonData: jsonData, version: version);
+    return personalSign(hash);
+  }
+
+  @override
+  Future<ERC1271IsValidSignatureResponse> isValidPassKeySignature(
+      Uint8List hash,
+      PassKeySignature signature,
+      PassKeyPair keypair,
+      EthereumAddress p256Verifier,
+      String rpcUrl) async {
+    final hashBase64 = b64e(hash);
+    final clientDataJSON =
+        '{"type":"webauthn.get","challenge":"$hashBase64",${cdjRgExp.firstMatch(signature.clientDataJSON)![1]}}';
+    final clientHash = sha256Hash(utf8.encode(clientDataJSON));
+    final sigHash =
+        sha256Hash(signature.authData.concat(Uint8List.fromList(clientHash)));
+    final calldata = abi.encode([
+      "uint256",
+      "uint256",
+      "uint256",
+      "uint256",
+      "uint256"
+    ], [
+      bytesToInt(sigHash),
+      signature.signature.item1.value,
+      signature.signature.item2.value,
+      keypair.authData.publicKey.item1.value,
+      keypair.authData.publicKey.item2.value
+    ]);
+    final result = await p256Verify(calldata, p256Verifier.hex, rpcUrl);
+    return ERC1271IsValidSignatureResponse.isValidResult(result);
+  }
+
+  @override
+  @Deprecated("use 'isValidPassKeySignature' instead")
+  Future<ERC1271IsValidSignatureResponse> isValidSignature<T, U>(
+      Uint8List hash, U signature, T signer) {
+    if (signature is PassKeySignature && signer is PassKeyPair) {
+      final defaultP256Verifier = EthereumAddress.fromHex("0x${'0' * 37}100");
+      final defaultRpcUrl = "https://rpc.ankr.com/eth";
+      return isValidPassKeySignature(
+          hash, signature, signer, defaultP256Verifier, defaultRpcUrl);
+    } else {
+      throw ArgumentError(
+          "signature and signer must be of type PassKeySignature and PassKeyPair respectively, we recommend using 'isValidPassKeySignature' from `PasskeySignerInterface` instead");
+    }
+  }
+
+  @override
+  FCLSignature passkeySignatureToFCLSignature(PassKeySignature signature) {
+    return _buildSafeSignatureBytes(
+        _opts.sharedWebauthnSigner, signature.toUint8List());
+  }
+
+  @override
   Future<PassKeyPair> register(String username, String displayname,
       {String? challenge}) async {
     final attestation = await _register(
@@ -251,8 +308,8 @@ class PassKeySigner implements PasskeySignerInterface {
     final x = Uint256.fromHex(hexlify(keyX.value.value));
     final y = Uint256.fromHex(hexlify(keyY.value.value));
 
-    return AuthData(base64Url.encode(credentialId),
-        Uint8List.fromList(credentialId), Tuple(x, y), aaGUID);
+    return AuthData(b64e(credentialId), Uint8List.fromList(credentialId),
+        Tuple(x, y), aaGUID);
   }
 
   AuthData _decodeAttestation(RegisterResponseType attestation) {
