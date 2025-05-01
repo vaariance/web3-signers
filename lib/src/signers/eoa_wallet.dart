@@ -95,7 +95,7 @@ class EOAWallet implements EOAWalletInterface {
 
   @override
   String getDummySignature() =>
-      "${hexlify(_options.prefix)}fffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
+      "${hexlify(_options.prefix)}ee2eb84d326637ae9c4eb2febe1f74dc43e6bb146182ef757ebf0c7c6e0d29dc2530d8b5ec0ab1d0d6ace9359e1f9b117651202e8a7f1f664ce6978621c7d5fb1b";
 
   EthereumAddress _add(List<int> seed, int index) {
     final hdKey = _deriveHdKey(seed, index);
