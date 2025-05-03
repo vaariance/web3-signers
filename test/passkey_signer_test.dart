@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:blockchain_utils/blockchain_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passkeys/types.dart';
 import 'package:web3_signers/src/interfaces/interfaces.dart';
@@ -17,7 +16,6 @@ void main() {
   group('PassKeySigner Tests', () {
     late PassKeySigner passKeySigner;
     late MockAuthenticator mockAuthenticator;
-    late HttpClient httpClient;
 
     final options = PassKeysOptions(
         namespace: 'variance.space',
@@ -32,8 +30,7 @@ void main() {
         "0xedf717baff9a87fd4b031a2a066580a9a29bdba97e2fd55820f7cd5c963f09ae";
     final testpkY =
         "0x276c0acd7ed3c8ad8db88f0c15f5d19b12aaa2af3f26c9003e07afd95b980fe5";
-    final cdjRgExp = RegExp(
-        r'^\{"type":"webauthn.get","challenge":"[A-Za-z0-9\-_]{43}",(.*)\}$');
+
     final String p256VerifierAddress =
         '0xc2b78104907F722DABAc4C69f826a522B2754De4';
     final String rpcUrl = 'https://rpc.ankr.com/base';
@@ -44,47 +41,7 @@ void main() {
 
       // Inject the mock authenticator into the PassKeySigner
       passKeySigner = PassKeySigner(options: options, auth: mockAuthenticator);
-
-      httpClient = HttpClient();
     });
-
-    tearDown(() {
-      httpClient.close();
-    });
-
-    Future verify(Uint8List calldata) async {
-      final String requestBody = json.encode({
-        'jsonrpc': '2.0',
-        'method': 'eth_call',
-        'params': [
-          {
-            'to': p256VerifierAddress,
-            'data': hexlify(calldata),
-          },
-          'latest'
-        ],
-        'id': 1
-      });
-
-      final Uri uri = Uri.parse(rpcUrl);
-      final HttpClientRequest request = await httpClient.postUrl(uri);
-
-      request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
-      request.add(utf8.encode(requestBody));
-
-      final HttpClientResponse response = await request.close();
-      final String responseBody = await response.transform(utf8.decoder).join();
-
-      final Map<String, dynamic> jsonResponse = json.decode(responseBody);
-
-      if (jsonResponse.containsKey('error')) {
-        return Uint256.zero;
-      } else if (jsonResponse.containsKey('result')) {
-        return Uint256.fromHex(jsonResponse['result']);
-      } else {
-        return Uint256.zero;
-      }
-    }
 
     test('Initialization of PassKeySigner', () {
       expect(passKeySigner.opts.namespace, equals('variance.space'));
@@ -157,28 +114,22 @@ void main() {
 
       expect(signature, isA<PassKeySignature>());
 
-      final hashBase64 = b64e(hash);
-      final clientDataJSON =
-          '{"type":"webauthn.get","challenge":"$hashBase64",${cdjRgExp.firstMatch(signature.clientDataJSON)![1]}}';
-      final clientHash = sha256Hash(utf8.encode(clientDataJSON));
-      final sigHash =
-          sha256Hash(signature.authData.concat(Uint8List.fromList(clientHash)));
-      final calldata = abi.encode([
-        "uint256",
-        "uint256",
-        "uint256",
-        "uint256",
-        "uint256"
-      ], [
-        bytesToInt(sigHash),
-        signature.signature.item1.value,
-        signature.signature.item2.value,
-        hexToInt(testpkX),
-        hexToInt(testpkY)
-      ]);
-      final valid = await verify(calldata);
+      final valid = await passKeySigner.isValidPassKeySignature(
+          hash,
+          signature,
+          PassKeyPair(
+              AuthData(
+                  credentialTestId,
+                  b64d(credentialTestId),
+                  Tuple(Uint256.fromHex(testpkX), Uint256.fromHex(testpkY)),
+                  "aaGUID"),
+              "username",
+              null,
+              null),
+          EthereumAddress.fromHex(p256VerifierAddress),
+          rpcUrl);
 
-      expect(valid.value, equals(BigInt.one));
+      expect(valid, equals(ERC1271IsValidSignatureResponse.sucess));
     });
 
     test('Register with mocked register method', () async {

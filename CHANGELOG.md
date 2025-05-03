@@ -1,3 +1,9 @@
+## 0.1.9
+
+- Add support for SignTypedData for signers
+- Add ERC-1271 - isValidSignature for signers
+- fix incosistent b64 credential encoding in passkeypair and passkeysignature
+
 ## 0.1.8
 
 - fix hardcoded auth attachment

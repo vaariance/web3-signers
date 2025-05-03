@@ -2,6 +2,9 @@ part of 'utils.dart';
 
 RegExp _hexadecimal = RegExp(r'^[0-9a-fA-F]+$');
 
+RegExp cdjRgExp = RegExp(
+    r'^\{"type":"webauthn.get","challenge":"[A-Za-z0-9\-_]{43}",(.*)\}$');
+
 /// Generates a Uint8List of random values.
 ///
 /// Parameters:
@@ -288,4 +291,84 @@ bool isHex(dynamic value, {int bits = -1, bool ignoreLength = false}) {
     return ignoreLength || value.length % 2 == 0;
   }
   return false;
+}
+
+/// Verifies a P256 signature by making an eth_call to a specified verifier contract.
+///
+/// This function sends an RPC request to an Ethereum node to verify P256 signatures using a deployed
+/// verifier contract. It handles the JSON-RPC communication and response parsing.
+///
+/// Parameters:
+/// - [calldata]: The encoded call data containing the signature and message to verify.
+/// - [p256Verifier]: The Ethereum address of the deployed P256 verifier contract.
+/// - [rpcUrl]: The URL of the Ethereum JSON-RPC endpoint.
+/// - [httpClient]: Optional HTTP client for making the RPC request. If not provided, a new one is created.
+///
+/// Returns:
+/// A [Future<Uint256>] that resolves to:
+/// - The verification result from the contract if successful
+/// - [Uint256.zero] if there's an error or invalid response
+///
+/// Example:
+/// ```dart
+/// final calldata = Uint8List.fromList([...]);  // Your encoded verification data
+/// final verifierAddress = "0x123...";  // Your P256 verifier contract address
+/// final rpcUrl = "https://eth-mainnet.g.alchemy.com/v2/YOUR-API-KEY";
+///
+/// final result = await p256Verify(
+///   calldata,
+///   verifierAddress,
+///   rpcUrl,
+/// );
+///
+/// if (result == Uint256.zero) {
+///   print("Verification failed or encountered an error");
+/// } else {
+///   print("Verification successful with result: $result");
+/// }
+/// ```
+///
+/// Throws:
+/// May throw exceptions related to HTTP communication or JSON parsing if the RPC
+/// request fails or returns malformed data.
+Future<Uint256> p256Verify(
+    Uint8List calldata, String p256Verifier, String rpcUrl,
+    [HttpClient? httpClient]) async {
+  httpClient ??= HttpClient();
+  final String requestBody = json.encode({
+    'jsonrpc': '2.0',
+    'method': 'eth_call',
+    'params': [
+      {
+        'to': p256Verifier,
+        'data': hexlify(calldata),
+      },
+      'latest'
+    ],
+    'id': 1
+  });
+  try {
+    final Uri uri = Uri.parse(rpcUrl);
+    final HttpClientRequest request = await httpClient.postUrl(uri);
+
+    request.headers.set(HttpHeaders.contentTypeHeader, 'application/json');
+    request.add(utf8.encode(requestBody));
+
+    final HttpClientResponse response = await request.close();
+    final String responseBody = await response.transform(utf8.decoder).join();
+
+    final Map<String, dynamic> jsonResponse = json.decode(responseBody);
+
+    if (jsonResponse.containsKey('error')) {
+      return Uint256.zero;
+    } else if (jsonResponse.containsKey('result')) {
+      return Uint256.fromHex(jsonResponse['result']);
+    } else {
+      return Uint256.zero;
+    }
+  } catch (e) {
+    return Uint256.zero;
+  } finally {
+    httpClient.close();
+  }
 }
