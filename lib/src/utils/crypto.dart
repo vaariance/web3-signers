@@ -2,6 +2,22 @@ part of 'utils.dart';
 
 RegExp _hexadecimal = RegExp(r'^[0-9a-fA-F]+$');
 
+/// Generates a Uint8List of random values.
+///
+/// Parameters:
+/// - [length]: The length of the random byte array to generate. Defaults to [_defaultLength].
+///
+/// Returns a Uint8List of random bytes.
+///
+/// Example:
+/// ```dart
+/// final randomBytes = getRandomValues(16);
+/// print(randomBytes.length); // Prints: 16
+/// ```
+List<int> getRandomValues([int length = 32]) {
+  return QuickCrypto.generateRandom(length);
+}
+
 /// Converts a hex string to a 32bytes `Uint8List`.
 ///
 /// Parameters:
@@ -59,11 +75,21 @@ Future<Tuple<Uint256, Uint256>> getPublicKeyFromBytes(
 /// final signatureHexValues = await getMessagingSignature(signatureBytes);
 /// ```
 Tuple<Uint256, Uint256> getMessagingSignature(Uint8List signatureBytes) {
-  final sig = bytesUnwrapDerSignature(signatureBytes);
-  return Tuple(
-    Uint256.fromList(sig[0]),
-    Uint256.fromList(sig[1]),
-  );
+  ASN1Parser parser = ASN1Parser(signatureBytes);
+  ASN1Sequence parsedSignature = parser.nextObject() as ASN1Sequence;
+  ASN1Integer rValue = parsedSignature.elements[0] as ASN1Integer;
+  ASN1Integer sValue = parsedSignature.elements[1] as ASN1Integer;
+  Uint8List rBytes = rValue.valueBytes();
+  Uint8List sBytes = sValue.valueBytes();
+  if (shouldRemoveLeadingZero(rBytes)) {
+    rBytes = rBytes.sublist(1);
+  }
+  if (shouldRemoveLeadingZero(sBytes)) {
+    sBytes = sBytes.sublist(1);
+  }
+  final r = hexlify(rBytes);
+  final s = hexlify(sBytes);
+  return Tuple(Uint256.fromHex(r), Uint256.fromHex(s));
 }
 
 /// Converts a list of integers to a hexadecimal string.
@@ -139,24 +165,6 @@ List<int> sha256Hash(List<int> input) {
 /// ```
 bool shouldRemoveLeadingZero(Uint8List bytes) {
   return bytes[0] == 0x0 && (bytes[1] & (1 << 7)) != 0;
-}
-
-/// Combines multiple lists of integers into a single list.
-///
-/// Parameters:
-/// - [buff]: List of lists of integers to be combined.
-///
-/// Returns a new list containing all the integers from the input lists.
-///
-/// Example:
-/// ```dart
-/// final list1 = [1, 2, 3];
-/// final list2 = [4, 5, 6];
-/// final combinedList = toBuffer([list1, list2]);
-/// log("Combined List: $combinedList");
-/// ```
-List<int> toBuffer(List<List<int>> buff) {
-  return List<int>.from(buff.expand((element) => element).toList());
 }
 
 /// Pads a Base64 string with '=' characters to ensure its length is a multiple of 4.

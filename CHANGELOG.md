@@ -1,3 +1,23 @@
+## 0.1.8
+
+- fix hardcoded auth attachment
+
+## 0.1.7
+
+- simplify attestation challenge
+- temmporarily handle ios user id base64 encoding
+- expose configuration options
+- change crypto.getRandomValues to use QuickCrypto
+
+## 0.1.6
+
+- revert getMessaging signature implementation
+
+## 0.1.5
+
+- replace Random with web3Dart randomBridge
+- fix SignatureOptions not applied in eo wallet create.
+
 ## 0.1.4
 
 - export vendor files

@@ -22,7 +22,6 @@ void main() {
     final options = PassKeysOptions(
         namespace: 'variance.space',
         name: 'Variance',
-        origin: 'https://variance.space',
         requireResidentKey: true,
         userVerification: "required",
         sharedWebauthnSigner: EthereumAddress.fromHex(
@@ -90,21 +89,14 @@ void main() {
     test('Initialization of PassKeySigner', () {
       expect(passKeySigner.opts.namespace, equals('variance.space'));
       expect(passKeySigner.opts.name, equals('Variance'));
-      expect(passKeySigner.opts.origin, equals('https://variance.space'));
       expect(passKeySigner.credentialIds, isEmpty);
-    });
-
-    test('Generating clientDataHash', () {
-      final hash = passKeySigner.clientDataHash(options, 'test-challenge');
-      expect(hash, isA<Uint8List>());
-      expect(hash.length, equals(32)); // SHA-256 hash length
     });
 
     test('Random Base64 String Generation', () {
       final randomString = passKeySigner.randomBase64String();
       expect(randomString, isA<String>());
       // Base64 URL-safe encoding without padding
-      expect(RegExp(r'^[A-Za-z0-9\-_]{22}$').hasMatch(randomString), isTrue);
+      expect(RegExp(r'^[A-Za-z0-9\-_]{43}$').hasMatch(randomString), isTrue);
     });
 
     test('Get Dummy Signature', () {
@@ -135,7 +127,7 @@ void main() {
     });
 
     test('Get Address with credentials', () {
-      final credentialId = randomAsU8a(32);
+      final credentialId = getRandomValues();
       passKeySigner.credentialIds.add(credentialId);
       final address = passKeySigner.getAddress();
       expect(address, equals(base64Url.encode(credentialId)));
