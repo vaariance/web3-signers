@@ -3,7 +3,8 @@ part of 'utils.dart';
 RegExp _hexadecimal = RegExp(r'^[0-9a-fA-F]+$');
 
 RegExp cdjRgExp = RegExp(
-    r'^\{"type":"webauthn.get","challenge":"[A-Za-z0-9\-_]{43}",(.*)\}$');
+  r'^\{"type":"webauthn.get","challenge":"[A-Za-z0-9\-_]{43}",(.*)\}$',
+);
 
 /// Generates a Uint8List of random values.
 ///
@@ -49,7 +50,7 @@ Uint8List arrayify(String hexString) {
 /// Parameters:
 /// - [publicKeyBytes]: The bytes of the ECDSA public key.
 ///
-/// Returns a Future containing a Tuple of two uint256 values representing the X and Y components of the public key.
+/// Returns a Future containing a tuple of two uint256 values representing the X and Y components of the public key.
 ///
 /// Example:
 /// ```dart
@@ -57,12 +58,13 @@ Uint8List arrayify(String hexString) {
 /// final components = await getPublicKeyFromBytes(publicKeyBytes);
 /// log(components); // Output: ['01', '02']
 /// ```
-Future<Tuple<Uint256, Uint256>> getPublicKeyFromBytes(
-    Uint8List publicKeyBytes) async {
+Future<(Uint256, Uint256)> getPublicKeyFromBytes(
+  Uint8List publicKeyBytes,
+) async {
   final pKey = bytesUnwrapDer(publicKeyBytes, oidP256).sublist(1);
   final decodedX = pKey.sublist(0, 32);
   final decodedY = pKey.sublist(32, 64);
-  return Tuple(Uint256.fromList(decodedX), Uint256.fromList(decodedY));
+  return (Uint256.fromList(decodedX), Uint256.fromList(decodedY));
 }
 
 /// Parses ASN1-encoded signature bytes and returns a List of two hex strings representing the `r` and `s` values.
@@ -77,7 +79,7 @@ Future<Tuple<Uint256, Uint256>> getPublicKeyFromBytes(
 /// final signatureBytes = Uint8List.fromList([48, 68, 2, 32, ...]);
 /// final signatureHexValues = await getMessagingSignature(signatureBytes);
 /// ```
-Tuple<Uint256, Uint256> getMessagingSignature(Uint8List signatureBytes) {
+(Uint256, Uint256) getMessagingSignature(Uint8List signatureBytes) {
   ASN1Parser parser = ASN1Parser(signatureBytes);
   ASN1Sequence parsedSignature = parser.nextObject() as ASN1Sequence;
   ASN1Integer rValue = parsedSignature.elements[0] as ASN1Integer;
@@ -92,7 +94,7 @@ Tuple<Uint256, Uint256> getMessagingSignature(Uint8List signatureBytes) {
   }
   final r = hexlify(rBytes);
   final s = hexlify(sBytes);
-  return Tuple(Uint256.fromHex(r), Uint256.fromHex(s));
+  return (Uint256.fromHex(r), Uint256.fromHex(s));
 }
 
 /// Converts a list of integers to a hexadecimal string.
@@ -332,20 +334,20 @@ bool isHex(dynamic value, {int bits = -1, bool ignoreLength = false}) {
 /// May throw exceptions related to HTTP communication or JSON parsing if the RPC
 /// request fails or returns malformed data.
 Future<Uint256> p256Verify(
-    Uint8List calldata, String p256Verifier, String rpcUrl,
-    [HttpClient? httpClient]) async {
+  Uint8List calldata,
+  String p256Verifier,
+  String rpcUrl, [
+  HttpClient? httpClient,
+]) async {
   httpClient ??= HttpClient();
   final String requestBody = json.encode({
     'jsonrpc': '2.0',
     'method': 'eth_call',
     'params': [
-      {
-        'to': p256Verifier,
-        'data': hexlify(calldata),
-      },
-      'latest'
+      {'to': p256Verifier, 'data': hexlify(calldata)},
+      'latest',
     ],
-    'id': 1
+    'id': 1,
   });
   try {
     final Uri uri = Uri.parse(rpcUrl);

@@ -5,7 +5,7 @@ class AuthData {
   final Bytes rawCredential;
 
   /// x and y coordinates of the public key
-  final Tuple<Uint256, Uint256> publicKey;
+  final (Uint256, Uint256) publicKey;
   final String aaGUID;
   AuthData(this.b64Credential, this.rawCredential, this.publicKey, this.aaGUID);
 }
@@ -17,22 +17,25 @@ class PassKeyPair {
   final String? displayname;
   final DateTime? registrationTime;
   PassKeyPair(
-      this.authData, this.username, this.displayname, this.registrationTime);
+    this.authData,
+    this.username,
+    this.displayname,
+    this.registrationTime,
+  );
 
   factory PassKeyPair.fromJson(String source) =>
       PassKeyPair.fromMap(json.decode(source) as Map<String, dynamic>);
 
   factory PassKeyPair.fromMap(Map<String, dynamic> map) {
-    final pKey = List<String>.from(map['publicKey'])
-        .map((e) => Uint256.fromHex(e))
-        .toList();
+    final pKey =
+        List<String>.from(
+          map['publicKey'],
+        ).map((e) => Uint256.fromHex(e)).toList();
     return PassKeyPair(
-      AuthData(
-        map['b64Credential'],
-        b64d(map['rawCredential']),
-        Tuple(pKey[0], pKey[1]),
-        map['aaGUID'],
-      ),
+      AuthData(map['b64Credential'], b64d(map['rawCredential']), (
+        pKey[0],
+        pKey[1],
+      ), map['aaGUID']),
       map['username'],
       map['displayname'],
       map['registrationTime'] != null
@@ -47,8 +50,10 @@ class PassKeyPair {
     return <String, dynamic>{
       'b64Credential': authData.b64Credential,
       'rawCredential': b64e(authData.rawCredential),
-      'publicKey':
-          authData.publicKey.toList().map((e) => e.toString()).toList(),
+      'publicKey': List<String>.from([
+        authData.publicKey.$1.toString(),
+        authData.publicKey.$2.toString(),
+      ]),
       'username': username,
       'displayname': displayname,
       'aaGUID': authData.aaGUID,
@@ -62,16 +67,25 @@ class PassKeySignature {
   final Bytes credentialId;
 
   /// r and s values of the signature.
-  final Tuple<Uint256, Uint256> signature;
+  final (Uint256, Uint256) signature;
   final Uint8List authData;
   final String clientDataJSON;
   final int challengePos;
+  final int typePos;
 
   /// not decodable.
   final String userId;
 
-  PassKeySignature(this.b64Credential, this.credentialId, this.signature,
-      this.authData, this.clientDataJSON, this.challengePos, this.userId);
+  PassKeySignature(
+    this.b64Credential,
+    this.credentialId,
+    this.signature,
+    this.authData,
+    this.clientDataJSON,
+    this.challengePos,
+    this.typePos,
+    this.userId,
+  );
 
   /// Converts the `PassKeySignature` to a FCL compatible `Uint8List` using the specified ABI encoding.
   ///
@@ -85,18 +99,14 @@ class PassKeySignature {
   /// ```
   Uint8List toUint8List() {
     final match = cdjRgExp.firstMatch(clientDataJSON)!;
-    return abi.encode([
-      'bytes',
-      'bytes',
-      'uint256[2]'
-    ], [
-      authData,
-      utf8.encode(match[1]!),
+    return abi.encode(
+      ['bytes', 'bytes', 'uint256[2]'],
       [
-        signature.item1.value,
-        signature.item2.value,
-      ]
-    ]);
+        authData,
+        utf8.encode(match[1]!),
+        [signature.$1.value, signature.$2.value],
+      ],
+    );
   }
 }
 
@@ -110,13 +120,13 @@ class PassKeySigner implements PasskeySignerInterface {
   /// - [options] : options for the signer
   /// - [auth] : optional authenticator injected for testing purposes
   /// - [knownCredentials] : optional known credentials to inject into the signer
-  PassKeySigner(
-      {required PassKeysOptions options,
-      Authenticator? auth,
-      Set<Bytes> knownCredentials = const {}})
-      : _opts = options,
-        _auth = auth ?? PasskeyAuthenticator(),
-        credentialIds = Set<Bytes>.from(knownCredentials);
+  PassKeySigner({
+    required PassKeysOptions options,
+    Authenticator? auth,
+    Set<Bytes> knownCredentials = const {},
+  }) : _opts = options,
+       _auth = auth ?? PasskeyAuthenticator(),
+       credentialIds = Set<Bytes>.from(knownCredentials);
 
   @override
   PassKeysOptions get opts => _opts;
@@ -138,16 +148,20 @@ class PassKeySigner implements PasskeySignerInterface {
     dummyAdField.fillRange(0, dummyAdField.length, 0xfe);
     dummyAdField[32] = uv;
 
-    final dummySig = PassKeySignature(
-            "",
-            Uint8List(0),
-            Tuple<Uint256, Uint256>(Uint256.fromHex("0x${'ec' * 32}"),
-                Uint256.fromHex("0x${'d5a' * 21}f")),
-            dummyAdField,
-            dummyCdField,
-            0,
-            "")
-        .toUint8List();
+    final dummySig =
+        PassKeySignature(
+          "",
+          Uint8List(0),
+          (
+            Uint256.fromHex("0x${'ec' * 32}"),
+            Uint256.fromHex("0x${'d5a' * 21}f"),
+          ),
+          dummyAdField,
+          dummyCdField,
+          0,
+          0,
+          "",
+        ).toUint8List();
 
     return _buildSafeSignatureBytes(signer, dummySig).toString();
   }
@@ -160,25 +174,35 @@ class PassKeySigner implements PasskeySignerInterface {
   @override
   Future<Uint8List> personalSign(Uint8List hash, {int? index}) async {
     final knownCredentials = _getKnownCredentials(index);
-    final signature =
-        await signToPasskeySignature(hash, knownCredentials: knownCredentials);
+    final signature = await signToPasskeySignature(
+      hash,
+      knownCredentials: knownCredentials,
+    );
     return _buildSafeSignatureBytes(
-            _opts.sharedWebauthnSigner, signature.toUint8List())
-        .toUint8List();
+      _opts.sharedWebauthnSigner,
+      signature.toUint8List(),
+    ).toUint8List();
   }
 
   @override
   Future<MsgSignature> signToEc(Uint8List hash, {int? index}) async {
     final knownCredentials = _getKnownCredentials(index);
-    final signature =
-        await signToPasskeySignature(hash, knownCredentials: knownCredentials);
+    final signature = await signToPasskeySignature(
+      hash,
+      knownCredentials: knownCredentials,
+    );
     return MsgSignature(
-        signature.signature.item1.value, signature.signature.item2.value, 0);
+      signature.signature.$1.value,
+      signature.signature.$2.value,
+      0,
+    );
   }
 
   @override
-  Future<PassKeySignature> signToPasskeySignature(Uint8List hash,
-      {List<CredentialType>? knownCredentials}) async {
+  Future<PassKeySignature> signToPasskeySignature(
+    Uint8List hash, {
+    List<CredentialType>? knownCredentials,
+  }) async {
     // Prepare hash
     final hashBase64 = b64e(hash);
 
@@ -191,51 +215,58 @@ class PassKeySigner implements PasskeySignerInterface {
     // Prepare challenge for response
     final clientDataJSON = utf8.decode(b64d(assertion.clientDataJSON));
     int challengePos = clientDataJSON.indexOf(hashBase64);
+    int typePos = clientDataJSON.indexOf('webauthn.get');
 
     return PassKeySignature(
-        assertion.id,
-        b64d(assertion.rawId),
-        sig,
-        b64d(assertion.authenticatorData),
-        clientDataJSON,
-        challengePos,
-        assertion.userHandle);
+      assertion.id,
+      b64d(assertion.rawId),
+      sig,
+      b64d(assertion.authenticatorData),
+      clientDataJSON,
+      challengePos,
+      typePos,
+      assertion.userHandle,
+    );
   }
 
   @override
-  Future<Uint8List> signTypedData(String jsonData, TypedDataVersion version,
-      {int? index}) {
-    final hash =
-        TypedDataUtil.hashMessage(jsonData: jsonData, version: version);
+  Future<Uint8List> signTypedData(
+    String jsonData,
+    TypedDataVersion version, {
+    int? index,
+  }) {
+    final hash = TypedDataUtil.hashMessage(
+      jsonData: jsonData,
+      version: version,
+    );
     return personalSign(hash);
   }
 
   @override
   Future<ERC1271IsValidSignatureResponse> isValidPassKeySignature(
-      Uint8List hash,
-      PassKeySignature signature,
-      PassKeyPair keypair,
-      EthereumAddress p256Verifier,
-      String rpcUrl) async {
+    Uint8List hash,
+    PassKeySignature signature,
+    PassKeyPair keypair,
+    EthereumAddress p256Verifier,
+    String rpcUrl,
+  ) async {
     final hashBase64 = b64e(hash);
     final clientDataJSON =
         '{"type":"webauthn.get","challenge":"$hashBase64",${cdjRgExp.firstMatch(signature.clientDataJSON)![1]}}';
     final clientHash = sha256Hash(utf8.encode(clientDataJSON));
-    final sigHash =
-        sha256Hash(signature.authData.concat(Uint8List.fromList(clientHash)));
-    final calldata = abi.encode([
-      "uint256",
-      "uint256",
-      "uint256",
-      "uint256",
-      "uint256"
-    ], [
-      bytesToInt(sigHash),
-      signature.signature.item1.value,
-      signature.signature.item2.value,
-      keypair.authData.publicKey.item1.value,
-      keypair.authData.publicKey.item2.value
-    ]);
+    final sigHash = sha256Hash(
+      signature.authData.concat(Uint8List.fromList(clientHash)),
+    );
+    final calldata = abi.encode(
+      ["uint256", "uint256", "uint256", "uint256", "uint256"],
+      [
+        bytesToInt(sigHash),
+        signature.signature.$1.value,
+        signature.signature.$2.value,
+        keypair.authData.publicKey.$1.value,
+        keypair.authData.publicKey.$2.value,
+      ],
+    );
     final result = await p256Verify(calldata, p256Verifier.hex, rpcUrl);
     return ERC1271IsValidSignatureResponse.isValidResult(result);
   }
@@ -243,40 +274,45 @@ class PassKeySigner implements PasskeySignerInterface {
   @override
   @Deprecated("use 'isValidPassKeySignature' instead")
   Future<ERC1271IsValidSignatureResponse> isValidSignature<T, U>(
-      Uint8List hash, U signature, T signer) {
+    Uint8List hash,
+    U signature,
+    T signer,
+  ) {
     if (signature is PassKeySignature && signer is PassKeyPair) {
       final defaultP256Verifier = EthereumAddress.fromHex("0x${'0' * 37}100");
       final defaultRpcUrl = "https://rpc.ankr.com/eth";
       return isValidPassKeySignature(
-          hash, signature, signer, defaultP256Verifier, defaultRpcUrl);
+        hash,
+        signature,
+        signer,
+        defaultP256Verifier,
+        defaultRpcUrl,
+      );
     } else {
       throw ArgumentError(
-          "signature and signer must be of type PassKeySignature and PassKeyPair respectively, we recommend using 'isValidPassKeySignature' from `PasskeySignerInterface` instead");
+        "signature and signer must be of type PassKeySignature and PassKeyPair respectively, we recommend using 'isValidPassKeySignature' from `PasskeySignerInterface` instead",
+      );
     }
   }
 
   @override
   FCLSignature passkeySignatureToFCLSignature(PassKeySignature signature) {
     return _buildSafeSignatureBytes(
-        _opts.sharedWebauthnSigner, signature.toUint8List());
+      _opts.sharedWebauthnSigner,
+      signature.toUint8List(),
+    );
   }
 
   @override
-  Future<PassKeyPair> register(String username, String displayname,
-      {String? challenge}) async {
-    final attestation = await _register(
-      username,
-      displayname,
-      challenge,
-    );
+  Future<PassKeyPair> register(
+    String username,
+    String displayname, {
+    String? challenge,
+  }) async {
+    final attestation = await _register(username, displayname, challenge);
     final authData = _decodeAttestation(attestation);
 
-    return PassKeyPair(
-      authData,
-      username,
-      displayname,
-      DateTime.now(),
-    );
+    return PassKeyPair(authData, username, displayname, DateTime.now());
   }
 
   AuthData _decode(Bytes authData) {
@@ -298,18 +334,22 @@ class PassKeySigner implements PasskeySignerInterface {
     // Decode the CBOR-encoded public key and convert it to a map.
     final decodedPubKey = CborObject.fromCbor(pKey) as CborMapValue;
 
-    final keyX = decodedPubKey.value.entries
-        .firstWhere((element) => element.key.value == -2);
+    final keyX = decodedPubKey.value.entries.firstWhere(
+      (element) => element.key.value == -2,
+    );
 
-    final keyY = decodedPubKey.value.entries
-        .firstWhere((element) => element.key.value == -3);
+    final keyY = decodedPubKey.value.entries.firstWhere(
+      (element) => element.key.value == -3,
+    );
 
     // Extract x and y coordinates from the decoded public key.
     final x = Uint256.fromHex(hexlify(keyX.value.value));
     final y = Uint256.fromHex(hexlify(keyY.value.value));
 
-    return AuthData(b64e(credentialId), Uint8List.fromList(credentialId),
-        Tuple(x, y), aaGUID);
+    return AuthData(b64e(credentialId), Uint8List.fromList(credentialId), (
+      x,
+      y,
+    ), aaGUID);
   }
 
   AuthData _decodeAttestation(RegisterResponseType attestation) {
@@ -317,8 +357,9 @@ class PassKeySigner implements PasskeySignerInterface {
     final decodedAttestationAsCbor =
         CborObject.fromCbor(attestationAsCbor) as CborMapValue;
 
-    final key = decodedAttestationAsCbor.value.entries
-        .firstWhere((element) => element.key.value == "authData");
+    final key = decodedAttestationAsCbor.value.entries.firstWhere(
+      (element) => element.key.value == "authData",
+    );
     final value = key.value.value;
 
     final authData = Bytes.from(value);
@@ -326,9 +367,9 @@ class PassKeySigner implements PasskeySignerInterface {
   }
 
   List<CredentialType> _getKnownCredentials([int? index]) {
-    return _getCredentialIds(index)
-        .map(_convertToCredentialType)
-        .toList(growable: false);
+    return _getCredentialIds(
+      index,
+    ).map(_convertToCredentialType).toList(growable: false);
   }
 
   Iterable<Bytes> _getCredentialIds(int? index) {
@@ -356,14 +397,14 @@ class PassKeySigner implements PasskeySignerInterface {
     return base64Url.encode(uuidBytes);
   }
 
-  Future<RegisterResponseType> _register(String username, String displayname,
-      [String? challenge]) async {
+  Future<RegisterResponseType> _register(
+    String username,
+    String displayname, [
+    String? challenge,
+  ]) async {
     final entity = RegisterRequestType(
       challenge: challenge ?? randomBase64String(),
-      relyingParty: RelyingPartyType(
-        id: _opts.namespace,
-        name: _opts.name,
-      ),
+      relyingParty: RelyingPartyType(id: _opts.namespace, name: _opts.name),
       user: UserType(
         id: _generateUserId(),
         displayName: displayname,
@@ -375,12 +416,7 @@ class PassKeySigner implements PasskeySignerInterface {
         authenticatorAttachment: _opts.authenticatorAttachment,
         userVerification: _opts.userVerification,
       ),
-      pubKeyCredParams: [
-        PubKeyCredParamType(
-          type: 'public-key',
-          alg: -7,
-        ),
-      ],
+      pubKeyCredParams: [PubKeyCredParamType(type: 'public-key', alg: -7)],
       timeout: 60000,
       attestation: 'none',
       excludeCredentials: [],
@@ -388,19 +424,23 @@ class PassKeySigner implements PasskeySignerInterface {
     return await _auth.register(entity);
   }
 
-  Future<AuthenticateResponseType> _authenticate(String challenge,
-      [List<CredentialType>? allowedCredentials,
-      bool preferImmediatelyAvailableCredentials = false]) async {
+  Future<AuthenticateResponseType> _authenticate(
+    String challenge, [
+    List<CredentialType>? allowedCredentials,
+    bool preferImmediatelyAvailableCredentials = false,
+  ]) async {
     final entity = AuthenticateRequestType(
-        preferImmediatelyAvailableCredentials:
-            preferImmediatelyAvailableCredentials,
-        relyingPartyId: _opts.namespace,
-        challenge: challenge,
-        timeout: 60000,
-        userVerification: _opts.userVerification,
-        allowCredentials: allowedCredentials,
-        mediation: MediationType.values.firstWhere(
-            (m) => m.name.toLowerCase() == _opts.mediation.toLowerCase()));
+      preferImmediatelyAvailableCredentials:
+          preferImmediatelyAvailableCredentials,
+      relyingPartyId: _opts.namespace,
+      challenge: challenge,
+      timeout: 60000,
+      userVerification: _opts.userVerification,
+      allowCredentials: allowedCredentials,
+      mediation: MediationType.values.firstWhere(
+        (m) => m.name.toLowerCase() == _opts.mediation.toLowerCase(),
+      ),
+    );
     return await _auth.authenticate(entity);
   }
 
@@ -412,8 +452,9 @@ class PassKeySigner implements PasskeySignerInterface {
     final dynamicPartPosition = intToBytes(BigInt.from(65)).padLeftTo32Bytes();
     final dynamicPartLength =
         intToBytes(BigInt.from((data.length))).padLeftTo32Bytes();
-    final staticSignature =
-        signerBytes.concat(dynamicPartPosition).concat(Uint8List(1));
+    final staticSignature = signerBytes
+        .concat(dynamicPartPosition)
+        .concat(Uint8List(1));
 
     return FCLSignature(staticSignature, dynamicPartLength, data);
   }

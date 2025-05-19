@@ -11,7 +11,7 @@ import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:passkeys/authenticator.dart';
 import 'package:passkeys/types.dart';
 import 'package:web3_signers/src/vendor/vendor.dart'
-    show Bytes, BytesExtension, TupleExtension, U8aExtension;
+    show Bytes, BytesExtension, U8aExtension;
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 

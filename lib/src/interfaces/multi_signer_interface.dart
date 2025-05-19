@@ -88,8 +88,11 @@ abstract class MultiSignerInterface {
   /// ''';
   /// final signature = await signTypedData(jsonData, TypedDataVersion.V4);
   /// ```
-  Future<Uint8List> signTypedData(String jsonData, TypedDataVersion version,
-      {int? index});
+  Future<Uint8List> signTypedData(
+    String jsonData,
+    TypedDataVersion version, {
+    int? index,
+  });
 
   /// {@template isValidSignature}
   /// Verifies a personal signature against a hash.
@@ -113,5 +116,8 @@ abstract class MultiSignerInterface {
   /// final isValid = await isValidSignature<bool, Uint8List>(hash, signature);
   /// ```
   Future<ERC1271IsValidSignatureResponse> isValidSignature<T, U>(
-      Uint8List hash, U signature, T signer);
+    Uint8List hash,
+    U signature,
+    T signer,
+  );
 }

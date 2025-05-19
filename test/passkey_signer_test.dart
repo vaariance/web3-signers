@@ -18,12 +18,14 @@ void main() {
     late MockAuthenticator mockAuthenticator;
 
     final options = PassKeysOptions(
-        namespace: 'variance.space',
-        name: 'Variance',
-        requireResidentKey: true,
-        userVerification: "required",
-        sharedWebauthnSigner: EthereumAddress.fromHex(
-            "0xfD90FAd33ee8b58f32c00aceEad1358e4AFC23f9"));
+      namespace: 'variance.space',
+      name: 'Variance',
+      requireResidentKey: true,
+      userVerification: "required",
+      sharedWebauthnSigner: EthereumAddress.fromHex(
+        "0xfD90FAd33ee8b58f32c00aceEad1358e4AFC23f9",
+      ),
+    );
 
     final credentialTestId = "xLY8if5aHhPNSToeYXXOpA";
     final testpkX =
@@ -63,8 +65,11 @@ void main() {
       expect(dummySignature.startsWith('0x'), isTrue);
       expect(dummySignature.length, greaterThan(193));
 
-      final decode = abi.decode(['bytes', 'bytes', 'uint256[2]'],
-          hexToBytes(dummySignature.substring(196)));
+      final decode = abi.decode([
+        'bytes',
+        'bytes',
+        'uint256[2]',
+      ], hexToBytes(dummySignature.substring(196)));
       final authData = decode[0];
       final clientDataJSON = utf8.decode(decode[1]);
 
@@ -94,18 +99,19 @@ void main() {
       final hash = Uint8List(32);
 
       final authenticateResponse = AuthenticateResponseType(
-          authenticatorData:
-              "TjGXzAiZUHkjJiaVfkQODGrY7iI99BhKRPZA4cYXaW0dAAAAAA",
-          signature:
-              "MEQCIB0xbkk_A9dhf63DMqVIkYevEVYi0-HmSMGrcmkvahCrAiBnC0WhB1Hm0Wulzwudf1w8KpAXbtOjz8Qbl9vO3xYZHw",
-          id: credentialTestId,
-          rawId: credentialTestId,
-          clientDataJSON:
-              "eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9yaWdpbiI6ImFuZHJvaWQ6YXBrLWtleS1oYXNoOjUtLVhoaHJwTmVIX0syYVlweFl4T3VwelJaWmtCejFkR1VUdXdEVWFETkkiLCJhbmRyb2lkUGFja2FnZU5hbWUiOiJjb20uZXhhbXBsZS53ZWIzX3NpZ25lcnMifQ",
-          userHandle: "2on6z7AARXOKnB8-U-Mtyw");
+        authenticatorData: "TjGXzAiZUHkjJiaVfkQODGrY7iI99BhKRPZA4cYXaW0dAAAAAA",
+        signature:
+            "MEQCIB0xbkk_A9dhf63DMqVIkYevEVYi0-HmSMGrcmkvahCrAiBnC0WhB1Hm0Wulzwudf1w8KpAXbtOjz8Qbl9vO3xYZHw",
+        id: credentialTestId,
+        rawId: credentialTestId,
+        clientDataJSON:
+            "eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQSIsIm9yaWdpbiI6ImFuZHJvaWQ6YXBrLWtleS1oYXNoOjUtLVhoaHJwTmVIX0syYVlweFl4T3VwelJaWmtCejFkR1VUdXdEVWFETkkiLCJhbmRyb2lkUGFja2FnZU5hbWUiOiJjb20uZXhhbXBsZS53ZWIzX3NpZ25lcnMifQ",
+        userHandle: "2on6z7AARXOKnB8-U-Mtyw",
+      );
 
-      when(mockAuthenticator.authenticate(any))
-          .thenAnswer((_) async => authenticateResponse);
+      when(
+        mockAuthenticator.authenticate(any),
+      ).thenAnswer((_) async => authenticateResponse);
 
       // Add a known credential
       passKeySigner.credentialIds.add(b64d(credentialTestId));
@@ -115,19 +121,20 @@ void main() {
       expect(signature, isA<PassKeySignature>());
 
       final valid = await passKeySigner.isValidPassKeySignature(
-          hash,
-          signature,
-          PassKeyPair(
-              AuthData(
-                  credentialTestId,
-                  b64d(credentialTestId),
-                  Tuple(Uint256.fromHex(testpkX), Uint256.fromHex(testpkY)),
-                  "aaGUID"),
-              "username",
-              null,
-              null),
-          EthereumAddress.fromHex(p256VerifierAddress),
-          rpcUrl);
+        hash,
+        signature,
+        PassKeyPair(
+          AuthData(credentialTestId, b64d(credentialTestId), (
+            Uint256.fromHex(testpkX),
+            Uint256.fromHex(testpkY),
+          ), "aaGUID"),
+          "username",
+          null,
+          null,
+        ),
+        EthereumAddress.fromHex(p256VerifierAddress),
+        rpcUrl,
+      );
 
       expect(valid, equals(ERC1271IsValidSignatureResponse.sucess));
     });
@@ -141,18 +148,22 @@ void main() {
             "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiYnVITHpGLTk0XzBCZENMcklpOThMNDBLUlNfNl9HSlhMM0tsTC04M3hkayIsIm9yaWdpbiI6ImFuZHJvaWQ6YXBrLWtleS1oYXNoOjUtLVhoaHJwTmVIX0syYVlweFl4T3VwelJaWmtCejFkR1VUdXdEVWFETkkiLCJhbmRyb2lkUGFja2FnZU5hbWUiOiJjb20uZXhhbXBsZS53ZWIzX3NpZ25lcnMifQ",
         attestationObject:
             "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViUTjGXzAiZUHkjJiaVfkQODGrY7iI99BhKRPZA4cYXaW1dAAAAAOqbjWZNAR0hPOS2tIy1ddQAEMS2PIn-Wh4TzUk6HmF1zqSlAQIDJiABIVgg7fcXuv-ah_1LAxoqBmWAqaKb26l-L9VYIPfNXJY_Ca4iWCAnbArNftPIrY24jwwV9dGbEqqirz8myQA-B6_ZW5gP5Q",
+        transports: [],
       );
 
-      when(mockAuthenticator.register(any))
-          .thenAnswer((_) async => registerResponse);
+      when(
+        mockAuthenticator.register(any),
+      ).thenAnswer((_) async => registerResponse);
 
-      final passKeyPair =
-          await passKeySigner.register("user@variance.space", "test user");
+      final passKeyPair = await passKeySigner.register(
+        "user@variance.space",
+        "test user",
+      );
 
       expect(passKeyPair, isA<PassKeyPair>());
       expect(passKeyPair.authData, isA<AuthData>());
-      expect(passKeyPair.authData.publicKey.item1.toHex(), equals(testpkX));
-      expect(passKeyPair.authData.publicKey.item2.toHex(), equals(testpkY));
+      expect(passKeyPair.authData.publicKey.$1.toHex(), equals(testpkX));
+      expect(passKeyPair.authData.publicKey.$2.toHex(), equals(testpkY));
     });
   });
 }

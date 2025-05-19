@@ -17,8 +17,12 @@ class Logger {
   /// [message] is the error message to be logged if the condition is true.
   /// [error] is an optional error object associated with the error message.
   /// [stackTrace] is an optional stack trace associated with the error message.
-  static void conditionalError(bool condition, String message,
-      [Object? error, StackTrace? stackTrace]) {
+  static void conditionalError(
+    bool condition,
+    String message, [
+    Object? error,
+    StackTrace? stackTrace,
+  ]) {
     if (condition) {
       _logError('ERROR', _errorColor, message, error, stackTrace);
     }
@@ -57,7 +61,8 @@ class Logger {
   /// [message] is the message to be logged.
   static void _log(String level, String color, String message) {
     final now = DateTime.now();
-    final formattedTime = '${now.year.toString().padLeft(4, '0')}-'
+    final formattedTime =
+        '${now.year.toString().padLeft(4, '0')}-'
         '${now.month.toString().padLeft(2, '0')}-'
         '${now.day.toString().padLeft(2, '0')} '
         '${now.hour.toString().padLeft(2, '0')}:'
@@ -75,8 +80,13 @@ class Logger {
   /// [message] is the error message to be logged.
   /// [error] is an optional error object associated with the error message.
   /// [stackTrace] is an optional stack trace associated with the error message.
-  static void _logError(String level, String color, String message,
-      [Object? error, StackTrace? stackTrace]) {
+  static void _logError(
+    String level,
+    String color,
+    String message, [
+    Object? error,
+    StackTrace? stackTrace,
+  ]) {
     String errorMessage = message;
     if (error != null) {
       errorMessage += '\nError: $error';

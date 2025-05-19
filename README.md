@@ -149,13 +149,13 @@ The `signToEc` and `personalSign` methods are available for signing transactions
 
 ## Handling Der Encoded data
 
-- convert a Der Encoded public key to `Tuple(x,y)`
+- convert a Der Encoded public key to `(x,y)`
 
 ```dart
 final derDecoded = getPublicKeyFromBytes(derCodedData);
 ```
 
-- convert a Der Encoded signature to `Tuple(r,s)`
+- convert a Der Encoded signature to `(r,s)`
 
 ```dart
 final derDecoded = getMessagingSignature(derCodedSig);

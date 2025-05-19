@@ -22,8 +22,11 @@ abstract class PasskeySignerInterface extends MultiSignerInterface {
   /// final pkps = PassKeySigner(options: PassKeysOptions);
   /// final passKeyPair = await pkps.register('geffy', true);
   /// ```
-  Future<PassKeyPair> register(String username, String displayname,
-      {String? challenge});
+  Future<PassKeyPair> register(
+    String username,
+    String displayname, {
+    String? challenge,
+  });
 
   /// Signs a hash using the PassKeyPair associated with the given credentialId.
   ///
@@ -40,8 +43,10 @@ abstract class PasskeySignerInterface extends MultiSignerInterface {
   /// final pkps = PassKeySigner(options: PassKeysOptions);
   /// final passKeySignature = await pkps.signToPasskeySignature(hash);
   /// ```
-  Future<PassKeySignature> signToPasskeySignature(Uint8List hash,
-      {List<CredentialType>? knownCredentials});
+  Future<PassKeySignature> signToPasskeySignature(
+    Uint8List hash, {
+    List<CredentialType>? knownCredentials,
+  });
 
   /// {@macro isValidSignature}
   /// - [p256Verifier]: The public key of the P256 verifier.
@@ -56,11 +61,12 @@ abstract class PasskeySignerInterface extends MultiSignerInterface {
   /// final isValid = await isValidPassKeySignature(hash, signature, keypair, p256Verifier, rpcUrl);
   /// ```
   Future<ERC1271IsValidSignatureResponse> isValidPassKeySignature(
-      Uint8List hash,
-      PassKeySignature signature,
-      PassKeyPair keypair,
-      EthereumAddress p256Verifier,
-      String rpcUrl);
+    Uint8List hash,
+    PassKeySignature signature,
+    PassKeyPair keypair,
+    EthereumAddress p256Verifier,
+    String rpcUrl,
+  );
 
   /// Converts a PassKeySignature to an Safe Smart Account verifiable signature.
   ///

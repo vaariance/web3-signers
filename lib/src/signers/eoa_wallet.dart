@@ -16,9 +16,10 @@ class EOAWallet implements EOAWalletInterface {
   /// // create a 24 word phrase wallet
   /// final walletSigner24 = HDWalletSigner.createWallet(WordLength.word_24); // defaults to 12 words
   /// ```
-  factory EOAWallet.createWallet(
-      [WordLength wordLenth = WordLength.word_12,
-      SignatureOptions options = const SignatureOptions()]) {
+  factory EOAWallet.createWallet([
+    WordLength wordLenth = WordLength.word_12,
+    SignatureOptions options = const SignatureOptions(),
+  ]) {
     final generator = Bip39MnemonicGenerator();
     final Bip39WordsNum wordNumber = wordLenth.wordsNum;
     final phrase = generator.fromWordsNumber(wordNumber);
@@ -36,22 +37,27 @@ class EOAWallet implements EOAWalletInterface {
   /// final mnemonicPhrase = 'word1 word2 word3 ...'; // Replace with an actual mnemonic phrase
   /// final recoveredSigner = HDWalletSigner.recoverAccount(mnemonicPhrase);
   /// ```
-  factory EOAWallet.recoverAccount(String mnemonic,
-      [SignatureOptions options = const SignatureOptions()]) {
+  factory EOAWallet.recoverAccount(
+    String mnemonic, [
+    SignatureOptions options = const SignatureOptions(),
+  ]) {
     final Mnemonic words = Mnemonic.fromString(mnemonic);
     final seed = Bip39SeedGenerator(words).generate();
-    final signer =
-        EOAWallet._internal(seed: seed, mnemonic: words, options: options);
+    final signer = EOAWallet._internal(
+      seed: seed,
+      mnemonic: words,
+      options: options,
+    );
     return signer;
   }
 
-  EOAWallet._internal(
-      {required List<int> seed,
-      required Mnemonic mnemonic,
-      required SignatureOptions options})
-      : _seed = seed,
-        _mnemonic = mnemonic,
-        _options = options {
+  EOAWallet._internal({
+    required List<int> seed,
+    required Mnemonic mnemonic,
+    required SignatureOptions options,
+  }) : _seed = seed,
+       _mnemonic = mnemonic,
+       _options = options {
     assert(seed.isNotEmpty, "seed cannot be empty");
   }
 
@@ -129,27 +135,42 @@ class EOAWallet implements EOAWalletInterface {
   }
 
   @override
-  Future<Uint8List> signTypedData(String jsonData, TypedDataVersion version,
-      {int? index}) {
-    final hash =
-        TypedDataUtil.hashMessage(jsonData: jsonData, version: version);
+  Future<Uint8List> signTypedData(
+    String jsonData,
+    TypedDataVersion version, {
+    int? index,
+  }) {
+    final hash = TypedDataUtil.hashMessage(
+      jsonData: jsonData,
+      version: version,
+    );
     return personalSign(hash, index: index);
   }
 
   @override
   Future<ERC1271IsValidSignatureResponse> isValidSignature<T, U>(
-      Uint8List hash, U signature, T address) {
-    require(signature is Uint8List || signature is MsgSignature,
-        'Signature must be of type Uint8List or MsgSignature');
+    Uint8List hash,
+    U signature,
+    T address,
+  ) {
     require(
-        address is EthereumAddress, 'Address must be of type EthereumAddress');
+      signature is Uint8List || signature is MsgSignature,
+      'Signature must be of type Uint8List or MsgSignature',
+    );
+    require(
+      address is EthereumAddress,
+      'Address must be of type EthereumAddress',
+    );
     address as EthereumAddress;
     if (signature is Uint8List) {
       return Future.value(isValidPersonalSignature(hash, signature, address));
     } else {
       final signer = ecRecover(keccak256(hash), signature as MsgSignature);
-      return Future.value(ERC1271IsValidSignatureResponse.isValid(
-          EthereumAddress.fromPublicKey(signer).hex == address.hex));
+      return Future.value(
+        ERC1271IsValidSignatureResponse.isValid(
+          EthereumAddress.fromPublicKey(signer).hex == address.hex,
+        ),
+      );
     }
   }
 }

@@ -9,7 +9,7 @@ final oidP256 = Uint8List.fromList([
   ...[0x06, 0x07], // OID with 7 bytes
   ...[0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01], // SEQUENCE
   ...[0x06, 0x08], // OID with 8 bytes
-  ...[0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07]
+  ...[0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07],
 ]);
 
 /// Compares two ByteBuffers for equality.
@@ -122,7 +122,7 @@ List<Uint8List> bytesUnwrapDerSignature(Uint8List derEncoded) {
     throw 'Splitter not found';
   }
 
-  Tuple<int, Uint8List> getBytes(Uint8List remaining) {
+  (int, Uint8List) getBytes(Uint8List remaining) {
     int length = 0;
     Uint8List bytes;
 
@@ -140,18 +140,18 @@ List<Uint8List> bytesUnwrapDerSignature(Uint8List derEncoded) {
       length = remaining[1];
       bytes = remaining.sublist(2, 2 + length);
     }
-    return Tuple(length, bytes);
+    return (length, bytes);
   }
 
   final rRemaining = buf.sublist(2);
   final rBytes = getBytes(rRemaining);
-  final b2 = rBytes.item1;
-  final r = Uint8List.fromList(rBytes.item2);
+  final b2 = rBytes.$1;
+  final r = Uint8List.fromList(rBytes.$2);
   final sRemaining = rRemaining.sublist(b2 + 2);
 
   final sBytes = getBytes(sRemaining);
   // final b3 = sBytes.item1;
-  final s = Uint8List.fromList(sBytes.item2);
+  final s = Uint8List.fromList(sBytes.$2);
   return [r, s];
 }
 

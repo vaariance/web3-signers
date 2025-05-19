@@ -30,22 +30,6 @@ extension ExtBinaryBlob on BinaryBlob {
   static Uint8List from(Uint8List other) => Uint8List.fromList(other);
 }
 
-extension TupleExtension on Tuple {
-  /// Converts the Tuple to a List.
-  ///
-  /// Returns a List containing the two items of the Tuple.
-  ///
-  /// Example:
-  /// ```dart
-  /// final tuple = Tuple(1, 'a');
-  /// final list = tuple.toList();
-  /// print(list); // Prints: [1, 'a']
-  /// ```
-  List toList() {
-    return [item1, item2];
-  }
-}
-
 extension U8aExtension on Uint8List {
   /// Checks if this Uint8List is equal to another Uint8List.
   ///

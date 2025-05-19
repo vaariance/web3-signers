@@ -18,14 +18,22 @@ enum ERC1271IsValidSignatureResponse {
 }
 
 ERC1271IsValidSignatureResponse isValidPersonalSignature(
-    Uint8List message, Uint8List signature, EthereumAddress address) {
+  Uint8List message,
+  Uint8List signature,
+  EthereumAddress address,
+) {
   final prefix = '\u0019Ethereum Signed Message:\n${message.length}';
   final prefixBytes = ascii.encode(prefix);
   final payload = prefixBytes.concat(message);
   final signer = ecRecover(
-      keccak256(payload),
-      MsgSignature(bytesToInt(signature.sublist(0, 32)),
-          bytesToInt(signature.sublist(32, 64)), signature[64]));
+    keccak256(payload),
+    MsgSignature(
+      bytesToInt(signature.sublist(0, 32)),
+      bytesToInt(signature.sublist(32, 64)),
+      signature[64],
+    ),
+  );
   return ERC1271IsValidSignatureResponse.isValid(
-      EthereumAddress.fromPublicKey(signer).hex == address.hex);
+    EthereumAddress.fromPublicKey(signer).hex == address.hex,
+  );
 }
