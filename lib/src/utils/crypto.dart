@@ -97,6 +97,28 @@ Future<(Uint256, Uint256)> getPublicKeyFromBytes(
   return (Uint256.fromHex(r), Uint256.fromHex(s));
 }
 
+/// Normalizes ECDSA signature components to enforce the low-S rule.
+///
+/// ECDSA signatures (r, s) are malleable because (r, n-s) is also valid.
+/// This function ensures s <= n/2 by flipping it if necessary.
+///
+/// Parameters:
+/// - [r]: the R component of the signature
+/// - [s]: the S component of the signature
+///
+/// Returns a new tuple (r, s') where s' <= n/2.
+(Uint256, Uint256) normalizeSig(Uint256 r, Uint256 s) {
+  final BigInt p256Order = BigInt.parse(
+    'FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551',
+    radix: 16,
+  );
+  final BigInt p256HalfOrder = p256Order >> 1;
+  if (s.value > p256HalfOrder) {
+    s = Uint256(p256Order - s.value);
+  }
+  return (r, s);
+}
+
 /// Converts a list of integers to a hexadecimal string.
 ///
 /// Parameters:

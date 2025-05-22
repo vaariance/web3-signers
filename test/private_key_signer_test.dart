@@ -26,8 +26,11 @@ void main() {
 
     test('Create PrivateKeySigner from existing key', () {
       final privateKey = EthPrivateKey.createRandom(Random.secure());
-      final customSigner =
-          PrivateKeySigner.create(privateKey, password, Random.secure());
+      final customSigner = PrivateKeySigner.create(
+        privateKey,
+        password,
+        Random.secure(),
+      );
 
       expect(customSigner, isA<PrivateKeySigner>());
       expect(customSigner.address, equals(privateKey.address));
@@ -75,19 +78,29 @@ void main() {
       final hash = Uint8List.fromList(List.generate(32, (index) => index));
       final signature = await signer.personalSign(hash);
 
-      final isValid =
-          await signer.isValidSignature(hash, signature, signer.address);
-      expect(isValid, equals(ERC1271IsValidSignatureResponse.sucess));
+      final isValid = await signer.isValidSignature(
+        hash,
+        signature,
+        signer.address,
+      );
+      expect(isValid, equals(ERC1271IsValidSignatureResponse.success));
     });
 
     test("signed typed data v4 isValidSignature", () async {
       final hash = TypedDataUtil.hashMessage(
-          jsonData: jsonData, version: TypedDataVersion.V4);
-      final signature =
-          await signer.signTypedData(jsonData, TypedDataVersion.V4);
-      final isValid =
-          await signer.isValidSignature(hash, signature, signer.address);
-      expect(isValid, equals(ERC1271IsValidSignatureResponse.sucess));
+        jsonData: jsonData,
+        version: TypedDataVersion.V4,
+      );
+      final signature = await signer.signTypedData(
+        jsonData,
+        TypedDataVersion.V4,
+      );
+      final isValid = await signer.isValidSignature(
+        hash,
+        signature,
+        signer.address,
+      );
+      expect(isValid, equals(ERC1271IsValidSignatureResponse.success));
     });
   });
 }

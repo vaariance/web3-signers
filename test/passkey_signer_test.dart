@@ -1,4 +1,3 @@
-import 'package:blockchain_utils/blockchain_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passkeys/types.dart';
 import 'package:web3_signers/src/interfaces/interfaces.dart';
@@ -34,8 +33,8 @@ void main() {
         "0x276c0acd7ed3c8ad8db88f0c15f5d19b12aaa2af3f26c9003e07afd95b980fe5";
 
     final String p256VerifierAddress =
-        '0xc2b78104907F722DABAc4C69f826a522B2754De4';
-    final String rpcUrl = 'https://rpc.ankr.com/base';
+        '0x0000000000000000000000000000000000000100';
+    final String rpcUrl = 'https://mainnet.base.org';
 
     setUp(() {
       // Initialize the mock authenticator
@@ -136,7 +135,7 @@ void main() {
         rpcUrl,
       );
 
-      expect(valid, equals(ERC1271IsValidSignatureResponse.sucess));
+      expect(valid, equals(ERC1271IsValidSignatureResponse.success));
     });
 
     test('Register with mocked register method', () async {

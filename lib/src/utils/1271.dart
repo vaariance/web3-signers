@@ -1,7 +1,7 @@
 part of 'utils.dart';
 
 enum ERC1271IsValidSignatureResponse {
-  sucess("0x1626ba7e"),
+  success("0x1626ba7e"),
   failure("0xffffffff");
 
   final String value;
@@ -9,11 +9,11 @@ enum ERC1271IsValidSignatureResponse {
   const ERC1271IsValidSignatureResponse(this.value);
 
   factory ERC1271IsValidSignatureResponse.isValid(bool value) {
-    return value ? sucess : failure;
+    return value ? success : failure;
   }
 
   factory ERC1271IsValidSignatureResponse.isValidResult(Uint256 result) {
-    return result.value == BigInt.one ? sucess : failure;
+    return result.value == BigInt.one ? success : failure;
   }
 }
 

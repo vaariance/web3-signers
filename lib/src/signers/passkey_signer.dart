@@ -210,7 +210,9 @@ class PassKeySigner implements PasskeySignerInterface {
     final assertion = await _authenticate(hashBase64, knownCredentials);
 
     // Extract signature from response
-    final sig = getMessagingSignature(b64d(assertion.signature));
+    (Uint256, Uint256) sig = getMessagingSignature(b64d(assertion.signature));
+
+    sig = normalizeSig(sig.$1, sig.$2);
 
     // Prepare challenge for response
     final clientDataJSON = utf8.decode(b64d(assertion.clientDataJSON));
@@ -254,13 +256,13 @@ class PassKeySigner implements PasskeySignerInterface {
     final clientDataJSON =
         '{"type":"webauthn.get","challenge":"$hashBase64",${cdjRgExp.firstMatch(signature.clientDataJSON)![1]}}';
     final clientHash = sha256Hash(utf8.encode(clientDataJSON));
-    final sigHash = sha256Hash(
-      signature.authData.concat(Uint8List.fromList(clientHash)),
+    final sigHash = bytesToInt(
+      sha256Hash(signature.authData.concat(Uint8List.fromList(clientHash))),
     );
     final calldata = abi.encode(
       ["uint256", "uint256", "uint256", "uint256", "uint256"],
       [
-        bytesToInt(sigHash),
+        sigHash,
         signature.signature.$1.value,
         signature.signature.$2.value,
         keypair.authData.publicKey.$1.value,
@@ -280,7 +282,7 @@ class PassKeySigner implements PasskeySignerInterface {
   ) {
     if (signature is PassKeySignature && signer is PassKeyPair) {
       final defaultP256Verifier = EthereumAddress.fromHex("0x${'0' * 37}100");
-      final defaultRpcUrl = "https://rpc.ankr.com/eth";
+      final defaultRpcUrl = "https://mainnet.base.org";
       return isValidPassKeySignature(
         hash,
         signature,
@@ -369,7 +371,7 @@ class PassKeySigner implements PasskeySignerInterface {
   List<CredentialType> _getKnownCredentials([int? index]) {
     return _getCredentialIds(
       index,
-    ).map(_convertToCredentialType).toList(growable: false);
+    ).map(credentialIdToType).toList(growable: false);
   }
 
   Iterable<Bytes> _getCredentialIds(int? index) {
@@ -377,7 +379,7 @@ class PassKeySigner implements PasskeySignerInterface {
     return credentialIds.elementAtOrNull(index)?.let((e) => [e]) ?? [];
   }
 
-  CredentialType _convertToCredentialType(Bytes credentialId) {
+  CredentialType credentialIdToType(Bytes credentialId) {
     return CredentialType(
       type: 'public-key',
       id: b64e(credentialId),
@@ -388,12 +390,6 @@ class PassKeySigner implements PasskeySignerInterface {
   String _generateUserId() {
     final uuid = UUID.generateUUIDv4();
     final uuidBytes = UUID.toBuffer(uuid);
-    if (Platform.isIOS) {
-      // we have to encode it to base64 instead of base64url
-      // because corbado passkeys package expected a
-      // base64 encoded user id on iOS
-      return base64.encode(uuidBytes);
-    }
     return base64Url.encode(uuidBytes);
   }
 

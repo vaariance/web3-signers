@@ -1,3 +1,19 @@
+## 0.2.0
+
+- remove IOS platform specific userId generation.
+- add signature normalization to guard against malleablility
+- update tests and dependencies
+- fix typos
+
+## 0.1.11
+
+- add `typePosition` to `PasskeySignature` response
+- switch to darts native record type instead of tuple
+
+## 0.1.10
+
+- fix: update dummy signature to a universal format
+
 ## 0.1.9
 
 - Add support for SignTypedData for signers
