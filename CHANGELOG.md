@@ -2,6 +2,7 @@
 
 - remove IOS platform specific userId generation.
 - add signature normalization to guard against malleablility
+- add `padTonNBytes` extension to pad a uint8list to a specific length
 - update tests and dependencies
 - fix typos
 

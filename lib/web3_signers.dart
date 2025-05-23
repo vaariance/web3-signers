@@ -4,6 +4,8 @@ export 'src/interfaces/interfaces.dart'
     show
         MultiSignerInterface,
         MSI,
+        PSI,
+        EWI,
         FCLSignature,
         SignatureOptions,
         PassKeysOptions;

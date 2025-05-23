@@ -1,4 +1,4 @@
-library interfaces;
+library;
 
 import 'dart:typed_data';
 

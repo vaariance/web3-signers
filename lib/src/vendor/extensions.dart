@@ -125,6 +125,38 @@ extension U8aExtension on Uint8List {
     padded.setRange(0, length, this);
     return padded;
   }
+
+  /// Pads this Uint8List to N bytes by adding zeros to the left or right.
+  ///
+  /// Parameters:
+  /// - [n]: The desired length in bytes of the padded list.
+  /// - [direction]: The direction to pad - 'left' (default) or 'right'.
+  ///
+  /// Returns a new Uint8List of N bytes with this list's elements aligned according to [direction].
+  ///
+  /// Throws an ArgumentError if this list is longer than N bytes.
+  ///
+  /// Example:
+  /// ```dart
+  /// final list = Uint8List.fromList([1, 2, 3]);
+  /// final leftPadded = list.padToNBytes(5); // [0, 0, 1, 2, 3]
+  /// final rightPadded = list.padToNBytes(5, direction: 'right'); // [1, 2, 3, 0, 0]
+  /// ```
+  Uint8List padToNBytes(int n, {String direction = 'left'}) {
+    if (length > n) {
+      throw ArgumentError('Uint8List length exceeds $n bytes.');
+    }
+    if (length == n) {
+      return this;
+    }
+    final padded = Uint8List(n);
+    if (direction == 'right') {
+      padded.setRange(0, length, this);
+    } else {
+      padded.setRange(n - length, n, this);
+    }
+    return padded;
+  }
 }
 
 typedef Bytes = List<int>;
