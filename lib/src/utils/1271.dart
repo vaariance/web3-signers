@@ -28,8 +28,8 @@ ERC1271IsValidSignatureResponse isValidPersonalSignature(
   final signer = ecRecover(
     keccak256(payload),
     MsgSignature(
-      bytesToInt(signature.sublist(0, 32)),
-      bytesToInt(signature.sublist(32, 64)),
+      bytesToUnsignedInt(signature.sublist(0, 32)),
+      bytesToUnsignedInt(signature.sublist(32, 64)),
       signature[64],
     ),
   );
