@@ -15,7 +15,7 @@ abstract class PasskeySignerInterface extends MultiSignerInterface {
   /// - [displayname]: (Optional android 14+) display name associated with the PassKeyPair.
   /// - [challenge]: Optional challenge value. Defaults to a randomly generated challenge if not provided.
   ///
-  /// Returns a Future<PassKeyPair> representing the registered PassKeyPair.
+  /// Returns a [Future<PassKeyPair>] representing the registered PassKeyPair.
   ///
   /// Example:
   /// ```dart
@@ -34,7 +34,7 @@ abstract class PasskeySignerInterface extends MultiSignerInterface {
   /// - [hash]: The hash to be signed.
   /// - [knownCredentials]: Optional credentials to be used for signing.
   ///
-  /// Returns a Future<PassKeySignature> representing the PassKeySignature of the signed hash.
+  /// Returns a [Future<PassKeySignature>] representing the PassKeySignature of the signed hash.
   ///
   /// Example:
   /// ```dart
@@ -52,7 +52,7 @@ abstract class PasskeySignerInterface extends MultiSignerInterface {
   /// - [p256Verifier]: The public key of the P256 verifier.
   /// - [rpcUrl]: The URL of the Ethereum JSON-RPC endpoint.
   ///
-  /// Returns a Future<ERC1271IsValidSignatureResponse> representing the validity of the signature.
+  /// Returns a [Future<ERC1271IsValidSignatureResponse>] representing the validity of the signature.
   ///
   /// Example:
   /// ```dart

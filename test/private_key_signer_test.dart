@@ -1,11 +1,10 @@
-import 'package:eth_sig_util/eth_sig_util.dart';
+import 'package:eip712/eip712.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:web3dart/crypto.dart';
+import 'package:wallet/wallet.dart' show EthereumAddress;
 import 'package:web3dart/web3dart.dart';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:web3_signers/web3_signers.dart';
-
 import 'constant.dart';
 
 void main() {
@@ -75,7 +74,7 @@ void main() {
     });
 
     test("isValidSignature", () async {
-      final hash = Uint8List.fromList(List.generate(32, (index) => index));
+      final hash = Uint8List(32);
       final signature = await signer.personalSign(hash);
 
       final isValid = await signer.isValidSignature(
@@ -87,13 +86,13 @@ void main() {
     });
 
     test("signed typed data v4 isValidSignature", () async {
-      final hash = TypedDataUtil.hashMessage(
-        jsonData: jsonData,
-        version: TypedDataVersion.V4,
+      final hash = hashTypedData(
+        typedData: rawTypedData,
+        version: TypedDataVersion.v4,
       );
       final signature = await signer.signTypedData(
-        jsonData,
-        TypedDataVersion.V4,
+        rawTypedData,
+        TypedDataVersion.v4,
       );
       final isValid = await signer.isValidSignature(
         hash,

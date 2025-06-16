@@ -1,12 +1,14 @@
 # web3 signers
 
+[![Coverage Status](https://coveralls.io/repos/github/vaariance/web3-signers/badge.svg?branch=main)](https://coveralls.io/github/vaariance/web3-signers?branch=main)
+
 A flutter plugin that provides a uniform interface for signing [EIP-1271](https://eips.ethereum.org/EIPS/eip-1271) messages on dart.
 
 supports:
 
-    ✅ passkey signatures
-    ✅ EOA wallet (mnemonic backed)
-    ✅ privateKey signatures
+    ✅ passkeys
+    ✅ mnemonics
+    ✅ single privateKey
 
 ## Quick synopsis
 
@@ -116,7 +118,7 @@ log("r: ${signature.r}, s: ${signature.s}") // r and s are both bigint format
 ## Building an EOA wallet
 
 Beyond [EIP-1271](https://eips.ethereum.org/EIPS/eip-1271) messages. the [web3-signers](https://pub.dev/packages/web3_signers) package can be relied upon for developing fully featured [Externally Owned Accounts](https://ethereum.org/developers/docs/accounts) like [Metamask](https://metamask.io) using the [EOAWallet](./lib/src/signers/eoa_wallet_signer.dart) class.
-The EOA wallet conforms to the multi-signer-interface, hence it can be used to create signers that are backed with a seed phrase.
+The EOA wallet conforms to the `multi-signer-interface`, hence it can be used to create signers that are backed with a seed phrase.
 
 ```dart
 // creates a new EOA wallet
@@ -172,11 +174,11 @@ abstract class MultiSignerInterface {
     /// You must specify a dummy signature that matches your transaction signature standard.
     String getDummySignature();
     /// Generates a public address of the signer.
-    String getAddress({int? index});
+    String getAddress();
     /// Signs the provided [hash] using the personal sign method.
-    Future<Uint8List> personalSign(Uint8List hash, {int? index});
-    /// Signs the provided [hash] using elliptic curve algorithm and returns the r and s values.
-    Future<MsgSignature> signToEc(Uint8List hash, {int? index});
+    Future<Uint8List> personalSign(Uint8List hash);
+    /// Signs the provided [hash] using elliptic curve algorithm and returns the r, s and pocpossiblycibly v values.
+    Future<MsgSignature> signToEc(Uint8List hash);
 }
 ```
 
@@ -185,10 +187,9 @@ abstract class MultiSignerInterface {
 | Feature                        | Android | iOS | Web |
 | ------------------------------ | :-----: | :-: | :-: |
 | generate passkeypair           | ✅      | ✅  | ✅  |
-| sign with passkey              | ✅      | ✅  | ✅  |
-| Generate EOA wallet            | ✅      | ✅  | ✅  |
-| Sign For EOA account           | ✅      | ✅  | ✅  |
-| Private key signer             | ✅      | ✅  | ✅  |
+| sign with a passkey              | ✅      | ✅  | ✅  |
+| Generate wallet and sign for EOA accounts            | ✅      | ✅  | ✅  |
+| generate and sign with privatekeys            | ✅      | ✅  | ✅  |
 
 ## Platform specific configuration
 

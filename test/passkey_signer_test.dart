@@ -1,10 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:passkeys/types.dart';
+import 'package:wallet/wallet.dart' show EthereumAddress;
 import 'package:web3_signers/src/interfaces/interfaces.dart';
-import 'package:web3dart/crypto.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:web3dart/web3dart.dart' show hexToBytes;
 import 'dart:convert';
 import 'dart:typed_data';
 

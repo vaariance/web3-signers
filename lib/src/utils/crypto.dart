@@ -1,6 +1,6 @@
 part of 'utils.dart';
 
-RegExp _hexadecimal = RegExp(r'^[0-9a-fA-F]+$');
+typedef Address = EthereumAddress;
 
 RegExp cdjRgExp = RegExp(
   r'^\{"type":"webauthn.get","challenge":"[A-Za-z0-9\-_]{43}",(.*)\}$',
@@ -19,7 +19,8 @@ RegExp cdjRgExp = RegExp(
 /// print(randomBytes.length); // Prints: 16
 /// ```
 List<int> getRandomValues([int length = 32]) {
-  return QuickCrypto.generateRandom(length);
+  final random = Random.secure();
+  return List<int>.generate(length, (i) => random.nextInt(256));
 }
 
 /// Converts a hex string to a 32bytes `Uint8List`.
@@ -72,7 +73,7 @@ Future<(Uint256, Uint256)> getPublicKeyFromBytes(
 /// Parameters:
 /// - [signatureBytes]: Uint8List containing the ASN1-encoded signature bytes.
 ///
-/// Returns a Future<List<String>> containing hex strings for `r` and `s` values.
+/// Returns a [Future<List<String>>] containing hex strings for `r` and `s` values.
 ///
 /// Example:
 /// ```dart
@@ -174,7 +175,7 @@ require(bool requirement, String exception) {
 /// log("SHA-256 Hash: ${hash.toString()}");
 /// ```
 List<int> sha256Hash(List<int> input) {
-  return SHA256.hash(input);
+  return sha256.convert(input).bytes;
 }
 
 /// Checks whether the leading zero should be removed from the byte array.
@@ -252,7 +253,8 @@ String b64e(List<int> bytes) => base64Url.encode(bytes).replaceAll('=', '');
 /// print(hexHasPrefix('1234')); // Prints: false
 /// ```
 bool hexHasPrefix(String value) {
-  return isHex(value, ignoreLength: true) && value.substring(0, 2) == '0x';
+  return eip712.isHex(value, ignoreLength: true) &&
+      value.substring(0, 2) == '0x';
 }
 
 /// Strips the '0x' prefix from a hexadecimal string if present.
@@ -280,41 +282,6 @@ String hexStripPrefix(String value) {
     return value;
   }
   throw Exception("unable to reach prefix");
-}
-
-/// Checks if a value is a valid hexadecimal string.
-///
-/// Parameters:
-/// - [value]: The value to check.
-/// - [bits]: Optional bit length to validate against. Defaults to -1 (no length check).
-/// - [ignoreLength]: If true, ignores odd-length strings. Defaults to false.
-///
-/// Returns true if the value is a valid hexadecimal string, false otherwise.
-///
-/// Example:
-/// ```dart
-/// print(isHex('0x1234')); // Prints: true
-/// print(isHex('0x123')); // Prints: false
-/// print(isHex('0x123', ignoreLength: true)); // Prints: true
-/// ```
-bool isHex(dynamic value, {int bits = -1, bool ignoreLength = false}) {
-  if (value is! String) {
-    return false;
-  }
-  if (value == '0x') {
-    // Adapt Ethereum special cases.
-    return true;
-  }
-  if (value.startsWith('0x')) {
-    value = value.substring(2);
-  }
-  if (_hexadecimal.hasMatch(value)) {
-    if (bits != -1) {
-      return value.length == (bits / 4).ceil();
-    }
-    return ignoreLength || value.length % 2 == 0;
-  }
-  return false;
 }
 
 /// Verifies a P256 signature by making an eth_call to a specified verifier contract.

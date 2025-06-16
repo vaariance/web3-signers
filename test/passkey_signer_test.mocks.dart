@@ -47,6 +47,24 @@ class _FakeGetAvailability_2 extends _i1.SmartFake
 /// See the documentation for Mockito's code generation for more information.
 class MockAuthenticator extends _i1.Mock implements _i4.Authenticator {
   @override
+  bool get debugMode =>
+      (super.noSuchMethod(
+            Invocation.getter(#debugMode),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
+
+  @override
+  _i5.Stream<_i2.Result> get resultStream =>
+      (super.noSuchMethod(
+            Invocation.getter(#resultStream),
+            returnValue: _i5.Stream<_i2.Result>.empty(),
+            returnValueForMissingStub: _i5.Stream<_i2.Result>.empty(),
+          )
+          as _i5.Stream<_i2.Result>);
+
+  @override
   _i5.Future<bool> canAuthenticate() =>
       (super.noSuchMethod(
             Invocation.method(#canAuthenticate, []),

@@ -1,0 +1,31 @@
+name: Coveralls
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.29.3
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests & generate LCOV
+        run: flutter test --coverage
+
+      - name: Report to Coveralls
+        uses: coverallsapp/github-action@v2

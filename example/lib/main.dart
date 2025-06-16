@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:web3_signers/web3_signers.dart';
 
 void main() {
-  runApp(Web3Signer());
+  runApp(const Web3Signer());
 }
 
 class Web3Signer extends StatefulWidget {
@@ -22,7 +22,7 @@ class _Web3SignerState extends State<Web3Signer> {
   final TextEditingController _textField4Controller = TextEditingController();
 
   static final sharedSigner =
-      EthereumAddress.fromHex("0xfD90FAd33ee8b58f32c00aceEad1358e4AFC23f9");
+      Address.fromHex("0xfD90FAd33ee8b58f32c00aceEad1358e4AFC23f9");
   static final passkeyOpts = PassKeysOptions(
       name: "variance",
       namespace: "variance.space",
@@ -40,7 +40,7 @@ class _Web3SignerState extends State<Web3Signer> {
 
   void _signin() async {
     if (_pkp != null) {
-      print("credentialIds: ${_pkp!.authData.b64Credential}");
+      log("credentialIds: ${_pkp!.authData.b64Credential}");
       _pkpSigner.credentialIds.add(_pkp!.authData.rawCredential);
     }
     final sig = await _pkpSigner.personalSign(Uint8List(32));

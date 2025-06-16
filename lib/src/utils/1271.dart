@@ -34,6 +34,6 @@ ERC1271IsValidSignatureResponse isValidPersonalSignature(
     ),
   );
   return ERC1271IsValidSignatureResponse.isValid(
-    EthereumAddress.fromPublicKey(signer).hex == address.hex,
+    publicKeyToAddress(signer).eq(address.value),
   );
 }

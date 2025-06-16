@@ -1,36 +1,8 @@
 part of 'vendor.dart';
 
-typedef BinaryBlob = Uint8List;
+typedef Bytes = List<int>;
 
-enum BlobType { binary, der, nonce, requestId }
-
-extension ExtBinaryBlob on BinaryBlob {
-  /// Returns the blob type as BinaryBlob.
-  BlobType get blobType => BlobType.binary;
-
-  /// Returns the length of the blob in bytes.
-  int get byteLength => lengthInBytes;
-
-  /// Returns the name of the blob, which is always '__BLOB'.
-  String get name => '__BLOB';
-
-  /// Creates a new Uint8List from another Uint8List.
-  ///
-  /// Parameters:
-  /// - [other]: The Uint8List to copy from.
-  ///
-  /// Returns a new Uint8List with the same content as [other].
-  ///
-  /// Example:
-  /// ```dart
-  /// final original = Uint8List.fromList([1, 2, 3]);
-  /// final copy = ExtBinaryBlob.from(original);
-  /// print(copy); // Prints: [1, 2, 3]
-  /// ```
-  static Uint8List from(Uint8List other) => Uint8List.fromList(other);
-}
-
-extension U8aExtension on Uint8List {
+extension BytesExtension on Bytes {
   /// Checks if this Uint8List is equal to another Uint8List.
   ///
   /// Parameters:
@@ -94,11 +66,9 @@ extension U8aExtension on Uint8List {
       throw ArgumentError('Uint8List length exceeds 32 bytes.');
     }
     if (length == 32) {
-      return this;
+      return Uint8List.fromList(this);
     }
-    final padded = Uint8List(32);
-    padded.setRange(32 - length, 32, this);
-    return padded;
+    return Uint8List(32)..setRange(32 - length, 32, this);
   }
 
   /// Pads this Uint8List to 32 bytes by adding zeros to the right.
@@ -119,11 +89,9 @@ extension U8aExtension on Uint8List {
       throw ArgumentError('Uint8List length exceeds 32 bytes.');
     }
     if (length == 32) {
-      return this;
+      return Uint8List.fromList(this);
     }
-    final padded = Uint8List(32);
-    padded.setRange(0, length, this);
-    return padded;
+    return Uint8List(32)..setRange(0, length, this);
   }
 
   /// Pads this Uint8List to N bytes by adding zeros to the left or right.
@@ -147,7 +115,7 @@ extension U8aExtension on Uint8List {
       throw ArgumentError('Uint8List length exceeds $n bytes.');
     }
     if (length == n) {
-      return this;
+      return Uint8List.fromList(this);
     }
     final padded = Uint8List(n);
     if (direction == 'right') {
@@ -157,11 +125,7 @@ extension U8aExtension on Uint8List {
     }
     return padded;
   }
-}
 
-typedef Bytes = List<int>;
-
-extension BytesExtension on Bytes {
   /// Applies a function to this Bytes and returns the result.
   ///
   /// Parameters:

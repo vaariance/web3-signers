@@ -7,9 +7,10 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:developer' as dev;
 
+import 'package:crypto/crypto.dart';
 import 'package:asn1lib/asn1lib.dart';
-import 'package:blockchain_utils/blockchain_utils.dart';
-import 'package:web3dart/crypto.dart';
+import 'package:eip712/eip712.dart' as eip712;
+import 'package:wallet/wallet.dart';
 import 'package:web3dart/web3dart.dart';
 
 import '../interfaces/interfaces.dart';

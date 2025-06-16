@@ -89,7 +89,7 @@ abstract class MultiSignerInterface {
   /// final signature = await signTypedData(jsonData, TypedDataVersion.V4);
   /// ```
   Future<Uint8List> signTypedData(
-    String jsonData,
+    TypedMessage jsonData,
     TypedDataVersion version, {
     int? index,
   });

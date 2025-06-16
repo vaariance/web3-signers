@@ -22,13 +22,7 @@ class abi {
   /// var decodedValues = abi.decode(['uint256', 'string'], encodedData);
   /// ```
   static List decode(List<String> types, Uint8List value) {
-    List<AbiType> abiTypes = [];
-    for (String type in types) {
-      var abiType = parseAbiType(type);
-      abiTypes.add(abiType);
-    }
-    final parsedData = TupleType(abiTypes).decode(value.buffer, 0);
-    return parsedData.data;
+    return eip712.decode(types, value);
   }
 
   /// Encodes a list of types and values into ABI-encoded data.
@@ -45,15 +39,6 @@ class abi {
   /// var encodedData = abi.encode(['uint256', 'string'], [BigInt.from(123), 'Hello']);
   /// ```
   static Uint8List encode(List<String> types, List<dynamic> values) {
-    List<AbiType> abiTypes = [];
-    LengthTrackingByteSink result = LengthTrackingByteSink();
-    for (String type in types) {
-      var abiType = parseAbiType(type);
-      abiTypes.add(abiType);
-    }
-    TupleType(abiTypes).encode(values, result);
-    var resultBytes = result.asBytes();
-    result.close();
-    return resultBytes;
+    return eip712.encode(types, values);
   }
 }

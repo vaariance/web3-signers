@@ -1,9 +1,9 @@
 part of '../web3_signers_base.dart';
 
 class EOAWallet implements EOAWalletInterface {
-  final Mnemonic _mnemonic;
+  final List<String> _mnemonic;
 
-  final List<int> _seed;
+  final Uint8List _seed;
 
   final SignatureOptions _options;
 
@@ -20,10 +20,9 @@ class EOAWallet implements EOAWalletInterface {
     WordLength wordLenth = WordLength.word_12,
     SignatureOptions options = const SignatureOptions(),
   ]) {
-    final generator = Bip39MnemonicGenerator();
-    final Bip39WordsNum wordNumber = wordLenth.wordsNum;
-    final phrase = generator.fromWordsNumber(wordNumber);
-    return EOAWallet.recoverAccount(phrase.toStr(), options);
+    final wordStrength = wordLenth.wordsStrength;
+    final phrase = generateMnemonic(strength: wordStrength);
+    return EOAWallet.recoverAccount(phrase.join(' '), options);
   }
 
   /// Recovers an EOA wallet signer instance from a given mnemonic phrase.
@@ -41,8 +40,8 @@ class EOAWallet implements EOAWalletInterface {
     String mnemonic, [
     SignatureOptions options = const SignatureOptions(),
   ]) {
-    final Mnemonic words = Mnemonic.fromString(mnemonic);
-    final seed = Bip39SeedGenerator(words).generate();
+    final List<String> words = mnemonic.split(' ');
+    final seed = mnemonicToSeed(words);
     final signer = EOAWallet._internal(
       seed: seed,
       mnemonic: words,
@@ -52,8 +51,8 @@ class EOAWallet implements EOAWalletInterface {
   }
 
   EOAWallet._internal({
-    required List<int> seed,
-    required Mnemonic mnemonic,
+    required Uint8List seed,
+    required List<String> mnemonic,
     required SignatureOptions options,
   }) : _seed = seed,
        _mnemonic = mnemonic,
@@ -68,7 +67,7 @@ class EOAWallet implements EOAWalletInterface {
 
   @override
   String exportMnemonic() {
-    return _mnemonic.toStr();
+    return _mnemonic.join(' ');
   }
 
   @override
@@ -84,7 +83,7 @@ class EOAWallet implements EOAWalletInterface {
 
   @override
   String getAddress({int? index}) {
-    return _getEthereumAddress(index ?? 0).hex;
+    return _getEthereumAddress(index ?? 0).with0x;
   }
 
   @override
@@ -103,47 +102,46 @@ class EOAWallet implements EOAWalletInterface {
   String getDummySignature() =>
       "${hexlify(_options.prefix)}ee2eb84d326637ae9c4eb2febe1f74dc43e6bb146182ef757ebf0c7c6e0d29dc2530d8b5ec0ab1d0d6ace9359e1f9b117651202e8a7f1f664ce6978621c7d5fb1b";
 
-  EthereumAddress _add(List<int> seed, int index) {
+  EthereumAddress _add(Uint8List seed, int index) {
     final hdKey = _deriveHdKey(seed, index);
-    final privKey = _deriveEthPrivKey(hdKey.key.toHex());
+    final privKey = _deriveEthPrivKey(hdKey.key);
     return privKey.address;
   }
 
-  EthPrivateKey _deriveEthPrivKey(String key) {
-    final ethPrivateKey = EthPrivateKey.fromHex(key);
+  EthPrivateKey _deriveEthPrivKey(BigInt key) {
+    final ethPrivateKey = EthPrivateKey.fromInt(key);
     return ethPrivateKey;
   }
 
-  Bip44PrivateKey _deriveHdKey(List<int> seed, int idx) {
+  ExtendedPrivateKey _deriveHdKey(Uint8List seed, int idx) {
     final path = "m/44'/60'/0'/0/$idx";
-    final chain = Bip44.fromSeed(seed, Bip44Coins.ethereum);
-    final privKey = chain.bip32.derivePath(path).privateKey;
-    return Bip44PrivateKey(privKey, chain.coinConf);
+    final chain = ExtendedPrivateKey.master(
+      seed,
+      List<int>.from([0x04, 0x88, 0xAD, 0xE4]),
+    );
+    return chain.forPath(path) as ExtendedPrivateKey;
   }
 
   EthereumAddress _getEthereumAddress(int index) {
     return _getPrivateKey(index).address;
   }
 
-  Bip44PrivateKey _getHdKey(int index) {
+  ExtendedPrivateKey _getHdKey(int index) {
     return _deriveHdKey(_seed, index);
   }
 
   EthPrivateKey _getPrivateKey(int index) {
     final hdKey = _getHdKey(index);
-    return _deriveEthPrivKey(hdKey.key.toHex());
+    return _deriveEthPrivKey(hdKey.key);
   }
 
   @override
   Future<Uint8List> signTypedData(
-    String jsonData,
+    TypedMessage jsonData,
     TypedDataVersion version, {
     int? index,
   }) {
-    final hash = TypedDataUtil.hashMessage(
-      jsonData: jsonData,
-      version: version,
-    );
+    final hash = hashTypedData(typedData: jsonData, version: version);
     return personalSign(hash, index: index);
   }
 
@@ -168,7 +166,7 @@ class EOAWallet implements EOAWalletInterface {
       final signer = ecRecover(keccak256(hash), signature as MsgSignature);
       return Future.value(
         ERC1271IsValidSignatureResponse.isValid(
-          EthereumAddress.fromPublicKey(signer).hex == address.hex,
+          publicKeyToAddress(signer).eq(address.value),
         ),
       );
     }
@@ -176,10 +174,10 @@ class EOAWallet implements EOAWalletInterface {
 }
 
 enum WordLength {
-  word_12(Bip39WordsNum.wordsNum12),
-  word_24(Bip39WordsNum.wordsNum24);
+  word_12(128),
+  word_24(256);
 
-  final Bip39WordsNum wordsNum;
+  final int wordsStrength;
 
-  const WordLength(this.wordsNum);
+  const WordLength(this.wordsStrength);
 }

@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wallet/wallet.dart' show EthereumAddress;
 import 'package:web3dart/web3dart.dart';
-import 'package:web3dart/crypto.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'dart:typed_data';
 
@@ -61,19 +61,21 @@ void main() {
       final index = 1;
       final newAccountAddress = wallet.addAccount(index);
       expect(newAccountAddress, isA<EthereumAddress>());
-      expect(newAccountAddress.hex.startsWith('0x'), isTrue);
-      expect(newAccountAddress.hex.length, equals(42));
+      expect(newAccountAddress.with0x.startsWith('0x'), isTrue);
+      expect(newAccountAddress.with0x.length, equals(42));
 
       // Check that the address is different from the default account
-      expect(newAccountAddress.hex, isNot(equals(wallet.getAddress())));
+      expect(newAccountAddress.with0x, isNot(equals(wallet.getAddress())));
     });
 
     test('Export Private Key', () {
       final index = 0;
       final privateKey = wallet.exportPrivateKey(index);
       expect(privateKey, isA<String>());
-      expect(privateKey.length,
-          equals(66)); // Private key is 32 bytes => 64 hex chars + '0x'
+      expect(
+        privateKey.length,
+        equals(66),
+      ); // Private key is 32 bytes => 64 hex chars + '0x'
     });
 
     test('Export Private Key for Account Index', () {
@@ -183,7 +185,7 @@ void main() {
       final index = 0;
       final privateKeyHex = wallet.exportPrivateKey(index);
       final privateKey = EthPrivateKey.fromHex(privateKeyHex);
-      final addressFromPrivateKey = privateKey.address.hex;
+      final addressFromPrivateKey = privateKey.address.with0x;
       final addressFromWallet = wallet.getAddress(index: index);
       expect(addressFromPrivateKey, equals(addressFromWallet));
     });
@@ -192,9 +194,24 @@ void main() {
       final message = Uint8List.fromList(utf8.encode('Verify this message'));
       final signature = await wallet.signToEc(message);
       final address = wallet.getAddress();
-      final recoveredAddress = ecRecover(keccak256(message), signature);
-      expect(
-          EthereumAddress.fromPublicKey(recoveredAddress).hex, equals(address));
+      final isValid = await wallet.isValidSignature(
+        message,
+        signature,
+        Address.fromHex(address),
+      );
+      expect(isValid, equals(ERC1271IsValidSignatureResponse.success));
+    });
+
+    test("isValidSignature verification", () async {
+      final hash = Uint8List(32);
+      final signature = await wallet.personalSign(hash);
+      final address = wallet.getAddress();
+      final isValid = await wallet.isValidSignature(
+        hash,
+        signature,
+        Address.fromHex(address),
+      );
+      expect(isValid, equals(ERC1271IsValidSignatureResponse.success));
     });
   });
 }

@@ -85,7 +85,7 @@ class PrivateKeySigner implements MultiSignerInterface {
 
   @override
   String getAddress({int? index}) {
-    return address.hex;
+    return address.with0x;
   }
 
   @override
@@ -108,14 +108,11 @@ class PrivateKeySigner implements MultiSignerInterface {
 
   @override
   Future<Uint8List> signTypedData(
-    String jsonData,
+    TypedMessage jsonData,
     TypedDataVersion version, {
     int? index,
   }) {
-    final hash = TypedDataUtil.hashMessage(
-      jsonData: jsonData,
-      version: version,
-    );
+    final hash = hashTypedData(typedData: jsonData, version: version);
     return personalSign(hash);
   }
 
@@ -140,7 +137,7 @@ class PrivateKeySigner implements MultiSignerInterface {
       final signer = ecRecover(keccak256(hash), signature as MsgSignature);
       return Future.value(
         ERC1271IsValidSignatureResponse.isValid(
-          EthereumAddress.fromPublicKey(signer).hex == address.hex,
+          publicKeyToAddress(signer).eq(address.value),
         ),
       );
     }

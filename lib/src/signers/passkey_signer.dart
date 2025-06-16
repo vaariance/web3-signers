@@ -233,14 +233,11 @@ class PassKeySigner implements PasskeySignerInterface {
 
   @override
   Future<Uint8List> signTypedData(
-    String jsonData,
+    TypedMessage jsonData,
     TypedDataVersion version, {
     int? index,
   }) {
-    final hash = TypedDataUtil.hashMessage(
-      jsonData: jsonData,
-      version: version,
-    );
+    final hash = hashTypedData(typedData: jsonData, version: version);
     return personalSign(hash);
   }
 
@@ -269,7 +266,7 @@ class PassKeySigner implements PasskeySignerInterface {
         keypair.authData.publicKey.$2.value,
       ],
     );
-    final result = await p256Verify(calldata, p256Verifier.hex, rpcUrl);
+    final result = await p256Verify(calldata, p256Verifier.with0x, rpcUrl);
     return ERC1271IsValidSignatureResponse.isValidResult(result);
   }
 
@@ -334,19 +331,11 @@ class PassKeySigner implements PasskeySignerInterface {
     final aaGUID = base64Url.encode(authData.sublist(37, 53));
 
     // Decode the CBOR-encoded public key and convert it to a map.
-    final decodedPubKey = CborObject.fromCbor(pKey) as CborMapValue;
-
-    final keyX = decodedPubKey.value.entries.firstWhere(
-      (element) => element.key.value == -2,
-    );
-
-    final keyY = decodedPubKey.value.entries.firstWhere(
-      (element) => element.key.value == -3,
-    );
+    final decodedPubKey = cbor.decode(pKey).toObject() as Map;
 
     // Extract x and y coordinates from the decoded public key.
-    final x = Uint256.fromHex(hexlify(keyX.value.value));
-    final y = Uint256.fromHex(hexlify(keyY.value.value));
+    final x = Uint256.fromHex(hexlify(decodedPubKey[-2]));
+    final y = Uint256.fromHex(hexlify(decodedPubKey[-3]));
 
     return AuthData(b64e(credentialId), Uint8List.fromList(credentialId), (
       x,
@@ -357,14 +346,9 @@ class PassKeySigner implements PasskeySignerInterface {
   AuthData _decodeAttestation(RegisterResponseType attestation) {
     final attestationAsCbor = b64d(attestation.attestationObject);
     final decodedAttestationAsCbor =
-        CborObject.fromCbor(attestationAsCbor) as CborMapValue;
+        cbor.decode(attestationAsCbor).toObject() as Map;
 
-    final key = decodedAttestationAsCbor.value.entries.firstWhere(
-      (element) => element.key.value == "authData",
-    );
-    final value = key.value.value;
-
-    final authData = Bytes.from(value);
+    final authData = Bytes.from(decodedAttestationAsCbor["authData"]);
     return _decode(authData);
   }
 
@@ -388,9 +372,8 @@ class PassKeySigner implements PasskeySignerInterface {
   }
 
   String _generateUserId() {
-    final uuid = UUID.generateUUIDv4();
-    final uuidBytes = UUID.toBuffer(uuid);
-    return base64Url.encode(uuidBytes);
+    final uuid = generateUuidV4();
+    return base64Url.encode(uuid);
   }
 
   Future<RegisterResponseType> _register(
@@ -444,7 +427,7 @@ class PassKeySigner implements PasskeySignerInterface {
     EthereumAddress sharedSigner,
     Uint8List data,
   ) {
-    final signerBytes = sharedSigner.addressBytes.padLeftTo32Bytes();
+    final signerBytes = sharedSigner.value.padLeftTo32Bytes();
     final dynamicPartPosition = intToBytes(BigInt.from(65)).padLeftTo32Bytes();
     final dynamicPartLength =
         intToBytes(BigInt.from((data.length))).padLeftTo32Bytes();
