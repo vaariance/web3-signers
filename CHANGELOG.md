@@ -6,6 +6,13 @@
 - update tests and dependencies
 - fix typos
 
+## [0.2.1](https://github.com/vaariance/web3-signers/compare/v0.2.0...v0.2.1) (2025-06-16)
+
+
+### Bug Fixes
+
+* **erc1271:** use bytesToUnsignedInt instead of bytesToInt for signature parsing ([1070067](https://github.com/vaariance/web3-signers/commit/10700678aa5f5207a57ca31fdbffe3060a497078))
+
 ## 0.1.11
 
 - add `typePosition` to `PasskeySignature` response
