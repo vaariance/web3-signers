@@ -1,6 +1,6 @@
 name: web3_signers
 description: A versatile EIP-1271 signature verification package that supports a range of key types—including passkeys, private keys, and seed phrases — enabling secure and flexible on-chain signature verification for any Ethereum-based application.
-version: 0.2.0
+version: 0.2.1
 homepage: https://variance.space
 repository: https://github.com/vaariance/web3-signers
 issue_tracker: https://github.com/vaariance/web3-signers/issues
