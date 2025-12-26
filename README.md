@@ -197,31 +197,40 @@ abstract class MultiSignerInterface {
 
 - Configuring passkeys for iOS
 
-  - Set mininum iOS version/target deployment to 16.0
+  - Set minimum iOS target to 16.0 or higher.
 
-    > **Note:** passkeys requires iOS 16.0 or later.
+    > **Note:** Passkeys require iOS 16.0 or later.
 
-  - You need an apple developer account. [Apply](developer.apple.com) if you don't have.
+  - You need an Apple Developer account. Apply at <https://developer.apple.com/>.
 
-  - Set up your Associated Domain to your app `capabilities` in Xcode. [follow this guide](https://developer.apple.com/documentation/xcode/configuring-an-associated-domain).
-    - this should look like `webcredentials:variance.space?mode= developer` [follow this guide](https://developer.apple.com/documentation/xcode/configuring-an-associated-domain#Enable-alternate-mode-for-unreachable-servers) to understand how to work in development mode to bypass Apple’s CDN service.
+  - Enable Associated Domains in your app capabilities in Xcode. [Follow this guide](https://developer.apple.com/documentation/xcode/configuring-an-associated-domain).
+    - Add `webcredentials:<your-domain>` (for development you can use `webcredentials:<your-domain>?mode=developer` to bypass Apple’s CDN when your server is unreachable). Learn more about alternate modes [here](https://developer.apple.com/documentation/xcode/configuring-an-associated-domain#Enable-alternate-mode-for-unreachable-servers).
 
-  - Host an `apple-app-site-association` in your website. [follow this guide](https://developer.apple.com/documentation/xcode/supporting-associated-domains)
-    - you can verify this via [https://app-site-association.cdn-apple.com/a/v1/<YOUR_DOMAIN>](https://app-site-association.cdn-apple.com/a/v1/variance.space) (replace the domain with yours)
+  - Host the `apple-app-site-association` file at `https://<your-domain>/.well-known/apple-app-site-association` over HTTPS with `application/json` content type (no `.json` extension). Include your Team ID and bundle identifier under `webcredentials.apps`.
 
-  - (optionally) Add `keychain sharing` to your app `capabilities` in xcode.
+    ```json
+    {
+      "webcredentials": {
+        "apps": ["<TEAM_ID>.<BUNDLE_IDENTIFIER>"]
+      }
+    }
+    ```
+
+    - Verify what Apple sees via <<https://app-site-association.cdn-apple.com/a/v1/><YOUR_DOMAIN>> (replace the domain with yours).
+
+  - Keychain sharing is not required for passkeys; enable it only if you need to share general Keychain items across app targets. Passkeys live in iCloud Keychain.
 
 ### Android
 
-- Set your `minSdkVersion` to 28
+- Set your `minSdkVersion` to 28 or higher (example app uses 28)
 
 - Configuring android passkeys
 
-  - Set up App Links. follow this [guide](https://docs.flutter.dev/cookbook/navigation/set-up-app-links).
-  - Make sure your have `"delegate_permission/common.get_login_creds"` in your `assetlinks.json`. Refer to this [guide](https://developer.android.com/training/sign-in/passkeys).
+  - Host `assetlinks.json` at `https://<your-domain>/.well-known/assetlinks.json` and include `relation: ["delegate_permission/common.get_login_creds"]` with your app's package name and SHA256 certificate fingerprints. Refer to this [guide](https://developer.android.com/training/sign-in/passkeys).
+  - Set up App Links if you also need deep linking; include `relation: ["delegate_permission/common.handle_all_urls"]`. Follow this [guide](https://docs.flutter.dev/cookbook/navigation/set-up-app-links).
 
 - Example: how to get your app SHA256 certificate required in your `assetlinks.json` file. Use this [guide](https://docs.flutter.dev/cookbook/navigation/set-up-app-links).
 
     ```sh
-    keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android/
+    keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
     ```
