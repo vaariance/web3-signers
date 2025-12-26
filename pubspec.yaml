@@ -12,7 +12,9 @@ environment:
 platforms:
   android:
   ios:
+  macos:
   web:
+  windows:
 
 dependencies:
   passkeys: ^2.9.0
