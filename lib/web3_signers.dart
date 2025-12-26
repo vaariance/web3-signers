@@ -20,6 +20,7 @@ import 'src/api/platform_signer_api.g.dart';
 import 'src/utils/constants.dart';
 import 'src/utils/enums.dart';
 
+export 'src/utils/enums.dart';
 export 'src/vendor/safe.dart';
 
 part 'src/core/bip32_light.dart';
@@ -27,6 +28,7 @@ part 'src/core/bip39_light.dart';
 part 'src/core/bip39_wordlist.dart';
 part 'src/core/cbor_light.dart';
 part 'src/core/core.dart';
+part 'src/core/ec_api.dart';
 
 part 'src/signing/localkey_signer.dart';
 part 'src/signing/passkey_signer.dart';
@@ -36,7 +38,6 @@ part 'src/types/abi_coder.dart';
 part 'src/types/bytes.dart';
 part 'src/types/eip1271_signer.dart';
 part 'src/types/eip1271_verifier.dart';
-part 'src/core/ec_api.dart';
 part 'src/types/p256_config.dart';
 part 'src/types/uint.dart';
 

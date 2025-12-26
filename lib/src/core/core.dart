@@ -2,25 +2,26 @@ part of '../../web3_signers.dart';
 
 /// Generates a new random secp256k1 private key.
 ///
-/// - Uses `PointyCastle`’s `ECKeyGenerator` seeded with `SecureRandom()`.
+/// - Uses `PointyCastle`’s `ECKeyGenerator` seeded with `Random.secure()`.
 /// - Returns a 32-byte private key.
 Bytes generatePrivateKey() {
   final generator = ECKeyGenerator();
   generator.init(
     ParametersWithRandom(
       ECKeyGeneratorParameters(ECCurve_secp256k1()),
-      SecureRandom(),
+      RandomBridge(Random.secure()),
     ),
   );
   final keyPair = generator.generateKeyPair();
-  return intToBytes(keyPair.privateKey.d!);
+  return unsignedIntToBytes(keyPair.privateKey.d!);
 }
 
 Future<PlatformPublicKey> generatePlatformKey({
   required PlatformConfig config,
   bool checkExisting = false,
+  PlatformSignerApi? api,
 }) async {
-  final api = PlatformSignerApi();
+  api ??= PlatformSignerApi();
 
   List<int>? pubKeyBytes;
 
@@ -47,8 +48,9 @@ Future<PassKeyPublicKey> generatePassKey({
   String? challenge,
   PasskeyAttestationLevel attestationLevel = PasskeyAttestationLevel.none,
   List<Bytes> excludedCredentials = const [],
+  PasskeyAuthenticator? auth,
 }) async {
-  final auth = PasskeyAuthenticator();
+  auth ??= PasskeyAuthenticator();
 
   excluded(List<Bytes> list) {
     return list

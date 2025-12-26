@@ -7,3 +7,5 @@ class MockPasskeyAuthenticator extends Mock implements PasskeyAuthenticator {}
 
 class FakeAuthenticateRequestType extends Fake
     implements AuthenticateRequestType {}
+
+class FakeRegisterRequestType extends Fake implements RegisterRequestType {}

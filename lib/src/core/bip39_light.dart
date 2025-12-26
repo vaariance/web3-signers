@@ -16,7 +16,7 @@ String generateMnemonic([WordLength wordLength = WordLength.word_24]) {
   final strength = wordLength.wordsStrength;
   final bitsBuffer = StringBuffer();
 
-  final entropy = getRandomValues();
+  final entropy = getRandomValues(strength ~/ 8);
   final entropyBits = entropy.map((e) => e.toRadixString(2).padLeft(8, '0'));
   final hash = sha256Hash(entropy);
   final hashBits = hash.map((e) => e.toRadixString(2).padLeft(8, '0'));
@@ -36,12 +36,37 @@ String generateMnemonic([WordLength wordLength = WordLength.word_24]) {
   return words.join(' ');
 }
 
+/// Derives an Ethereum private key from a BIP-39 mnemonic using BIP-32.
+///
+/// - Curve: `secp256k1`.
+/// - Default derivation path: `m/44'/60'/0'/0/0` (Ethereum). Hardened indices use `'`.
+/// - Assumes a valid English mnemonic; does not validate checksum here.
+///
+/// Parameters:
+/// - [mnemonic]: BIP-39 mnemonic phrase.
+/// - [derivationPath]: BIP-32 path (default Ethereum account 0).
+///
+/// Returns:
+/// - 32-byte private key as `Bytes`.
+Bytes mnemonicToPrivateKey(
+  String mnemonic, [
+  String derivationPath = derivationPath,
+]) {
+  final seed = mnemonicToSeed(mnemonic);
+  var root = _deriveMaster(seed);
+  final path = _parseDerivationPath(derivationPath);
+  for (final index in path) {
+    root = _deriveChild(root.key, root.chain, index);
+  }
+  return root.key;
+}
+
 /// Converts a BIP-39 mnemonic to a seed using PBKDF2-HMAC-SHA512.
 ///
 /// - Salt: the ASCII string `"mnemonic"`.
 /// - Iterations: `2048`.
 /// - Output length: `64` bytes.
-Bytes _mnemonicToSeed(String mnemonic) {
+Bytes mnemonicToSeed(String mnemonic) {
   final salt = utf8.encode("mnemonic");
   final pbkdf2 = PBKDF2KeyDerivator(HMac(SHA512Digest(), 128))
     ..init(Pbkdf2Parameters(Bytes.fromList(salt), 2048, 64));

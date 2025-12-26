@@ -1,30 +1,5 @@
 part of '../../web3_signers.dart';
 
-/// Derives an Ethereum private key from a BIP-39 mnemonic using BIP-32.
-///
-/// - Curve: `secp256k1`.
-/// - Default derivation path: `m/44'/60'/0'/0/0` (Ethereum). Hardened indices use `'`.
-/// - Assumes a valid English mnemonic; does not validate checksum here.
-///
-/// Parameters:
-/// - [mnemonic]: BIP-39 mnemonic phrase.
-/// - [derivationPath]: BIP-32 path (default Ethereum account 0).
-///
-/// Returns:
-/// - 32-byte private key as `Bytes`.
-Bytes mnemonicToPrivateKey(
-  String mnemonic, [
-  String derivationPath = derivationPath,
-]) {
-  final seed = _mnemonicToSeed(mnemonic);
-  var root = _deriveMaster(seed);
-  final path = _parseDerivationPath(derivationPath);
-  for (final index in path) {
-    root = _deriveChild(root.key, root.chain, index);
-  }
-  return root.key;
-}
-
 /// Derives the BIP-32 master key and chain code from seed.
 ///
 /// - Uses HMAC-SHA512 with key `"Bitcoin seed"`.
