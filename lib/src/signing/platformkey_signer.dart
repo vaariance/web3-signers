@@ -1,7 +1,7 @@
 part of '../../web3_signers.dart';
 
 final class PlatformKeySigner implements Eip1271Signer {
-  final PlatformSignerApi _api;
+  final PlatformAuthenticator _authenticator;
   final PlatformConfig _config;
 
   final PlatformPublicKey _key;
@@ -10,18 +10,18 @@ final class PlatformKeySigner implements Eip1271Signer {
     PlatformConfig config,
     PlatformPublicKey key,
   ) {
-    return PlatformKeySigner._(PlatformSignerApi(), config, key);
+    return PlatformKeySigner._(PlatformAuthenticator(), config, key);
   }
 
   factory PlatformKeySigner.withApi(
-    PlatformSignerApi api,
+    PlatformAuthenticator authenticator,
     PlatformConfig config,
     PlatformPublicKey key,
   ) {
-    return PlatformKeySigner._(api, config, key);
+    return PlatformKeySigner._(authenticator, config, key);
   }
 
-  PlatformKeySigner._(this._api, this._config, this._key);
+  PlatformKeySigner._(this._authenticator, this._config, this._key);
 
   PlatformPublicKey get publicKey => _key;
 
@@ -41,7 +41,7 @@ final class PlatformKeySigner implements Eip1271Signer {
   bool get supportsSyncSigning => false;
 
   Future<void> deleteSigningKey() async {
-    await _api.deleteKey(_config.keyTag);
+    await _authenticator.deleteKey(_config.keyTag);
   }
 
   @override
@@ -76,7 +76,7 @@ final class PlatformKeySigner implements Eip1271Signer {
 
   @override
   Future<Signature> signAsync(Uint8List preImage) async {
-    final sigBytes = await _api.sign(_config.keyTag, preImage);
+    final sigBytes = await _authenticator.sign(_config.keyTag, preImage);
     final sig = getMessagingSignature(Bytes.fromList(sigBytes));
     final curve = SigningCurve.r1;
     final ecSig = Signature(sig.r.value, sig.s.value, curve: curve);

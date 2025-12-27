@@ -37,11 +37,11 @@ class _PigeonCodec extends StandardMessageCodec {
   }
 }
 
-class PlatformSignerApi {
-  /// Constructor for [PlatformSignerApi].  The [binaryMessenger] named argument is
+class PlatformAuthenticator {
+  /// Constructor for [PlatformAuthenticator].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  PlatformSignerApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
+  PlatformAuthenticator({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
       : pigeonVar_binaryMessenger = binaryMessenger,
         pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
@@ -54,7 +54,7 @@ class PlatformSignerApi {
   /// Returns the public key as a 65-byte uncompressed byte array (0x04 || X || Y).
   /// Throws if generation fails.
   Future<List<int>> createKey(String keyTag) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.web3_signers.PlatformSignerApi.createKey$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName = 'dev.flutter.pigeon.web3_signers.PlatformAuthenticator.createKey$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -82,7 +82,7 @@ class PlatformSignerApi {
 
   /// Deletes the key associated with the given tag.
   Future<void> deleteKey(String keyTag) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.web3_signers.PlatformSignerApi.deleteKey$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName = 'dev.flutter.pigeon.web3_signers.PlatformAuthenticator.deleteKey$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -106,7 +106,7 @@ class PlatformSignerApi {
   /// Signs the data using the key associated with the given tag.
   /// Returns the signature (R || S) bytes.
   Future<List<int>> sign(String keyTag, List<int> data) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.web3_signers.PlatformSignerApi.sign$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName = 'dev.flutter.pigeon.web3_signers.PlatformAuthenticator.sign$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,
@@ -135,7 +135,7 @@ class PlatformSignerApi {
   /// Retrieves the public key for the given tag.
   /// Returns 65-byte uncompressed public key.
   Future<List<int>?> getPublicKey(String keyTag) async {
-    final pigeonVar_channelName = 'dev.flutter.pigeon.web3_signers.PlatformSignerApi.getPublicKey$pigeonVar_messageChannelSuffix';
+    final pigeonVar_channelName = 'dev.flutter.pigeon.web3_signers.PlatformAuthenticator.getPublicKey$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
       pigeonChannelCodec,

@@ -19,17 +19,17 @@ Bytes generatePrivateKey() {
 Future<PlatformPublicKey> generatePlatformKey({
   required PlatformConfig config,
   bool checkExisting = false,
-  PlatformSignerApi? api,
+  PlatformAuthenticator? auth,
 }) async {
-  api ??= PlatformSignerApi();
+  auth ??= PlatformAuthenticator();
 
   List<int>? pubKeyBytes;
 
   if (checkExisting) {
-    pubKeyBytes = await api.getPublicKey(config.keyTag);
+    pubKeyBytes = await auth.getPublicKey(config.keyTag);
   }
 
-  pubKeyBytes ??= await api.createKey(config.keyTag);
+  pubKeyBytes ??= await auth.createKey(config.keyTag);
 
   if (pubKeyBytes.length != 65 || pubKeyBytes[0] != 0x04) {
     throw FormatException("Invalid public key format from platform");

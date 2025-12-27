@@ -6,9 +6,9 @@ import Foundation
     import FlutterMacOS
 #endif
 
-class PlatformSigner: PlatformSignerApi {
+class PlatformAuthenticatorImpl: PlatformAuthenticator {
 
-    let domain = "PlatformSigner"
+    let domain = "PlatformAuthenticator"
 
     func createKey(keyTag: String, completion: @escaping (Result<[Int64], Error>) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in

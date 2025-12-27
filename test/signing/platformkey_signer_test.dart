@@ -1,14 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:web3_signers/web3_signers.dart';
-import 'package:web3_signers/src/utils/enums.dart'; // import SignerType enum
+// import SignerType enum
 import 'package:web3dart/web3dart.dart';
 
 import '../__test_utils__/mocks/mock_platform_signer.dart';
 
 void main() {
   group('PlatformKeySigner', () {
-    late MockPlatformSignerApi mockApi;
+    late MockPlatformAuthenticator mockAuthenticator;
     late PlatformKeySigner signer;
     late PlatformConfig config;
     late PlatformPublicKey publicKey;
@@ -22,10 +22,10 @@ void main() {
     );
 
     setUp(() {
-      mockApi = MockPlatformSignerApi();
+      mockAuthenticator = MockPlatformAuthenticator();
       config = PlatformConfig(keyTag: testKeyTag);
       publicKey = PlatformPublicKey(x: Uint256(x), y: Uint256(y));
-      signer = PlatformKeySigner.withApi(mockApi, config, publicKey);
+      signer = PlatformKeySigner.withApi(mockAuthenticator, config, publicKey);
     });
 
     test('kind is platformKey', () {
@@ -98,11 +98,13 @@ void main() {
     });
 
     test('deleteSigningKey calls API deleteKey', () async {
-      when(() => mockApi.deleteKey(testKeyTag)).thenAnswer((_) async {});
+      when(
+        () => mockAuthenticator.deleteKey(testKeyTag),
+      ).thenAnswer((_) async {});
 
       await signer.deleteSigningKey();
 
-      verify(() => mockApi.deleteKey(testKeyTag)).called(1);
+      verify(() => mockAuthenticator.deleteKey(testKeyTag)).called(1);
     });
   });
 }

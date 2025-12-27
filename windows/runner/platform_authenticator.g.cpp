@@ -3,7 +3,7 @@
 
 #undef _HAS_EXCEPTIONS
 
-#include "platform_signer_api.g.h"
+#include "platform_authenticator.g.h"
 
 #include <flutter/basic_message_channel.h>
 #include <flutter/binary_messenger.h>
@@ -43,25 +43,25 @@ void PigeonInternalCodecSerializer::WriteValue(
   flutter::StandardCodecSerializer::WriteValue(value, stream);
 }
 
-/// The codec used by PlatformSignerApi.
-const flutter::StandardMessageCodec& PlatformSignerApi::GetCodec() {
+/// The codec used by PlatformAuthenticator.
+const flutter::StandardMessageCodec& PlatformAuthenticator::GetCodec() {
   return flutter::StandardMessageCodec::GetInstance(&PigeonInternalCodecSerializer::GetInstance());
 }
 
-// Sets up an instance of `PlatformSignerApi` to handle messages through the `binary_messenger`.
-void PlatformSignerApi::SetUp(
+// Sets up an instance of `PlatformAuthenticator` to handle messages through the `binary_messenger`.
+void PlatformAuthenticator::SetUp(
   flutter::BinaryMessenger* binary_messenger,
-  PlatformSignerApi* api) {
-  PlatformSignerApi::SetUp(binary_messenger, api, "");
+  PlatformAuthenticator* api) {
+  PlatformAuthenticator::SetUp(binary_messenger, api, "");
 }
 
-void PlatformSignerApi::SetUp(
+void PlatformAuthenticator::SetUp(
   flutter::BinaryMessenger* binary_messenger,
-  PlatformSignerApi* api,
+  PlatformAuthenticator* api,
   const std::string& message_channel_suffix) {
   const std::string prepended_suffix = message_channel_suffix.length() > 0 ? std::string(".") + message_channel_suffix : "";
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.web3_signers.PlatformSignerApi.createKey" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.createKey" + prepended_suffix, &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
         try {
@@ -90,7 +90,7 @@ void PlatformSignerApi::SetUp(
     }
   }
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.web3_signers.PlatformSignerApi.deleteKey" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.deleteKey" + prepended_suffix, &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
         try {
@@ -119,7 +119,7 @@ void PlatformSignerApi::SetUp(
     }
   }
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.web3_signers.PlatformSignerApi.sign" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.sign" + prepended_suffix, &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
         try {
@@ -154,7 +154,7 @@ void PlatformSignerApi::SetUp(
     }
   }
   {
-    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.web3_signers.PlatformSignerApi.getPublicKey" + prepended_suffix, &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.getPublicKey" + prepended_suffix, &GetCodec());
     if (api != nullptr) {
       channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
         try {
@@ -189,7 +189,7 @@ void PlatformSignerApi::SetUp(
   }
 }
 
-EncodableValue PlatformSignerApi::WrapError(std::string_view error_message) {
+EncodableValue PlatformAuthenticator::WrapError(std::string_view error_message) {
   return EncodableValue(EncodableList{
     EncodableValue(std::string(error_message)),
     EncodableValue("Error"),
@@ -197,7 +197,7 @@ EncodableValue PlatformSignerApi::WrapError(std::string_view error_message) {
   });
 }
 
-EncodableValue PlatformSignerApi::WrapError(const FlutterError& error) {
+EncodableValue PlatformAuthenticator::WrapError(const FlutterError& error) {
   return EncodableValue(EncodableList{
     EncodableValue(error.code()),
     EncodableValue(error.message()),

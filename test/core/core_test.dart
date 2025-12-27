@@ -15,11 +15,11 @@ void main() {
     });
 
     group('generatePlatformKey', () {
-      late MockPlatformSignerApi mockApi;
+      late MockPlatformAuthenticator mockAuthenticator;
       late PlatformConfig config;
 
       setUp(() {
-        mockApi = MockPlatformSignerApi();
+        mockAuthenticator = MockPlatformAuthenticator();
         config = PlatformConfig(keyTag: 'test-tag');
       });
 
@@ -30,13 +30,16 @@ void main() {
           ...List.filled(32, 2),
         ];
         when(
-          () => mockApi.createKey('test-tag'),
+          () => mockAuthenticator.createKey('test-tag'),
         ).thenAnswer((_) async => pubKeyBytes);
 
-        final key = await generatePlatformKey(config: config, api: mockApi);
+        final key = await generatePlatformKey(
+          config: config,
+          auth: mockAuthenticator,
+        );
 
-        verify(() => mockApi.createKey('test-tag')).called(1);
-        verifyNever(() => mockApi.getPublicKey(any()));
+        verify(() => mockAuthenticator.createKey('test-tag')).called(1);
+        verifyNever(() => mockAuthenticator.getPublicKey(any()));
 
         expect(key.x.toBytes(), equals(List.filled(32, 1)));
         expect(key.y.toBytes(), equals(List.filled(32, 2)));
@@ -49,17 +52,17 @@ void main() {
           ...List.filled(32, 4),
         ];
         when(
-          () => mockApi.getPublicKey('test-tag'),
+          () => mockAuthenticator.getPublicKey('test-tag'),
         ).thenAnswer((_) async => pubKeyBytes);
 
         final key = await generatePlatformKey(
           config: config,
           checkExisting: true,
-          api: mockApi,
+          auth: mockAuthenticator,
         );
 
-        verify(() => mockApi.getPublicKey('test-tag')).called(1);
-        verifyNever(() => mockApi.createKey(any()));
+        verify(() => mockAuthenticator.getPublicKey('test-tag')).called(1);
+        verifyNever(() => mockAuthenticator.createKey(any()));
 
         expect(key.x.toBytes(), equals(List.filled(32, 3)));
         expect(key.y.toBytes(), equals(List.filled(32, 4)));
@@ -74,20 +77,20 @@ void main() {
             ...List.filled(32, 6),
           ];
           when(
-            () => mockApi.getPublicKey('test-tag'),
+            () => mockAuthenticator.getPublicKey('test-tag'),
           ).thenAnswer((_) async => null);
           when(
-            () => mockApi.createKey('test-tag'),
+            () => mockAuthenticator.createKey('test-tag'),
           ).thenAnswer((_) async => pubKeyBytes);
 
           await generatePlatformKey(
             config: config,
             checkExisting: true,
-            api: mockApi,
+            auth: mockAuthenticator,
           );
 
-          verify(() => mockApi.getPublicKey('test-tag')).called(1);
-          verify(() => mockApi.createKey('test-tag')).called(1);
+          verify(() => mockAuthenticator.getPublicKey('test-tag')).called(1);
+          verify(() => mockAuthenticator.createKey('test-tag')).called(1);
         },
       );
     });

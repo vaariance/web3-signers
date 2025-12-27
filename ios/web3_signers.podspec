@@ -4,7 +4,7 @@
 Pod::Spec.new do |s|
   s.name             = 'web3_signers'
   s.version          = '0.0.1'
-  s.summary          = 'Platform Key Signer'
+  s.summary          = 'Platform Authenticator'
   s.description      = <<-DESC
 This Flutter plugin provides means to perform pkcs based signing of messages with secure element.
                        DESC

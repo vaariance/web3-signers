@@ -12,7 +12,7 @@ import io.flutter.plugin.common.StandardMethodCodec
 import io.flutter.plugin.common.StandardMessageCodec
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
-private object PlatformSignerApiPigeonUtils {
+private object PlatformAuthenticatorPigeonUtils {
 
   fun wrapResult(result: Any?): List<Any?> {
     return listOf(result)
@@ -46,7 +46,7 @@ class FlutterError (
   override val message: String? = null,
   val details: Any? = null
 ) : Throwable()
-private open class PlatformSignerApiPigeonCodec : StandardMessageCodec() {
+private open class PlatformAuthenticatorPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return     super.readValueOfType(type, buffer)
   }
@@ -57,7 +57,7 @@ private open class PlatformSignerApiPigeonCodec : StandardMessageCodec() {
 
 
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
-interface PlatformSignerApi {
+interface PlatformAuthenticator {
   /**
    * Generates a new key pair in the secure element/keystore.
    * Returns the public key as a 65-byte uncompressed byte array (0x04 || X || Y).
@@ -78,16 +78,16 @@ interface PlatformSignerApi {
   fun getPublicKey(keyTag: String, callback: (Result<List<Long>?>) -> Unit)
 
   companion object {
-    /** The codec used by PlatformSignerApi. */
+    /** The codec used by PlatformAuthenticator. */
     val codec: MessageCodec<Any?> by lazy {
-      PlatformSignerApiPigeonCodec()
+      PlatformAuthenticatorPigeonCodec()
     }
-    /** Sets up an instance of `PlatformSignerApi` to handle messages through the `binaryMessenger`. */
+    /** Sets up an instance of `PlatformAuthenticator` to handle messages through the `binaryMessenger`. */
     @JvmOverloads
-    fun setUp(binaryMessenger: BinaryMessenger, api: PlatformSignerApi?, messageChannelSuffix: String = "") {
+    fun setUp(binaryMessenger: BinaryMessenger, api: PlatformAuthenticator?, messageChannelSuffix: String = "") {
       val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.web3_signers.PlatformSignerApi.createKey$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.createKey$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -95,10 +95,10 @@ interface PlatformSignerApi {
             api.createKey(keyTagArg) { result: Result<List<Long>> ->
               val error = result.exceptionOrNull()
               if (error != null) {
-                reply.reply(PlatformSignerApiPigeonUtils.wrapError(error))
+                reply.reply(PlatformAuthenticatorPigeonUtils.wrapError(error))
               } else {
                 val data = result.getOrNull()
-                reply.reply(PlatformSignerApiPigeonUtils.wrapResult(data))
+                reply.reply(PlatformAuthenticatorPigeonUtils.wrapResult(data))
               }
             }
           }
@@ -107,7 +107,7 @@ interface PlatformSignerApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.web3_signers.PlatformSignerApi.deleteKey$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.deleteKey$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -115,9 +115,9 @@ interface PlatformSignerApi {
             api.deleteKey(keyTagArg) { result: Result<Unit> ->
               val error = result.exceptionOrNull()
               if (error != null) {
-                reply.reply(PlatformSignerApiPigeonUtils.wrapError(error))
+                reply.reply(PlatformAuthenticatorPigeonUtils.wrapError(error))
               } else {
-                reply.reply(PlatformSignerApiPigeonUtils.wrapResult(null))
+                reply.reply(PlatformAuthenticatorPigeonUtils.wrapResult(null))
               }
             }
           }
@@ -126,7 +126,7 @@ interface PlatformSignerApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.web3_signers.PlatformSignerApi.sign$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.sign$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -135,10 +135,10 @@ interface PlatformSignerApi {
             api.sign(keyTagArg, dataArg) { result: Result<List<Long>> ->
               val error = result.exceptionOrNull()
               if (error != null) {
-                reply.reply(PlatformSignerApiPigeonUtils.wrapError(error))
+                reply.reply(PlatformAuthenticatorPigeonUtils.wrapError(error))
               } else {
                 val data = result.getOrNull()
-                reply.reply(PlatformSignerApiPigeonUtils.wrapResult(data))
+                reply.reply(PlatformAuthenticatorPigeonUtils.wrapResult(data))
               }
             }
           }
@@ -147,7 +147,7 @@ interface PlatformSignerApi {
         }
       }
       run {
-        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.web3_signers.PlatformSignerApi.getPublicKey$separatedMessageChannelSuffix", codec)
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.getPublicKey$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
@@ -155,10 +155,10 @@ interface PlatformSignerApi {
             api.getPublicKey(keyTagArg) { result: Result<List<Long>?> ->
               val error = result.exceptionOrNull()
               if (error != null) {
-                reply.reply(PlatformSignerApiPigeonUtils.wrapError(error))
+                reply.reply(PlatformAuthenticatorPigeonUtils.wrapError(error))
               } else {
                 val data = result.getOrNull()
-                reply.reply(PlatformSignerApiPigeonUtils.wrapResult(data))
+                reply.reply(PlatformAuthenticatorPigeonUtils.wrapResult(data))
               }
             }
           }
