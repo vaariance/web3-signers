@@ -3,7 +3,6 @@ import 'package:eip712/eip712.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:web3_signers/web3_signers.dart';
-import 'package:web3_signers/src/utils/enums.dart';
 import 'package:passkeys/types.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -96,12 +95,12 @@ void main() {
         // Verify authenticate was called with correct challenge
         verify(() => mockAuthenticator.authenticate(any())).called(1);
 
-        final isValid = Eip1271Verifier.isValidECSignature(
+        final isValid = Verifier.isValidECSignature(
           message,
           signature,
           signer.publicKey,
         );
-        expect(isValid, equals(ERC1271IsValidSignatureResponse.success));
+        expect(isValid, equals(IsValidSignatureResponse.success));
       },
     );
 
@@ -120,13 +119,13 @@ void main() {
       });
 
       final signature = await signer.personalSign(message);
-      // Verify recovery (Eip1271Verifier check)
-      final isValid = Eip1271Verifier.isValidSignedMessage(
+      // Verify recovery (Verifier check)
+      final isValid = Verifier.isValidSignedMessage(
         message,
         signature,
         signer.publicKey,
       );
-      expect(isValid, equals(ERC1271IsValidSignatureResponse.failure));
+      expect(isValid, equals(IsValidSignatureResponse.failure));
     });
 
     test('signs typed data (EIP-712)', () async {
@@ -146,13 +145,13 @@ void main() {
       );
 
       // Verify recovery
-      final isValid = Eip1271Verifier.isValidSignedTypedData(
+      final isValid = Verifier.isValidSignedTypedData(
         rawTypedData,
         TypedDataVersion.v4,
         signature,
         signer.publicKey,
       );
-      expect(isValid, equals(ERC1271IsValidSignatureResponse.failure));
+      expect(isValid, equals(IsValidSignatureResponse.failure));
     });
 
     test('does not support sync signing', () {

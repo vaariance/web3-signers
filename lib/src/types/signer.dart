@@ -1,24 +1,24 @@
 part of '../../web3_signers.dart';
 
-@Deprecated("use Eip1271Signer")
-typedef MSI = Eip1271Signer;
+@Deprecated("use Signer")
+typedef MSI = Signer;
 
-@Deprecated("use Eip1271Signer")
-typedef MultiSignerInterface = Eip1271Signer;
+@Deprecated("use Signer")
+typedef MultiSignerInterface = Signer;
 
-@Deprecated("use Eip1271Signer")
-typedef EOAWalletInterface = Eip1271Signer;
+@Deprecated("use Signer")
+typedef EOAWalletInterface = Signer;
 
-@Deprecated("use Eip1271Signer")
-typedef PasskeySignerInterface = Eip1271Signer;
+@Deprecated("use Signer")
+typedef PasskeySignerInterface = Signer;
 
-/// Base interface for signers that validate messages via EIP‑1271.
+/// Base interface for Smart Account signers.
 ///
 /// Implementations may wrap different backing keys or mechanisms (EOA,
 /// passkeys/WebAuthn, hardware, custodial, etc.). The capabilities flags
 /// describe user‑presence/verification behavior and whether the signer can
 /// operate synchronously.
-abstract class Eip1271Signer extends CustomSigner {
+abstract class Signer extends CustomSigner {
   /// Logical type/category of the signer (e.g., SecureEnclave, Passkey, LocalKey).
   SignerType get kind;
 
@@ -35,7 +35,7 @@ abstract class Eip1271Signer extends CustomSigner {
   /// Whether signatures produced by this signer are recoverable.
   ///
   /// Recoverable signatures include enough information to recover the signer
-  /// address from `(r, s, v)`. For EIP‑1271 contract validations this may be
+  /// address from `(r, s, v)`. For Smart Account validations this may be
   /// `false`, as verification can be performed on‑chain.
   bool get isRecoverable;
 

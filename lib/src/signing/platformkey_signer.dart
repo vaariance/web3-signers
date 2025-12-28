@@ -1,6 +1,6 @@
 part of '../../web3_signers.dart';
 
-final class PlatformKeySigner implements Eip1271Signer {
+final class PlatformKeySigner implements Signer {
   final PlatformAuthenticator _authenticator;
   final PlatformConfig _config;
 

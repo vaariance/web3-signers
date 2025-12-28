@@ -1,5 +1,5 @@
 name: web3_signers
-description: EIP-1271 compatible signature management for passkeys, local keys, and platform keys.
+description: ERC-1271 and ERC-7739 compatible signature management for passkeys, local keys, and platform keys.
 version: 1.0.0
 homepage: https://variance.space
 repository: https://github.com/vaariance/web3-signers
@@ -37,3 +37,4 @@ topics:
   - ethereum
   - wallets
   - passkey
+  - secure-enclave

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:web3_signers/web3_signers.dart';
-import 'package:web3_signers/src/utils/enums.dart';
 import 'package:web3dart/web3dart.dart'
     show hexToBytes, privateKeyBytesToPublic;
 import 'package:eip712/eip712.dart';
@@ -59,13 +58,13 @@ void main() {
       final message = utf8.encode("Hello World");
       final signature = await signer.personalSign(message);
 
-      // Verify recovery (Eip1271Verifier check)
-      final isValid = Eip1271Verifier.isValidSignedMessage(
+      // Verify recovery (Verifier check)
+      final isValid = Verifier.isValidSignedMessage(
         message,
         signature,
         signer.publicKey,
       );
-      expect(isValid, equals(ERC1271IsValidSignatureResponse.success));
+      expect(isValid, equals(IsValidSignatureResponse.success));
     });
 
     test('signs a payload async', () async {
@@ -78,12 +77,12 @@ void main() {
       expect(signature, isNotNull);
       expect(signature.curve, equals(SigningCurve.k1));
 
-      final isValid = Eip1271Verifier.isValidECSignature(
+      final isValid = Verifier.isValidECSignature(
         Bytes(32),
         signature,
         signer.publicKey,
       );
-      expect(isValid, equals(ERC1271IsValidSignatureResponse.success));
+      expect(isValid, equals(IsValidSignatureResponse.success));
     });
 
     test('signs a payload sync', () {
@@ -96,12 +95,12 @@ void main() {
       expect(signature, isNotNull);
       expect(signature.curve, equals(SigningCurve.k1));
 
-      final isValid = Eip1271Verifier.isValidECSignature(
+      final isValid = Verifier.isValidECSignature(
         Bytes(32),
         signature,
         signer.publicKey,
       );
-      expect(isValid, equals(ERC1271IsValidSignatureResponse.success));
+      expect(isValid, equals(IsValidSignatureResponse.success));
     });
 
     test('signs typed data (EIP-712)', () async {
@@ -114,13 +113,13 @@ void main() {
       );
 
       // Verify recovery
-      final isValid = Eip1271Verifier.isValidSignedTypedData(
+      final isValid = Verifier.isValidSignedTypedData(
         rawTypedData,
         TypedDataVersion.v4,
         signature,
         signer.publicKey,
       );
-      expect(isValid, equals(ERC1271IsValidSignatureResponse.success));
+      expect(isValid, equals(IsValidSignatureResponse.success));
     });
 
     test('supports sync signing', () {

@@ -1,6 +1,6 @@
 part of '../../web3_signers.dart';
 
-final class PassKeySigner implements Eip1271Signer {
+final class PassKeySigner implements Signer {
   final PasskeyAuthenticator _authenticator;
   final PassKeyConfig _config;
 

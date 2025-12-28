@@ -1,21 +1,21 @@
 # Migration Guide to v1.0.0
 
-`web3_signers` v1.0.0 marks a significant milestone and a major architectural shift. This release strictly focuses on providing robust signer implementations for **Smart Accounts** and **EIP-1271** signature verification.
+`web3_signers` v1.0.0 marks a significant milestone and a major architectural shift. This release strictly focuses on providing robust signer implementations for **Smart Accounts and EOAs** providing compatibility with **ERC-1271 and ERC-7739** signature verification.
 
 > [!IMPORTANT]
-> This package is now purpose-built for Smart Accounts and EIP-1271 verifications. It is **vendor-agnostic** and no longer aims to be a general-purpose HD wallet management library.
+> This package is now purpose-built for Smart Accounts, EOAs and ERC-1271/ERC-7739 verifications. It is **vendor-agnostic** and no longer aims to be a general-purpose HD wallet management library.
 
 ## Core Philosophy Changes
 
--   **Smart Account Focus**: The primary goal is to facilitate signing for smart accounts via **EIP-1271**.
+-   **Smart Account Focus**: The primary goal is to facilitate signing for smart accounts.
 -   **Vendor Agnostic**: Specific integrations (like Alchemy Light Account prefixes or Safe-specific encodings) have been removed from the core package.
--   **No Native HD Wallet Logic**: The package no longer manages HD wallet hierarchies internally. `LocalKeySigner` is now a condensed implementation of the former `EOAWallet` and `PrivateKeySigner`, focused purely on signing with a single key.
+-   **No Native HD Wallet Logic**: The package no longer manages HD wallet hierarchies internally. `LocalKeySigner` is now a condensed implementation of the former `EOAWallet` and `PrivateKeySigner`, focused purely on signing with a single key. However, HD wallets construction is left to the user, with the help of `mnemonicToPrivateKey(mnemonic,drivationPath)`.
 
 ## Breaking Changes Summary
 
 | Feature | Pre-v1.0.0 | v1.0.0 |
 | :--- | :--- | :--- |
-| **Interface** | `MultiSignerInterface` | `Eip1271Signer` |
+| **Interface** | `MultiSignerInterface` | `Signer` |
 | **Local Key Class** | `PrivateKeySigner` | `LocalKeySigner` |
 | **Wallet Class** | `EOAWallet` | Removed (Use `LocalKeySigner`) |
 | **Hardware** | null | `PlatformKeySigner` |
@@ -202,7 +202,7 @@ abstract class MultiSignerInterface { ... }
 
 **After**
 ```dart
-abstract class Eip1271Signer { 
+abstract class Signer { 
     // ...
     // personalSign now returns Future<Signature>
     // signToEc is deprecated

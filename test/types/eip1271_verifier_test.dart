@@ -3,14 +3,13 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:web3_signers/web3_signers.dart';
-import 'package:web3_signers/src/utils/enums.dart';
 import 'package:web3dart/web3dart.dart' show hexToBytes;
 
 import '../__test_utils__/keys/secp256k1_keys.dart';
 import '../__test_utils__/mocks/mock_rpc_handler.dart';
 
 void main() {
-  group('Eip1271Verifier', () {
+  group('Verifier', () {
     test('isValidECSignature verifies valid signatures', () {
       final signer = LocalKeySigner.fromRawPrivateKey(
         hexToBytes(validPrivateKey),
@@ -24,13 +23,13 @@ void main() {
       // LocalKeySigner.sign calls _ethPrivateKey.signToEcSignature with EIP1559=true?
       // Actually sign() just signs the hash.
 
-      final isValid = Eip1271Verifier.isValidECSignature(
+      final isValid = Verifier.isValidECSignature(
         message,
         signature,
         signer.publicKey,
       );
 
-      expect(isValid, equals(ERC1271IsValidSignatureResponse.success));
+      expect(isValid, equals(IsValidSignatureResponse.success));
     });
 
     test('isValidContractSignature returns success on magic value', () async {
@@ -39,13 +38,13 @@ void main() {
 
       HttpOverrides.runZoned(
         () async {
-          final isValid = await Eip1271Verifier.isValidContractSignature(
+          final isValid = await Verifier.isValidContractSignature(
             Uint8List(32),
             Uint8List(65),
             contractAddress,
             rpcUrl,
           );
-          expect(isValid, equals(ERC1271IsValidSignatureResponse.success));
+          expect(isValid, equals(IsValidSignatureResponse.success));
         },
         createHttpClient: (context) {
           return MockRpcHandler((requestBody) {

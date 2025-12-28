@@ -6,7 +6,7 @@ typedef EOAWallet = LocalKeySigner;
 @Deprecated("use LocalKeySigner")
 typedef PrivateKeySigner = LocalKeySigner;
 
-final class LocalKeySigner implements Eip1271Signer {
+final class LocalKeySigner implements Signer {
   final EthPrivateKey _ethPrivateKey;
 
   factory LocalKeySigner.fromMnemonic(String mnemonic) {

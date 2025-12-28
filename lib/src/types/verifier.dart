@@ -1,14 +1,14 @@
 part of '../../web3_signers.dart';
 
-/// Utility class for verifying signatures according to EIP-1271.
+/// Utility class for verifying signatures according to ERC-1271 or ERC-7739.
 ///
 /// This class provides static methods to validate signatures for contracts
 /// (using `isValidSignature`) and standard EOAs (using ECDSA recovery),
 /// including support for Passkeys (WebAuthn).
-final class Eip1271Verifier {
-  const Eip1271Verifier._();
+final class Verifier {
+  const Verifier._();
 
-  /// Verifies a signature against a smart contract using EIP-1271.
+  /// Verifies a signature against a smart contract account.
   ///
   /// Calls the `isValidSignature(bytes32,bytes)` method on the [contractAddress].
   ///
@@ -22,26 +22,26 @@ final class Eip1271Verifier {
   ///
   /// Example:
   /// ```dart
-  /// final isValid = await Eip1271Verifier.isValidContractSignature(
+  /// final isValid = await Verifier.isValidContractSignature(
   ///   keccak256(rawPayload),
   ///   signature,
   ///   contractAddress,
   ///   "https://mainnet.infura.io/v3/..."
   /// );
   /// ```
-  static Future<ERC1271IsValidSignatureResponse> isValidContractSignature(
+  static Future<IsValidSignatureResponse> isValidContractSignature(
     Bytes hash,
-    Bytes signature,
+    Bytes signatureBytes,
     HexString contractAddress,
     String rpcUrl,
   ) async {
     final selector = hexToBytes("1626ba7e");
-    final encoded = Abi.encode(['bytes32', 'bytes'], [hash, signature]);
+    final encoded = Abi.encode(['bytes32', 'bytes'], [hash, signatureBytes]);
     final calldata = selector.concat(encoded);
 
     final result = await _rpcRequest(calldata, contractAddress, rpcUrl);
 
-    return ERC1271IsValidSignatureResponse.isValidResult(result);
+    return IsValidSignatureResponse.isValidResult(result);
   }
 
   /// Verifies an ECDSA signature for a raw payload.
@@ -56,13 +56,13 @@ final class Eip1271Verifier {
   ///
   /// Example:
   /// ```dart
-  /// final isValid = Eip1271Verifier.isValidECSignature(
+  /// final isValid = Verifier.isValidECSignature(
   ///   rawPayload,
   ///   signature,
   ///   signerPublicKey
   /// );
   /// ```
-  static ERC1271IsValidSignatureResponse isValidECSignature(
+  static IsValidSignatureResponse isValidECSignature(
     Bytes preImage,
     Signature signature,
     PublicKey signer,
@@ -83,13 +83,13 @@ final class Eip1271Verifier {
   ///
   /// Example:
   /// ```dart
-  /// final isValid = Eip1271Verifier.isValidSignedMessage(
+  /// final isValid = Verifier.isValidSignedMessage(
   ///   utf8.encode("Hello World"),
   ///   signature,
   ///   signerPublicKey
   /// );
   /// ```
-  static ERC1271IsValidSignatureResponse isValidSignedMessage(
+  static IsValidSignatureResponse isValidSignedMessage(
     Bytes message,
     Signature signature,
     PublicKey signer,
@@ -112,14 +112,14 @@ final class Eip1271Verifier {
   ///
   /// Example:
   /// ```dart
-  /// final isValid = Eip1271Verifier.isValidSignedTypedData(
+  /// final isValid = Verifier.isValidSignedTypedData(
   ///   TypedMessage.fromJson({...}),
   ///   TypedDataVersion.V4,
   ///   signature,
   ///   signerPublicKey
   /// );
   /// ```
-  static ERC1271IsValidSignatureResponse isValidSignedTypedData(
+  static IsValidSignatureResponse isValidSignedTypedData(
     TypedMessage typedData,
     TypedDataVersion version,
     Signature signature,
@@ -130,7 +130,7 @@ final class Eip1271Verifier {
     return _ecRecover(payload, signature, signer);
   }
 
-  static ERC1271IsValidSignatureResponse _ecRecover(
+  static IsValidSignatureResponse _ecRecover(
     Bytes payload,
     Signature signature,
     PublicKey signer,
@@ -142,7 +142,7 @@ final class Eip1271Verifier {
     ecSigner.init(false, PublicKeyParameter(ecPubKey));
 
     final valid = ecSigner.verifySignature(payload, signature);
-    return ERC1271IsValidSignatureResponse.isValid(valid);
+    return IsValidSignatureResponse.isValid(valid);
   }
 
   static Bytes _getPayload(Bytes message, Signature signature) {

@@ -3,19 +3,19 @@ import 'package:web3_signers/web3_signers.dart' show Uint32;
 
 enum SignerType { localKey, platformKey, passKey }
 
-enum ERC1271IsValidSignatureResponse {
+enum IsValidSignatureResponse {
   success("0x1626ba7e"),
   failure("0xffffffff");
 
   final String value;
 
-  const ERC1271IsValidSignatureResponse(this.value);
+  const IsValidSignatureResponse(this.value);
 
-  factory ERC1271IsValidSignatureResponse.isValid(bool value) {
+  factory IsValidSignatureResponse.isValid(bool value) {
     return value ? success : failure;
   }
 
-  factory ERC1271IsValidSignatureResponse.isValidResult(Uint32 result) {
+  factory IsValidSignatureResponse.isValidResult(Uint32 result) {
     return result.toHex().toLowerCase() == "0x1626ba7e" ? success : failure;
   }
 }
