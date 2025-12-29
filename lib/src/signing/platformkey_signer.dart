@@ -76,7 +76,7 @@ final class PlatformKeySigner implements Eip1271Signer {
 
   @override
   Future<Signature> signAsync(Uint8List preImage) async {
-    final sigBytes = await _api.sign(_config.keyTag, preImage);
+    final sigBytes = await _api.sign(_config.keyTag, preImage.toList());
     final sig = getMessagingSignature(Bytes.fromList(sigBytes));
     final curve = SigningCurve.r1;
     final ecSig = Signature(sig.r.value, sig.s.value, curve: curve);

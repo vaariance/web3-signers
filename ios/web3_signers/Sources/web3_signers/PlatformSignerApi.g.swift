@@ -4,11 +4,11 @@
 import Foundation
 
 #if os(iOS)
- import Flutter
+  import Flutter
 #elseif os(macOS)
- import FlutterMacOS
+  import FlutterMacOS
 #else
- #error("Unsupported platform.")
+  #error("Unsupported platform.")
 #endif
 
 /// Error class for passing custom error details to Dart side.
@@ -41,13 +41,13 @@ private func wrapError(_ error: Any) -> [Any?] {
       pigeonError.details,
     ]
   }
- if let flutterError = error as? FlutterError {
-   return [
-     flutterError.code,
-     flutterError.message,
-     flutterError.details,
-   ]
- }
+  if let flutterError = error as? FlutterError {
+    return [
+      flutterError.code,
+      flutterError.message,
+      flutterError.details,
+    ]
+  }
   return [
     "\(error)",
     "\(type(of: error))",
@@ -72,17 +72,17 @@ private class PlatformSignerApiPigeonCodecWriter: FlutterStandardWriter {
 }
 
 private class PlatformSignerApiPigeonCodecReaderWriter: FlutterStandardReaderWriter {
- override func reader(with data: Data) -> FlutterStandardReader {
-   return PlatformSignerApiPigeonCodecReader(data: data)
- }
+  override func reader(with data: Data) -> FlutterStandardReader {
+    return PlatformSignerApiPigeonCodecReader(data: data)
+  }
 
- override func writer(with data: NSMutableData) -> FlutterStandardWriter {
-   return PlatformSignerApiPigeonCodecWriter(data: data)
- }
+  override func writer(with data: NSMutableData) -> FlutterStandardWriter {
+    return PlatformSignerApiPigeonCodecWriter(data: data)
+  }
 }
 
 class PlatformSignerApiPigeonCodec: FlutterStandardMessageCodec, @unchecked Sendable {
- static let shared = PlatformSignerApiPigeonCodec(readerWriter: PlatformSignerApiPigeonCodecReaderWriter())
+  static let shared = PlatformSignerApiPigeonCodec(readerWriter: PlatformSignerApiPigeonCodecReaderWriter())
 }
 
 
@@ -102,88 +102,88 @@ protocol PlatformSignerApi {
   func getPublicKey(keyTag: String, completion: @escaping (Result<[Int64]?, Error>) -> Void)
 }
 
-/ Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
+/// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
 class PlatformSignerApiSetup {
- static var codec: FlutterStandardMessageCodec { PlatformSignerApiPigeonCodec.shared }
- /// Sets up an instance of `PlatformSignerApi` to handle messages through the `binaryMessenger`.
- static func setUp(binaryMessenger: FlutterBinaryMessenger, api: PlatformSignerApi?, messageChannelSuffix: String = "") {
-   let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
-   /// Generates a new key pair in the secure element/keystore.
-   /// Returns the public key as a 65-byte uncompressed byte array (0x04 || X || Y).
-   /// Throws if generation fails.
-   let createKeyChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.web3_signers.PlatformSignerApi.createKey\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
-   if let api = api {
-     createKeyChannel.setMessageHandler { message, reply in
-       let args = message as! [Any?]
-       let keyTagArg = args[0] as! String
-       api.createKey(keyTag: keyTagArg) { result in
-         switch result {
-         case .success(let res):
-           reply(wrapResult(res))
-         case .failure(let error):
-           reply(wrapError(error))
-         }
-       }
-     }
-   } else {
-     createKeyChannel.setMessageHandler(nil)
-   }
-   /// Deletes the key associated with the given tag.
-   let deleteKeyChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.web3_signers.PlatformSignerApi.deleteKey\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
-   if let api = api {
-     deleteKeyChannel.setMessageHandler { message, reply in
-       let args = message as! [Any?]
-       let keyTagArg = args[0] as! String
-       api.deleteKey(keyTag: keyTagArg) { result in
-         switch result {
-         case .success:
-           reply(wrapResult(nil))
-         case .failure(let error):
-           reply(wrapError(error))
-         }
-       }
-     }
-   } else {
-     deleteKeyChannel.setMessageHandler(nil)
-   }
-   /// Signs the data using the key associated with the given tag.
-   /// Returns the signature (R || S) bytes.
-   let signChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.web3_signers.PlatformSignerApi.sign\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
-   if let api = api {
-     signChannel.setMessageHandler { message, reply in
-       let args = message as! [Any?]
-       let keyTagArg = args[0] as! String
-       let dataArg = args[1] as! [Int64]
-       api.sign(keyTag: keyTagArg, data: dataArg) { result in
-         switch result {
-         case .success(let res):
-           reply(wrapResult(res))
-         case .failure(let error):
-           reply(wrapError(error))
-         }
-       }
-     }
-   } else {
-     signChannel.setMessageHandler(nil)
-   }
-   /// Retrieves the public key for the given tag.
-   /// Returns 65-byte uncompressed public key.
-   let getPublicKeyChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.web3_signers.PlatformSignerApi.getPublicKey\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
-   if let api = api {
-     getPublicKeyChannel.setMessageHandler { message, reply in
-       let args = message as! [Any?]
-       let keyTagArg = args[0] as! String
-       api.getPublicKey(keyTag: keyTagArg) { result in
-         switch result {
-         case .success(let res):
-           reply(wrapResult(res))
-         case .failure(let error):
-           reply(wrapError(error))
-         }
-       }
-     }
-   } else {
-     getPublicKeyChannel.setMessageHandler(nil)
-   }
- }
+  static var codec: FlutterStandardMessageCodec { PlatformSignerApiPigeonCodec.shared }
+  /// Sets up an instance of `PlatformSignerApi` to handle messages through the `binaryMessenger`.
+  static func setUp(binaryMessenger: FlutterBinaryMessenger, api: PlatformSignerApi?, messageChannelSuffix: String = "") {
+    let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
+    /// Generates a new key pair in the secure element/keystore.
+    /// Returns the public key as a 65-byte uncompressed byte array (0x04 || X || Y).
+    /// Throws if generation fails.
+    let createKeyChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.web3_signers.PlatformSignerApi.createKey\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      createKeyChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let keyTagArg = args[0] as! String
+        api.createKey(keyTag: keyTagArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      createKeyChannel.setMessageHandler(nil)
+    }
+    /// Deletes the key associated with the given tag.
+    let deleteKeyChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.web3_signers.PlatformSignerApi.deleteKey\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      deleteKeyChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let keyTagArg = args[0] as! String
+        api.deleteKey(keyTag: keyTagArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      deleteKeyChannel.setMessageHandler(nil)
+    }
+    /// Signs the data using the key associated with the given tag.
+    /// Returns the signature (R || S) bytes.
+    let signChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.web3_signers.PlatformSignerApi.sign\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      signChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let keyTagArg = args[0] as! String
+        let dataArg = args[1] as! [Int64]
+        api.sign(keyTag: keyTagArg, data: dataArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      signChannel.setMessageHandler(nil)
+    }
+    /// Retrieves the public key for the given tag.
+    /// Returns 65-byte uncompressed public key.
+    let getPublicKeyChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.web3_signers.PlatformSignerApi.getPublicKey\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      getPublicKeyChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let keyTagArg = args[0] as! String
+        api.getPublicKey(keyTag: keyTagArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      getPublicKeyChannel.setMessageHandler(nil)
+    }
+  }
 }
