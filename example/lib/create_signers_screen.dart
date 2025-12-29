@@ -20,26 +20,34 @@ class _CreateSignersScreenState extends State<CreateSignersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            TextButton(
-              child: const Text("Local Key Signer"),
-              onPressed: () => localKeyMethod(setState),
+      body: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Center(
+          child: TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: const Color(0xff519bf8),
             ),
-            if (isPasskeyGenerating ?? false) ...[
-              const CircularProgressIndicator(),
-            ] else ...[
-              TextButton(
-                  child: const Text("Pass Key Signer"),
-                  onPressed: () => passkeyMethod(setState)),
-            ],
-            TextButton(
-              child: const Text("Platform Key Signer"),
-              onPressed: () => platformKeyMethod(setState),
-            ),
-          ]),
+            child: const Text("Local Key Signer"),
+            onPressed: () => localKeyMethod(setState),
+          ),
+        ),
+        if (isPasskeyGenerating ?? false) ...[
+          const CircularProgressIndicator(),
+        ] else ...[
+          TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: const Color(0xff519bf8),
+              ),
+              child: const Text("Pass Key Signer"),
+              onPressed: () => passkeyMethod(setState)),
+        ],
+        TextButton(
+          style: TextButton.styleFrom(
+            backgroundColor: const Color(0xff519bf8),
+          ),
+          child: const Text("Platform Key Signer"),
+          onPressed: () => platformKeyMethod(setState),
+        ),
+      ]),
     );
   }
 
