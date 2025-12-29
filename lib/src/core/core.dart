@@ -23,7 +23,7 @@ Future<PlatformPublicKey> generatePlatformKey({
 }) async {
   auth ??= PlatformAuthenticator();
 
-  List<int>? pubKeyBytes;
+  Bytes? pubKeyBytes;
 
   if (checkExisting) {
     pubKeyBytes = await auth.getPublicKey(config.keyTag);

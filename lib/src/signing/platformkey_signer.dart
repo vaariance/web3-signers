@@ -23,6 +23,7 @@ final class PlatformKeySigner implements Signer {
 
   PlatformKeySigner._(this._authenticator, this._config, this._key);
 
+  @override
   PlatformPublicKey get publicKey => _key;
 
   @override

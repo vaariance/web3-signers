@@ -10,8 +10,15 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
 
     let domain = "PlatformAuthenticator"
 
-    func createKey(keyTag: String, completion: @escaping (Result<[Int64], Error>) -> Void) {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+    private let cryptoQueue = DispatchQueue(
+        label: "platform.auth.crypto",
+        qos: .userInitiated
+    )
+
+    func createKey(
+        keyTag: String, completion: @escaping (Result<FlutterStandardTypedData, Error>) -> Void
+    ) {
+        cryptoQueue.async { [weak self] in
             guard let self = self else { return }
 
             if self.getSecKey(from: keyTag) != nil {
@@ -44,16 +51,10 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
     }
 
     func deleteKey(keyTag: String, completion: @escaping (Result<Void, Error>) -> Void) {
-        DispatchQueue.global(qos: .userInitiated).async {
-            let tag = keyTag.data(using: .utf8)!
-            let query: [String: Any] = [
-                kSecClass as String: kSecClassKey,
-                kSecAttrApplicationTag as String: tag,
-                kSecAttrKeyType as String: kSecAttrKeyTypeEC,
-                kSecMatchLimit as String: kSecMatchLimitOne,
-            ]
+        cryptoQueue.async { [weak self] in
+            guard let self = self else { return }
 
-            let status = SecItemDelete(query as CFDictionary)
+            let status = SecItemDelete(self.keyQuery(keyTag: keyTag))
             guard status == errSecSuccess || status == errSecItemNotFound else {
                 let msg = "Keychain Error"
                 let err = NSError(
@@ -65,9 +66,11 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
         }
     }
 
-    func sign(keyTag: String, data: [Int64], completion: @escaping (Result<[Int64], Error>) -> Void)
-    {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+    func sign(
+        keyTag: String, data: FlutterStandardTypedData,
+        completion: @escaping (Result<FlutterStandardTypedData, Error>) -> Void
+    ) {
+        cryptoQueue.async { [weak self] in
             guard let self = self else { return }
 
             guard let key = self.getSecKey(from: keyTag) else {
@@ -79,7 +82,7 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
             }
 
             let algorithm: SecKeyAlgorithm = .ecdsaSignatureMessageX962SHA256
-            let dataBytes = Data(data.map { UInt8($0) })
+            let dataBytes = data.data as Data
             var error: Unmanaged<CFError>?
             guard
                 let signature = SecKeyCreateSignature(
@@ -94,13 +97,15 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
                 return
             }
 
-            let result = signature.map { Int64($0) }
+            let result = FlutterStandardTypedData(bytes: signature)
             DispatchQueue.main.async { completion(.success(result)) }
         }
     }
 
-    func getPublicKey(keyTag: String, completion: @escaping (Result<[Int64]?, Error>) -> Void) {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+    func getPublicKey(
+        keyTag: String, completion: @escaping (Result<FlutterStandardTypedData?, Error>) -> Void
+    ) {
+        cryptoQueue.async { [weak self] in
             guard let self = self else { return }
 
             guard let key = self.getSecKey(from: keyTag) else {
@@ -121,23 +126,19 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
     }
 
     private func getSecKey(from keyTag: String) -> SecKey? {
-        let tag = keyTag.data(using: .utf8)!
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassKey,
-            kSecAttrApplicationTag as String: tag,
-            kSecAttrKeyType as String: kSecAttrKeyTypeEC,
-            kSecMatchLimit as String: kSecMatchLimitOne,
-            kSecReturnRef as String: true,
-        ]
-
         var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        let status = SecItemCopyMatching(
+            keyQuery(keyTag: keyTag, returnRef: true),
+            &item
+        )
         guard status == errSecSuccess else { return nil }
         let key = item as! SecKey
         return key
     }
 
-    private func extractPublicKey(from privateKey: SecKey) -> Result<[Int64], Error> {
+    private func extractPublicKey(from privateKey: SecKey) -> Result<
+        FlutterStandardTypedData, Error
+    > {
         guard let publicKey = SecKeyCopyPublicKey(privateKey) else {
             let msg = "Failed to generate public key from private key"
             let err = NSError(domain: domain, code: -1, userInfo: [NSLocalizedDescriptionKey: msg])
@@ -146,7 +147,7 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
 
         var error: Unmanaged<CFError>?
         if let keyData = SecKeyCopyExternalRepresentation(publicKey, &error) as Data? {
-            return .success(keyData.map { Int64($0) })
+            return .success(FlutterStandardTypedData(bytes: keyData))
         } else {
             return .failure(error!.takeRetainedValue() as Error)
         }
@@ -186,6 +187,24 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
         #endif
 
         return attributes
+    }
+
+    private func keyQuery(
+        keyTag: String,
+        returnRef: Bool = false
+    ) -> CFDictionary {
+        var query: [String: Any] = [
+            kSecClass as String: kSecClassKey,
+            kSecAttrApplicationTag as String: keyTag.data(using: .utf8)!,
+            kSecAttrKeyType as String: kSecAttrKeyTypeEC,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+        ]
+
+        if returnRef {
+            query[kSecReturnRef as String] = true
+        }
+
+        return query as CFDictionary
     }
 
 }

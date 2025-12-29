@@ -51,7 +51,14 @@ pubspec.lock
 .vscode
 coverage/
 
-
 .build/
 .swiftpm/
 *swiftly.pkg
+
+/Flutter/Generated.xcconfig
+/Flutter/ephemeral/
+/Flutter/flutter_export_environment.sh
+
+GeneratedPluginRegistrant.h
+GeneratedPluginRegistrant.m
+GeneratedPluginRegistrant.java

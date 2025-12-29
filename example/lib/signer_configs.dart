@@ -1,18 +1,5 @@
 import 'package:web3_signers/web3_signers.dart';
 
-///
-class SignerConfigs {
-  static const passkeyConfig = PassKeyConfig(
-    rpId: "variance.space",
-    rpName: "Web3 Signers Demo",
-    userVerification: "required",
-    authenticatorAttachment: "cross-platform",
-    mediation: "optional",
-    residentKey: "required",
-    requireResidentKey: false,
-  );
+const passkeyConfig = PassKeyConfig(rpId: "variance.space", rpName: "Variance");
 
-  static const platformConfig = PlatformConfig(
-    keyTag: "web3-signers-demo-key",
-  );
-}
+const platformConfig = PlatformConfig(keyTag: "com.example.web3_signers");

@@ -22,6 +22,7 @@ final class LocalKeySigner implements Signer {
 
   EthPrivateKey get ethPrivateKey => _ethPrivateKey;
 
+  @override
   LocalPublicKey get publicKey {
     final publicKey = _ethPrivateKey.encodedPublicKey;
 

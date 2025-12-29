@@ -63,19 +63,19 @@ interface PlatformAuthenticator {
    * Returns the public key as a 65-byte uncompressed byte array (0x04 || X || Y).
    * Throws if generation fails.
    */
-  fun createKey(keyTag: String, callback: (Result<List<Long>>) -> Unit)
+  fun createKey(keyTag: String, callback: (Result<ByteArray>) -> Unit)
   /** Deletes the key associated with the given tag. */
   fun deleteKey(keyTag: String, callback: (Result<Unit>) -> Unit)
   /**
    * Signs the data using the key associated with the given tag.
    * Returns the signature (R || S) bytes.
    */
-  fun sign(keyTag: String, data: List<Long>, callback: (Result<List<Long>>) -> Unit)
+  fun sign(keyTag: String, data: ByteArray, callback: (Result<ByteArray>) -> Unit)
   /**
    * Retrieves the public key for the given tag.
    * Returns 65-byte uncompressed public key.
    */
-  fun getPublicKey(keyTag: String, callback: (Result<List<Long>?>) -> Unit)
+  fun getPublicKey(keyTag: String, callback: (Result<ByteArray?>) -> Unit)
 
   companion object {
     /** The codec used by PlatformAuthenticator. */
@@ -92,7 +92,7 @@ interface PlatformAuthenticator {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val keyTagArg = args[0] as String
-            api.createKey(keyTagArg) { result: Result<List<Long>> ->
+            api.createKey(keyTagArg) { result: Result<ByteArray> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlatformAuthenticatorPigeonUtils.wrapError(error))
@@ -131,8 +131,8 @@ interface PlatformAuthenticator {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val keyTagArg = args[0] as String
-            val dataArg = args[1] as List<Long>
-            api.sign(keyTagArg, dataArg) { result: Result<List<Long>> ->
+            val dataArg = args[1] as ByteArray
+            api.sign(keyTagArg, dataArg) { result: Result<ByteArray> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlatformAuthenticatorPigeonUtils.wrapError(error))
@@ -152,7 +152,7 @@ interface PlatformAuthenticator {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val keyTagArg = args[0] as String
-            api.getPublicKey(keyTagArg) { result: Result<List<Long>?> ->
+            api.getPublicKey(keyTagArg) { result: Result<ByteArray?> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlatformAuthenticatorPigeonUtils.wrapError(error))

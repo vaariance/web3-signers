@@ -53,7 +53,7 @@ class PlatformAuthenticator {
   /// Generates a new key pair in the secure element/keystore.
   /// Returns the public key as a 65-byte uncompressed byte array (0x04 || X || Y).
   /// Throws if generation fails.
-  Future<List<int>> createKey(String keyTag) async {
+  Future<Uint8List> createKey(String keyTag) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.web3_signers.PlatformAuthenticator.createKey$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -76,7 +76,7 @@ class PlatformAuthenticator {
         message: 'Host platform returned null value for non-null return value.',
       );
     } else {
-      return (pigeonVar_replyList[0] as List<Object?>?)!.cast<int>();
+      return (pigeonVar_replyList[0] as Uint8List?)!;
     }
   }
 
@@ -105,7 +105,7 @@ class PlatformAuthenticator {
 
   /// Signs the data using the key associated with the given tag.
   /// Returns the signature (R || S) bytes.
-  Future<List<int>> sign(String keyTag, List<int> data) async {
+  Future<Uint8List> sign(String keyTag, Uint8List data) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.web3_signers.PlatformAuthenticator.sign$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -128,13 +128,13 @@ class PlatformAuthenticator {
         message: 'Host platform returned null value for non-null return value.',
       );
     } else {
-      return (pigeonVar_replyList[0] as List<Object?>?)!.cast<int>();
+      return (pigeonVar_replyList[0] as Uint8List?)!;
     }
   }
 
   /// Retrieves the public key for the given tag.
   /// Returns 65-byte uncompressed public key.
-  Future<List<int>?> getPublicKey(String keyTag) async {
+  Future<Uint8List?> getPublicKey(String keyTag) async {
     final pigeonVar_channelName = 'dev.flutter.pigeon.web3_signers.PlatformAuthenticator.getPublicKey$pigeonVar_messageChannelSuffix';
     final pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -152,7 +152,7 @@ class PlatformAuthenticator {
         details: pigeonVar_replyList[2],
       );
     } else {
-      return (pigeonVar_replyList[0] as List<Object?>?)?.cast<int>();
+      return (pigeonVar_replyList[0] as Uint8List?);
     }
   }
 }

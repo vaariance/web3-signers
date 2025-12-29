@@ -72,7 +72,7 @@ void PlatformAuthenticator::SetUp(
             return;
           }
           const auto& key_tag_arg = std::get<std::string>(encodable_key_tag_arg);
-          api->CreateKey(key_tag_arg, [reply](ErrorOr<EncodableList>&& output) {
+          api->CreateKey(key_tag_arg, [reply](ErrorOr<std::vector<uint8_t>>&& output) {
             if (output.has_error()) {
               reply(WrapError(output.error()));
               return;
@@ -135,8 +135,8 @@ void PlatformAuthenticator::SetUp(
             reply(WrapError("data_arg unexpectedly null."));
             return;
           }
-          const auto& data_arg = std::get<EncodableList>(encodable_data_arg);
-          api->Sign(key_tag_arg, data_arg, [reply](ErrorOr<EncodableList>&& output) {
+          const auto& data_arg = std::get<std::vector<uint8_t>>(encodable_data_arg);
+          api->Sign(key_tag_arg, data_arg, [reply](ErrorOr<std::vector<uint8_t>>&& output) {
             if (output.has_error()) {
               reply(WrapError(output.error()));
               return;
@@ -165,7 +165,7 @@ void PlatformAuthenticator::SetUp(
             return;
           }
           const auto& key_tag_arg = std::get<std::string>(encodable_key_tag_arg);
-          api->GetPublicKey(key_tag_arg, [reply](ErrorOr<std::optional<EncodableList>>&& output) {
+          api->GetPublicKey(key_tag_arg, [reply](ErrorOr<std::optional<std::vector<uint8_t>>>&& output) {
             if (output.has_error()) {
               reply(WrapError(output.error()));
               return;

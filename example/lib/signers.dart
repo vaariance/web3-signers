@@ -4,26 +4,26 @@ import 'package:example/signer_configs.dart';
 import 'package:web3_signers/web3_signers.dart';
 
 class Signers {
-  LocalKeySigner useLocalKey() {
+  Signer useLocalKey() {
     try {
       final mnemonic = generateMnemonic(WordLength.word_24);
+      log("mnemonic: $mnemonic");
       final signer = LocalKeySigner.fromMnemonic(mnemonic);
-      log(mnemonic);
       return signer;
     } catch (e) {
+      log(e.toString());
       rethrow;
     }
   }
 
-  Future<PassKeySigner> usePassKey() async {
+  Future<Signer> usePassKey() async {
     try {
-      final passkeyGen = await generatePassKey(
-          config: SignerConfigs.passkeyConfig,
+      final pubKey = await generatePassKey(
+          config: passkeyConfig,
           username: 'variance.space',
           displayname: 'demo@variance.space');
-
-      final signer =
-          PassKeySigner.withConfig(SignerConfigs.passkeyConfig, passkeyGen);
+      log('x: ${pubKey.x.toHex()}\ny: ${pubKey.y.toHex()}');
+      final signer = PassKeySigner.withConfig(passkeyConfig, pubKey);
 
       return signer;
     } catch (e) {
@@ -32,13 +32,13 @@ class Signers {
     }
   }
 
-  Future<PlatformKeySigner> usePlatformKey() async {
+  Future<Signer> usePlatformKey() async {
     try {
-      final platformKey = await generatePlatformKey(
-          config: SignerConfigs.platformConfig, checkExisting: true);
-      final platformSigner = PlatformKeySigner.withConfig(
-          SignerConfigs.platformConfig, platformKey);
-      log('${platformKey.x} ${platformKey.y}');
+      final pubKey = await generatePlatformKey(
+          config: platformConfig, checkExisting: true);
+      final platformSigner =
+          PlatformKeySigner.withConfig(platformConfig, pubKey);
+      log('x: ${pubKey.x.toHex()}\ny: ${pubKey.y.toHex()}');
       return platformSigner;
     } catch (e) {
       log(e.toString());

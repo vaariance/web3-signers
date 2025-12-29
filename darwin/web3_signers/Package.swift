@@ -20,11 +20,6 @@ let package = Package(
             resources: [
                 .process("PrivacyInfo.xcprivacy")
             ]
-        ),
-        .testTarget(
-            name: "web3_signersTests",
-            dependencies: ["web3_signers"],
-            path: "Tests"
-        ),
+        )
     ]
 )

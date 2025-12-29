@@ -91,15 +91,15 @@ protocol PlatformAuthenticator {
   /// Generates a new key pair in the secure element/keystore.
   /// Returns the public key as a 65-byte uncompressed byte array (0x04 || X || Y).
   /// Throws if generation fails.
-  func createKey(keyTag: String, completion: @escaping (Result<[Int64], Error>) -> Void)
+  func createKey(keyTag: String, completion: @escaping (Result<FlutterStandardTypedData, Error>) -> Void)
   /// Deletes the key associated with the given tag.
   func deleteKey(keyTag: String, completion: @escaping (Result<Void, Error>) -> Void)
   /// Signs the data using the key associated with the given tag.
   /// Returns the signature (R || S) bytes.
-  func sign(keyTag: String, data: [Int64], completion: @escaping (Result<[Int64], Error>) -> Void)
+  func sign(keyTag: String, data: FlutterStandardTypedData, completion: @escaping (Result<FlutterStandardTypedData, Error>) -> Void)
   /// Retrieves the public key for the given tag.
   /// Returns 65-byte uncompressed public key.
-  func getPublicKey(keyTag: String, completion: @escaping (Result<[Int64]?, Error>) -> Void)
+  func getPublicKey(keyTag: String, completion: @escaping (Result<FlutterStandardTypedData?, Error>) -> Void)
 }
 
 /// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
@@ -153,7 +153,7 @@ class PlatformAuthenticatorSetup {
       signChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
         let keyTagArg = args[0] as! String
-        let dataArg = args[1] as! [Int64]
+        let dataArg = args[1] as! FlutterStandardTypedData
         api.sign(keyTag: keyTagArg, data: dataArg) { result in
           switch result {
           case .success(let res):

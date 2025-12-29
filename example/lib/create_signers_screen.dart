@@ -15,8 +15,7 @@ class CreateSignersScreen extends StatefulWidget {
 }
 
 class _CreateSignersScreenState extends State<CreateSignersScreen> {
-  bool? isPasskeyGenerating = false;
-  bool? isPlatformKeyGenerating = false;
+  bool isKeyGenerating = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,81 +23,77 @@ class _CreateSignersScreenState extends State<CreateSignersScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            TextButton(
-              child: const Text("Local Key Signer"),
-              onPressed: () => localKeyMethod(setState),
-            ),
-            if (isPasskeyGenerating ?? false) ...[
+            if (isKeyGenerating) ...[
               const CircularProgressIndicator(),
             ] else ...[
               TextButton(
+                child: const Text("Local Key Signer"),
+                onPressed: () => localKeyMethod(setState),
+              ),
+              TextButton(
                   child: const Text("Pass Key Signer"),
                   onPressed: () => passkeyMethod(setState)),
+              TextButton(
+                child: const Text("Platform Key Signer"),
+                onPressed: () => platformKeyMethod(setState),
+              ),
             ],
-            TextButton(
-              child: const Text("Platform Key Signer"),
-              onPressed: () => platformKeyMethod(setState),
-            ),
           ]),
     );
   }
 
   void passkeyMethod(SetStateFunction setState) {
     setState(() {
-      isPasskeyGenerating = true;
+      isKeyGenerating = true;
     });
     Signers().usePassKey().then((value) {
       setState(() {
-        isPasskeyGenerating = false;
+        isKeyGenerating = false;
       });
       if (!mounted) return;
       Navigator.of(context).push(
         MaterialPageRoute(
-            builder: (context) =>
-                SignMessageScreen(signerType: value.kind, signer: value)),
+            builder: (context) => SignMessageScreen(signer: value)),
       );
     }, onError: (error) {
       setState(() {
-        isPasskeyGenerating = false;
+        isKeyGenerating = false;
       });
     });
   }
 
   void platformKeyMethod(SetStateFunction setState) {
     setState(() {
-      isPlatformKeyGenerating = true;
+      isKeyGenerating = true;
     });
     Signers().usePlatformKey().then((value) {
-      log(value.toString());
       setState(() {
-        isPlatformKeyGenerating = false;
+        isKeyGenerating = false;
       });
       if (!mounted) return;
       Navigator.of(context).push(
         MaterialPageRoute(
-            builder: (context) =>
-                SignMessageScreen(signerType: value.kind, signer: value)),
+            builder: (context) => SignMessageScreen(signer: value)),
       );
     }, onError: (error) {
       setState(() {
-        isPlatformKeyGenerating = false;
+        isKeyGenerating = false;
       });
     });
   }
 
   void localKeyMethod(SetStateFunction setState) {
     setState(() {
-      isPasskeyGenerating = true;
+      isKeyGenerating = true;
     });
     Future.delayed(const Duration(seconds: 1));
     final signer = Signers().useLocalKey();
     setState(() {
-      isPasskeyGenerating = false;
+      isKeyGenerating = false;
     });
     Navigator.of(context).push(
       MaterialPageRoute(
-          builder: (context) =>
-              SignMessageScreen(signerType: signer.kind, signer: signer)),
+          builder: (context) => SignMessageScreen(signer: signer)),
     );
   }
 }

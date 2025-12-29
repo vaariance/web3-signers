@@ -14,7 +14,7 @@ import 'package:pigeon/pigeon.dart';
     kotlinOptions: KotlinOptions(),
 
     swiftOut:
-        'ios/web3_signers/Sources/web3_signers/PlatformAuthenticator.g.swift',
+        'darwin/web3_signers/Sources/web3_signers/PlatformAuthenticator.g.swift',
     swiftOptions: SwiftOptions(),
   ),
 )
@@ -24,7 +24,7 @@ abstract class PlatformAuthenticator {
   /// Returns the public key as a 65-byte uncompressed byte array (0x04 || X || Y).
   /// Throws if generation fails.
   @async
-  List<int> createKey(String keyTag);
+  Uint8List createKey(String keyTag);
 
   /// Deletes the key associated with the given tag.
   @async
@@ -33,10 +33,10 @@ abstract class PlatformAuthenticator {
   /// Signs the data using the key associated with the given tag.
   /// Returns the signature (R || S) bytes.
   @async
-  List<int> sign(String keyTag, List<int> data);
+  Uint8List sign(String keyTag, Uint8List data);
 
   /// Retrieves the public key for the given tag.
   /// Returns 65-byte uncompressed public key.
   @async
-  List<int>? getPublicKey(String keyTag);
+  Uint8List? getPublicKey(String keyTag);
 }

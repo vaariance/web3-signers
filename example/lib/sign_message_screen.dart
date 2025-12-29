@@ -1,22 +1,22 @@
-import 'dart:typed_data';
+import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:web3_signers/web3_signers.dart';
 
-class SignMessageScreen<T> extends StatefulWidget {
-  const SignMessageScreen({super.key, this.signerType, this.signer});
-  final SignerType? signerType;
-  final T? signer;
+class SignMessageScreen extends StatefulWidget {
+  const SignMessageScreen({super.key, this.signer});
+  final Signer? signer;
 
   static const routeName = '/sign-message';
 
   @override
-  State<SignMessageScreen<T>> createState() => _SignMessageScreenState<T>();
+  State<SignMessageScreen> createState() => _SignMessageScreenState();
 }
 
-class _SignMessageScreenState<T> extends State<SignMessageScreen<T>> {
+class _SignMessageScreenState extends State<SignMessageScreen> {
   final TextEditingController _messageController = TextEditingController();
-  String? _signature;
+  Signature? _signature;
   bool _isSigning = false;
 
   @override
@@ -25,31 +25,14 @@ class _SignMessageScreenState<T> extends State<SignMessageScreen<T>> {
     super.dispose();
   }
 
-  String getPublicKey() {
+  PublicKey? getPublicKey() {
     final signer = widget.signer;
-    if (signer is LocalKeySigner) {
-      final pk = signer.publicKey;
-      return 'x: ${pk.x.toHex()}\ny: ${pk.y.toHex()}';
-    } else if (signer is PassKeySigner) {
-      final pk = signer.publicKey;
-      return 'x: ${pk.x.toHex()}\ny: ${pk.y.toHex()}';
-    } else if (signer is PlatformKeySigner) {
-      final pk = signer.publicKey;
-      return 'x: ${pk.x.toHex()}\ny: ${pk.y.toHex()}';
-    }
-    return 'No signer provided';
+    return signer?.publicKey;
   }
 
-  String getAddress() {
+  String? getAddress() {
     final signer = widget.signer;
-    if (signer is LocalKeySigner) {
-      return signer.getAddress();
-    } else if (signer is PassKeySigner) {
-      return signer.getAddress();
-    } else if (signer is PlatformKeySigner) {
-      return signer.getAddress();
-    }
-    return 'No signer provided';
+    return signer?.getAddress();
   }
 
   Future<void> signMessage(String message) async {
@@ -67,21 +50,15 @@ class _SignMessageScreenState<T> extends State<SignMessageScreen<T>> {
 
     try {
       final signer = widget.signer;
-      final messageBytes = message.codeUnits;
-      Signature signature;
+      final messageBytes = utf8.encode(message);
+      final signature = await signer?.personalSign(messageBytes);
 
-      if (signer is LocalKeySigner) {
-        signature = await signer.personalSign(Uint8List.fromList(messageBytes));
-      } else if (signer is PassKeySigner) {
-        signature = await signer.personalSign(Uint8List.fromList(messageBytes));
-      } else if (signer is PlatformKeySigner) {
-        signature = await signer.personalSign(Uint8List.fromList(messageBytes));
-      } else {
-        throw Exception('Invalid signer type');
-      }
+      log("${signature?.r.toHex()}");
+      log("${signature?.s.toHex()}");
+      log("${signature?.yParity}");
 
       setState(() {
-        _signature = signature.clientDataJson;
+        _signature = signature;
         _isSigning = false;
       });
 
@@ -137,7 +114,7 @@ class _SignMessageScreenState<T> extends State<SignMessageScreen<T>> {
                   _ResultCardInterface(
                     publicKey: getPublicKey(),
                     address: getAddress(),
-                    signerType: widget.signerType,
+                    signerType: widget.signer?.kind,
                   ),
                   const SizedBox(height: 24),
                   const Text(
@@ -238,14 +215,13 @@ class _SignMessageScreenState<T> extends State<SignMessageScreen<T>> {
 
 class _ResultCardInterface extends StatelessWidget {
   const _ResultCardInterface({
-    super.key,
     required this.publicKey,
     required this.address,
     this.signerType,
   });
 
-  final String publicKey;
-  final String address;
+  final PublicKey? publicKey;
+  final String? address;
   final SignerType? signerType;
 
   @override
@@ -284,10 +260,8 @@ class _ResultCardInterface extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            publicKey,
+            "x: ${publicKey?.x.toHex()}\ny: ${publicKey?.y.toHex()}",
             style: const TextStyle(fontSize: 12),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 2,
           ),
           const SizedBox(height: 16),
           const Text(
@@ -296,12 +270,18 @@ class _ResultCardInterface extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            address,
+            address ?? "",
             style: const TextStyle(fontSize: 12),
             overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
+  }
+}
+
+extension on BigInt {
+  String toHex() {
+    return "0x${toRadixString(16)}";
   }
 }

@@ -24,11 +24,11 @@ void main() {
       });
 
       test('creates new key if checkExisting is false (default)', () async {
-        final pubKeyBytes = [
+        final pubKeyBytes = Bytes.fromList([
           0x04,
           ...List.filled(32, 1),
           ...List.filled(32, 2),
-        ];
+        ]);
         when(
           () => mockAuthenticator.createKey('test-tag'),
         ).thenAnswer((_) async => pubKeyBytes);
@@ -46,11 +46,11 @@ void main() {
       });
 
       test('gets existing key if checkExisting is true', () async {
-        final pubKeyBytes = [
+        final pubKeyBytes = Bytes.fromList([
           0x04,
           ...List.filled(32, 3),
           ...List.filled(32, 4),
-        ];
+        ]);
         when(
           () => mockAuthenticator.getPublicKey('test-tag'),
         ).thenAnswer((_) async => pubKeyBytes);
@@ -71,11 +71,11 @@ void main() {
       test(
         'creates key if getPublicKey returns null even with checkExisting',
         () async {
-          final pubKeyBytes = [
+          final pubKeyBytes = Bytes.fromList([
             0x04,
             ...List.filled(32, 5),
             ...List.filled(32, 6),
-          ];
+          ]);
           when(
             () => mockAuthenticator.getPublicKey('test-tag'),
           ).thenAnswer((_) async => null);

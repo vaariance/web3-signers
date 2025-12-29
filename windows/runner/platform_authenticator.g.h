@@ -85,7 +85,7 @@ class PlatformAuthenticator {
   // Throws if generation fails.
   virtual void CreateKey(
     const std::string& key_tag,
-    std::function<void(ErrorOr<flutter::EncodableList> reply)> result) = 0;
+    std::function<void(ErrorOr<std::vector<uint8_t>> reply)> result) = 0;
   // Deletes the key associated with the given tag.
   virtual void DeleteKey(
     const std::string& key_tag,
@@ -94,13 +94,13 @@ class PlatformAuthenticator {
   // Returns the signature (R || S) bytes.
   virtual void Sign(
     const std::string& key_tag,
-    const flutter::EncodableList& data,
-    std::function<void(ErrorOr<flutter::EncodableList> reply)> result) = 0;
+    const std::vector<uint8_t>& data,
+    std::function<void(ErrorOr<std::vector<uint8_t>> reply)> result) = 0;
   // Retrieves the public key for the given tag.
   // Returns 65-byte uncompressed public key.
   virtual void GetPublicKey(
     const std::string& key_tag,
-    std::function<void(ErrorOr<std::optional<flutter::EncodableList>> reply)> result) = 0;
+    std::function<void(ErrorOr<std::optional<std::vector<uint8_t>>> reply)> result) = 0;
 
   // The codec used by PlatformAuthenticator.
   static const flutter::StandardMessageCodec& GetCodec();

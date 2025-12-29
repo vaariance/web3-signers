@@ -44,14 +44,17 @@ abstract class Signer extends CustomSigner {
   /// Passkey/WebAuthn signers typically require async flows due to OS UI.
   bool get supportsSyncSigning;
 
+  /// Returns the public key pair associated with this signer.
+  PublicKey get publicKey;
+
+  /// Returns the primary address associated with this signer.
+  HexString getAddress();
+
   /// Returns a safe, deterministic placeholder signature.
   ///
   /// Used for preflight/estimation flows where a signature shape is required
   /// but a real signature should not be produced. Do not broadcast.
   Signature getDummySignature();
-
-  /// Returns the primary address associated with this signer.
-  HexString getAddress();
 
   /// Signs a personal message digest (EIP‑191 style) and returns raw bytes.
   ///

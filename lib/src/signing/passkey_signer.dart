@@ -20,6 +20,7 @@ final class PassKeySigner implements Signer {
 
   const PassKeySigner._(this._authenticator, this._config, this._key);
 
+  @override
   PassKeyPublicKey get publicKey => _key;
 
   @override
