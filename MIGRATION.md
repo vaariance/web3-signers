@@ -191,7 +191,32 @@ this is achieved using the tempo transaction format:
 - this creates compatibility with the tempo transaction format, whilst being negliglible for every other evm.
 if the format of the address is not okay, get the key `signer.publicKey` and use it to your taste.
 
-### 5. Interface Changes
+### 5. WebAuthn Signature Metadata
+
+#### `typePos` → `getTypeLocation()`
+
+**Before (v0.x)**
+```dart
+final PassKeySignature sig = await signer.signToPasskeySignature(hash);
+final typePos = sig.typePos; // Returns position of 'webauthn.get' VALUE (index 9)
+```
+
+**After (v1.0.0)**
+```dart
+final Signature sig = await signer.signAsync(hash);
+final typeIndex = sig.getTypeLocation(); // Returns position of '"type"' KEY (index 1)
+```
+
+> [!IMPORTANT]
+> This change aligns with [viem/ox](https://github.com/wevm/ox) behavior. The Kernel WebAuthn validator and other on-chain verifiers expect `typeIndex` to point to the `"type"` field **key** in `clientDataJSON`, not the value.
+>
+> ```
+> clientDataJSON: {"type":"webauthn.get","challenge":"..."}
+>                  ↑
+>                  typeIndex = 1 (position of opening quote)
+> ```
+
+### 6. Interface Changes
 
 The core interface has been renamed to reflect the package's purpose.
 
