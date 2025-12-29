@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -93,6 +94,7 @@ class _SignMessageScreenState<T> extends State<SignMessageScreen<T>> {
         ),
       );
     } catch (e) {
+      log('Error signing message: $e');
       setState(() {
         _isSigning = false;
       });

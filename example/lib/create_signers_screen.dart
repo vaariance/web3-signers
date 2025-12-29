@@ -69,7 +69,6 @@ class _CreateSignersScreenState extends State<CreateSignersScreen> {
       isPlatformKeyGenerating = true;
     });
     Signers().usePlatformKey().then((value) {
-      log(value.toString());
       setState(() {
         isPlatformKeyGenerating = false;
       });

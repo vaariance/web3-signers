@@ -41,7 +41,7 @@ class Signers {
       log('${platformKey.x} ${platformKey.y}');
       return platformSigner;
     } catch (e) {
-      log(e.toString());
+      log('Error using platformSigner${e.toString()}');
       rethrow;
     }
   }
