@@ -85,14 +85,18 @@ final class PassKeySigner implements Signer {
     final sig = getMessagingSignature(b64d(assertion.signature));
 
     final clientDataJSON = utf8.decode(b64d(assertion.clientDataJSON));
+    final curve = SigningCurve.r1;
 
-    return Signature(
+    final ecSig = Signature(
       sig.r.value,
       sig.s.value,
       authData: b64d(assertion.authenticatorData),
       clientDataJson: clientDataJSON,
-      curve: SigningCurve.r1,
+      curve: curve,
     );
+
+    // Normalize S to LOW-S form for on-chain verification (required by P256).
+    return ecSig.normalize(curve.curveParams);
   }
 
   @Deprecated("use signAsync")

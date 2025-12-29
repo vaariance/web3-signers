@@ -55,7 +55,9 @@ final class Signature extends EIP7702MsgSignature implements ECSignature {
   }
 
   int? getTypeLocation() {
-    return clientDataJson?.indexOf('webauthn.get');
+    // Return position of '"type"' key, not 'webauthn.get' value.
+    // The Kernel WebAuthn validator expects the index of the type field.
+    return clientDataJson?.indexOf('"type"');
   }
 
   @override
