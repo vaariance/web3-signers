@@ -14,40 +14,39 @@
 
 namespace web3_signers {
 
-
 // Generated class from Pigeon.
 
 class FlutterError {
- public:
-  explicit FlutterError(const std::string& code)
-    : code_(code) {}
-  explicit FlutterError(const std::string& code, const std::string& message)
-    : code_(code), message_(message) {}
-  explicit FlutterError(const std::string& code, const std::string& message, const flutter::EncodableValue& details)
-    : code_(code), message_(message), details_(details) {}
+public:
+  explicit FlutterError(const std::string &code) : code_(code) {}
+  explicit FlutterError(const std::string &code, const std::string &message)
+      : code_(code), message_(message) {}
+  explicit FlutterError(const std::string &code, const std::string &message,
+                        const flutter::EncodableValue &details)
+      : code_(code), message_(message), details_(details) {}
 
-  const std::string& code() const { return code_; }
-  const std::string& message() const { return message_; }
-  const flutter::EncodableValue& details() const { return details_; }
+  const std::string &code() const { return code_; }
+  const std::string &message() const { return message_; }
+  const flutter::EncodableValue &details() const { return details_; }
 
- private:
+private:
   std::string code_;
   std::string message_;
   flutter::EncodableValue details_;
 };
 
-template<class T> class ErrorOr {
- public:
-  ErrorOr(const T& rhs) : v_(rhs) {}
-  ErrorOr(const T&& rhs) : v_(std::move(rhs)) {}
-  ErrorOr(const FlutterError& rhs) : v_(rhs) {}
-  ErrorOr(const FlutterError&& rhs) : v_(std::move(rhs)) {}
+template <class T> class ErrorOr {
+public:
+  ErrorOr(const T &rhs) : v_(rhs) {}
+  ErrorOr(const T &&rhs) : v_(std::move(rhs)) {}
+  ErrorOr(const FlutterError &rhs) : v_(rhs) {}
+  ErrorOr(const FlutterError &&rhs) : v_(std::move(rhs)) {}
 
   bool has_error() const { return std::holds_alternative<FlutterError>(v_); }
-  const T& value() const { return std::get<T>(v_); };
-  const FlutterError& error() const { return std::get<FlutterError>(v_); };
+  const T &value() const { return std::get<T>(v_); };
+  const FlutterError &error() const { return std::get<FlutterError>(v_); };
 
- private:
+private:
   friend class PlatformAuthenticator;
   ErrorOr() = default;
   T TakeValue() && { return std::get<T>(std::move(v_)); }
@@ -55,67 +54,66 @@ template<class T> class ErrorOr {
   std::variant<T, FlutterError> v_;
 };
 
-
-
 class PigeonInternalCodecSerializer : public flutter::StandardCodecSerializer {
- public:
+public:
   PigeonInternalCodecSerializer();
-  inline static PigeonInternalCodecSerializer& GetInstance() {
+  inline static PigeonInternalCodecSerializer &GetInstance() {
     static PigeonInternalCodecSerializer sInstance;
     return sInstance;
   }
 
-  void WriteValue(
-    const flutter::EncodableValue& value,
-    flutter::ByteStreamWriter* stream) const override;
- protected:
-  flutter::EncodableValue ReadValueOfType(
-    uint8_t type,
-    flutter::ByteStreamReader* stream) const override;
+  void WriteValue(const flutter::EncodableValue &value,
+                  flutter::ByteStreamWriter *stream) const override;
+
+protected:
+  flutter::EncodableValue
+  ReadValueOfType(uint8_t type,
+                  flutter::ByteStreamReader *stream) const override;
 };
 
-// Generated interface from Pigeon that represents a handler of messages from Flutter.
+// Generated interface from Pigeon that represents a handler of messages from
+// Flutter.
 class PlatformAuthenticator {
- public:
-  PlatformAuthenticator(const PlatformAuthenticator&) = delete;
-  PlatformAuthenticator& operator=(const PlatformAuthenticator&) = delete;
+public:
+  PlatformAuthenticator(const PlatformAuthenticator &) = delete;
+  PlatformAuthenticator &operator=(const PlatformAuthenticator &) = delete;
   virtual ~PlatformAuthenticator() {}
   // Generates a new key pair in the secure element/keystore.
-  // Returns the public key as a 65-byte uncompressed byte array (0x04 || X || Y).
-  // Throws if generation fails.
+  // Returns the public key as a 65-byte uncompressed byte array (0x04 || X ||
+  // Y). Throws if generation fails.
   virtual void CreateKey(
-    const std::string& key_tag,
-    std::function<void(ErrorOr<std::vector<uint8_t>> reply)> result) = 0;
+      const std::string &key_tag,
+      std::function<void(ErrorOr<std::vector<uint8_t>> reply)> result) = 0;
   // Deletes the key associated with the given tag.
-  virtual void DeleteKey(
-    const std::string& key_tag,
-    std::function<void(std::optional<FlutterError> reply)> result) = 0;
+  virtual void
+  DeleteKey(const std::string &key_tag,
+            std::function<void(std::optional<FlutterError> reply)> result) = 0;
   // Signs the data using the key associated with the given tag.
   // Returns the signature (R || S) bytes.
-  virtual void Sign(
-    const std::string& key_tag,
-    const std::vector<uint8_t>& data,
-    std::function<void(ErrorOr<std::vector<uint8_t>> reply)> result) = 0;
+  virtual void
+  Sign(const std::string &key_tag, const std::vector<uint8_t> &data,
+       std::function<void(ErrorOr<std::vector<uint8_t>> reply)> result) = 0;
   // Retrieves the public key for the given tag.
   // Returns 65-byte uncompressed public key.
   virtual void GetPublicKey(
-    const std::string& key_tag,
-    std::function<void(ErrorOr<std::optional<std::vector<uint8_t>>> reply)> result) = 0;
+      const std::string &key_tag,
+      std::function<void(ErrorOr<std::optional<std::vector<uint8_t>>> reply)>
+          result) = 0;
 
   // The codec used by PlatformAuthenticator.
-  static const flutter::StandardMessageCodec& GetCodec();
-  // Sets up an instance of `PlatformAuthenticator` to handle messages through the `binary_messenger`.
-  static void SetUp(
-    flutter::BinaryMessenger* binary_messenger,
-    PlatformAuthenticator* api);
-  static void SetUp(
-    flutter::BinaryMessenger* binary_messenger,
-    PlatformAuthenticator* api,
-    const std::string& message_channel_suffix);
+  static const flutter::StandardMessageCodec &GetCodec();
+  // Sets up an instance of `PlatformAuthenticator` to handle messages through
+  // the `binary_messenger`.
+  static void SetUp(flutter::BinaryMessenger *binary_messenger,
+                    PlatformAuthenticator *api);
+  static void SetUp(flutter::BinaryMessenger *binary_messenger,
+                    PlatformAuthenticator *api,
+                    const std::string &message_channel_suffix);
   static flutter::EncodableValue WrapError(std::string_view error_message);
-  static flutter::EncodableValue WrapError(const FlutterError& error);
- protected:
+  static flutter::EncodableValue WrapError(const FlutterError &error);
+
+protected:
   PlatformAuthenticator() = default;
 };
-}  // namespace web3_signers
-#endif  // PIGEON_PLATFORM_AUTHENTICATOR_G_H_
+} // namespace web3_signers
+#endif // PIGEON_PLATFORM_AUTHENTICATOR_G_H_

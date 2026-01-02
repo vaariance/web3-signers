@@ -14,7 +14,7 @@
 	<true/>
 	<key>keychain-access-groups</key>
 	<array>
-		<string>$(AppIdentifierPrefix)com.example.web3Signers</string>
+		<string>$(AppIdentifierPrefix)space.variance.web3-signers</string>
 	</array>
 </dict>
 </plist>

@@ -155,7 +155,7 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
 
     private func createAccessControl() -> Result<SecAccessControl, Error> {
         var error: Unmanaged<CFError>?
-        let flags: SecAccessControlCreateFlags = [.privateKeyUsage, .userPresence]
+        let flags: SecAccessControlCreateFlags = [.privateKeyUsage, .biometryAny]
         let access = SecAccessControlCreateWithFlags(
             kCFAllocatorDefault,
             kSecAttrAccessibleWhenUnlockedThisDeviceOnly,

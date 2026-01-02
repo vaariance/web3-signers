@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:example/sign_message_screen.dart';
 import 'package:example/signers.dart';
 import 'package:flutter/material.dart';

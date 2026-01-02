@@ -10,7 +10,7 @@ import 'package:pigeon/pigeon.dart';
     cppSourceOut: 'windows/runner/platform_authenticator.g.cpp',
 
     kotlinOut:
-        'android/src/main/kotlin/com/example/web3_signers/PlatformAuthenticator.g.kt',
+        'android/src/main/kotlin/space/variance/web3_signers/PlatformAuthenticator.g.kt',
     kotlinOptions: KotlinOptions(),
 
     swiftOut:

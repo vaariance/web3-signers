@@ -70,6 +70,7 @@ class _SignMessageScreenState extends State<SignMessageScreen> {
         ),
       );
     } catch (e) {
+      log("Error signing message: $e");
       setState(() {
         _isSigning = false;
       });
