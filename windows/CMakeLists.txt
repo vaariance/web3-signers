@@ -20,6 +20,8 @@ set(PLUGIN_NAME "platform_authenticator_plugin")
 list(APPEND PLUGIN_SOURCES
   "platform_authenticator_plugin.cpp"
   "platform_authenticator_plugin.h"
+  "runner/platform_authenticator.g.cpp"
+  "runner/platform_authenticator_impl.cpp"
 )
 
 # Define the plugin library target. Its name must not be changed (see comment
@@ -46,7 +48,7 @@ target_compile_definitions(${PLUGIN_NAME} PRIVATE FLUTTER_PLUGIN_IMPL)
 # dependencies here.
 target_include_directories(${PLUGIN_NAME} INTERFACE
   "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin)
+target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin ncrypt bcrypt)
 
 # List of absolute paths to libraries that should be bundled with the plugin.
 # This list could contain prebuilt libraries, or libraries created by an
