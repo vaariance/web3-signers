@@ -7,8 +7,54 @@ import "android_auth.g.dart" as android_auth;
 import "darwin_auth.g.dart" as darwin_auth;
 import "windows_auth.g.dart" as windows_auth;
 
+export 'darwin_auth.g.dart' show DarwinAccessible;
+
+class AndroidPlatformOptions extends android_auth.AndroidOptions {
+  AndroidPlatformOptions({
+    super.attestationChallenge,
+    super.useStrongBoxKeyMint = true,
+    super.authTimeoutSeconds = 0,
+    super.requireUserAuthentication = true,
+    super.invalidateOnBiometricChange = true,
+    super.allowFallbackAuthentication = false,
+    super.userConfirmationRequired = false,
+    super.biometricPromptTitle = "Sign",
+    super.biometricPromptSubtitle = "Sign Transaction",
+    super.biometricPromptDescription =
+        "Authenticate with your device to enable Secure Enclave crypto operation",
+    super.biometricPromptNegativeButtonText = "Cancel",
+  });
+}
+
+class DarwinPlatformOptions extends darwin_auth.DarwinOptions {
+  DarwinPlatformOptions({
+    super.accessGroup,
+    super.useSecureEnclave = true,
+    super.requireUserAuthentication = true,
+    super.invalidateOnBiometricChange = true,
+    super.allowFallbackAuthentication = false,
+    super.isParmanent = true,
+    super.accessible = DarwinAccessible.whenUnlocked,
+  });
+}
+
+class WindowsPlatformOptions extends windows_auth.WindowsOptions {
+  WindowsPlatformOptions({
+    super.windowsHelloPrompt = "Sign Transaction",
+    super.attestationChallenge,
+    super.useTpm = true,
+    super.requireUserAuthentication = true,
+    super.invalidateOnBiometricChange = true,
+    super.allowFallbackAuthentication = false,
+  });
+}
+
 typedef PlatformOptions =
-    ({AndroidOptions? android, DarwinOptions? darwin, WindowsOptions? windows});
+    ({
+      AndroidPlatformOptions? android,
+      DarwinPlatformOptions? darwin,
+      WindowsPlatformOptions? windows,
+    });
 
 class PlatformAuthenticator {
   @visibleForTesting

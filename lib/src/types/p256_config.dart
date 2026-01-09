@@ -13,9 +13,9 @@ interface class PlatformConfig implements P256Config {
   /// The unique identifier used to store and retrieve the key from the platform storage.
   final String keyTag;
 
-  final AndroidOptions? androidOptions;
-  final DarwinOptions? darwinOptions;
-  final WindowsOptions? windowsOptions;
+  final AndroidPlatformOptions? androidOptions;
+  final DarwinPlatformOptions? darwinOptions;
+  final WindowsPlatformOptions? windowsOptions;
 
   /// Creates a new instance of [PlatformConfig].
   ///
