@@ -29,7 +29,11 @@ Future<PlatformPublicKey> generatePlatformKey({
     pubKeyBytes = await auth.getPublicKey(config.keyTag);
   }
 
-  pubKeyBytes ??= await auth.createKey(config.keyTag);
+  pubKeyBytes ??= await auth.createKey(config.keyTag, (
+    android: config.androidOptions,
+    darwin: config.darwinOptions,
+    windows: config.windowsOptions,
+  ));
 
   if (pubKeyBytes.length != 65 || pubKeyBytes[0] != 0x04) {
     throw FormatException("Invalid public key format from platform");

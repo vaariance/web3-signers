@@ -16,23 +16,24 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
     )
 
     func createKey(
-        keyTag: String, completion: @escaping (Result<FlutterStandardTypedData, Error>) -> Void
+        keyTag: String, options: DarwinOptions,
+        completion: @escaping (Result<FlutterStandardTypedData, Error>) -> Void
     ) {
         cryptoQueue.async { [weak self] in
             guard let self = self else { return }
 
             if self.getSecKey(from: keyTag) != nil {
-                let msg = "Key already exists"
-                let err = NSError(
-                    domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: msg])
-                DispatchQueue.main.async { completion(.failure(err)) }
+                DispatchQueue.main.async {
+                    completion(.failure(KEY_ALREADY_EXISTS))
+                }
                 return
             }
 
             var attributes: [String: Any]
-            switch self.createAccessControl() {
+            switch self.createAccessControl(options: options) {
             case .success(let access):
-                attributes = self.createKeyAttributes(keyTag: keyTag, access: access)
+                attributes = self.createKeyAttributes(
+                    keyTag: keyTag, access: access, options: options)
             case .failure(let error):
                 DispatchQueue.main.async { completion(.failure(error)) }
                 return
@@ -41,7 +42,10 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
             var error: Unmanaged<CFError>?
             guard let key = SecKeyCreateRandomKey(attributes as CFDictionary, &error) else {
                 let err = error!.takeRetainedValue() as Error
-                DispatchQueue.main.async { completion(.failure(err)) }
+                let details = err.localizedDescription
+                DispatchQueue.main.async {
+                    completion(.failure(KEY_GENERATION_FAILED(details: details)))
+                }
                 return
             }
 
@@ -56,10 +60,11 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
 
             let status = SecItemDelete(self.keyQuery(keyTag: keyTag))
             guard status == errSecSuccess || status == errSecItemNotFound else {
-                let msg = "Keychain Error"
-                let err = NSError(
-                    domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: msg])
-                DispatchQueue.main.async { completion(.failure(err)) }
+                let msg =
+                    SecCopyErrorMessageString(status, nil) as String? ?? "Unknown Keychain Error"
+                DispatchQueue.main.async {
+                    completion(.failure(PLATFORM_ERROR(details: msg)))
+                }
                 return
             }
             DispatchQueue.main.async { completion(.success(())) }
@@ -74,10 +79,9 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
             guard let self = self else { return }
 
             guard let key = self.getSecKey(from: keyTag) else {
-                let msg = "Key not found"
-                let err = NSError(
-                    domain: self.domain, code: -1, userInfo: [NSLocalizedDescriptionKey: msg])
-                DispatchQueue.main.async { completion(.failure(err)) }
+                DispatchQueue.main.async {
+                    completion(.failure(KEY_NOT_FOUND))
+                }
                 return
             }
 
@@ -91,9 +95,9 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
                     dataBytes as CFData,
                     &error) as Data?
             else {
-                DispatchQueue.main.async {
-                    completion(.failure(error!.takeRetainedValue() as Error))
-                }
+                let err = error!.takeRetainedValue() as Error
+                let details = err.localizedDescription
+                DispatchQueue.main.async { completion(.failure(SIGNING_FAILED(details: details))) }
                 return
             }
 
@@ -140,41 +144,76 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
         FlutterStandardTypedData, Error
     > {
         guard let publicKey = SecKeyCopyPublicKey(privateKey) else {
-            let msg = "Failed to generate public key from private key"
-            let err = NSError(domain: domain, code: -1, userInfo: [NSLocalizedDescriptionKey: msg])
-            return .failure(err)
+            return .failure(PUBLIC_KEY_RETRIEVAL_FAILED)
         }
 
         var error: Unmanaged<CFError>?
         if let keyData = SecKeyCopyExternalRepresentation(publicKey, &error) as Data? {
             return .success(FlutterStandardTypedData(bytes: keyData))
         } else {
-            return .failure(error!.takeRetainedValue() as Error)
+            let err = error!.takeRetainedValue() as Error
+            return .failure(PUBLIC_KEY_RETRIEVAL_FAILED)
         }
     }
 
-    private func createAccessControl() -> Result<SecAccessControl, Error> {
+    private func createAccessControl(options: DarwinOptions) -> Result<SecAccessControl, Error> {
         var error: Unmanaged<CFError>?
-        let flags: SecAccessControlCreateFlags = [.privateKeyUsage, .biometryAny]
+
+        let accessibility: CFString
+        switch options.accessible {
+        case .whenUnlocked:
+            accessibility = kSecAttrAccessibleWhenUnlocked
+        case .afterFirstUnlock:
+            accessibility = kSecAttrAccessibleAfterFirstUnlock
+        case .whenUnlockedThisDeviceOnly:
+            accessibility = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        case .whenPasscodeSetThisDeviceOnly:
+            accessibility = kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly
+        case .afterFirstUnlockThisDeviceOnly:
+            accessibility = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        }
+
+        var flags: SecAccessControlCreateFlags = [.privateKeyUsage]
+
+        if options.requireUserAuthentication {
+            if options.allowFallbackAuthentication {
+                flags.insert(.userPresence)
+            } else {
+                if options.invalidateOnBiometricChange {
+                    flags.insert(.biometryCurrentSet)
+                } else {
+                    flags.insert(.biometryAny)
+                }
+            }
+        }
+
         let access = SecAccessControlCreateWithFlags(
             kCFAllocatorDefault,
-            kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+            accessibility,
             flags,
-            &error)!
+            &error)
 
         if let error = error {
-            return .failure(error.takeRetainedValue() as Error)
+            let err = error.takeRetainedValue() as Error
+            let details = err.localizedDescription
+            return .failure(PLATFORM_ERROR(details: details))
         }
-        return .success(access)
+        return .success(access!)
     }
 
-    private func createKeyAttributes(keyTag: String, access: SecAccessControl) -> [String: Any] {
+    private func createKeyAttributes(
+        keyTag: String, access: SecAccessControl, options: DarwinOptions
+    ) -> [String: Any] {
         var privateKeyAttrs: [String: Any] = [
-            kSecAttrIsPermanent as String: true,
+            kSecAttrIsPermanent as String: options.isParmanent,
             kSecAttrApplicationTag as String: keyTag.data(using: .utf8)!,
             kSecAttrAccessControl as String: access,
             kSecAttrCanSign as String: true,
         ]
+
+        if let accessGroup = options.accessGroup {
+            privateKeyAttrs[kSecAttrAccessGroup as String] = accessGroup
+        }
 
         var attributes: [String: Any] = [
             kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom,
@@ -182,9 +221,9 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
             kSecPrivateKeyAttrs as String: privateKeyAttrs,
         ]
 
-        #if !targetEnvironment(simulator)
+        if options.useSecureEnclave {
             attributes[kSecAttrTokenID as String] = kSecAttrTokenIDSecureEnclave
-        #endif
+        }
 
         return attributes
     }
@@ -196,7 +235,7 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
         var query: [String: Any] = [
             kSecClass as String: kSecClassKey,
             kSecAttrApplicationTag as String: keyTag.data(using: .utf8)!,
-            kSecAttrKeyType as String: kSecAttrKeyTypeEC,
+            kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom,
             kSecMatchLimit as String: kSecMatchLimitOne,
         ]
 

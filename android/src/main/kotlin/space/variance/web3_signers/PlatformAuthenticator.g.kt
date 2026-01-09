@@ -2,6 +2,7 @@
 // See also: https://pub.dev/packages/pigeon
 @file:Suppress("UNCHECKED_CAST", "ArrayInDataClass")
 
+package space.variance.web3_signers
 
 import android.util.Log
 import io.flutter.plugin.common.BasicMessageChannel
@@ -33,6 +34,36 @@ private object PlatformAuthenticatorPigeonUtils {
       )
     }
   }
+  fun deepEquals(a: Any?, b: Any?): Boolean {
+    if (a is ByteArray && b is ByteArray) {
+        return a.contentEquals(b)
+    }
+    if (a is IntArray && b is IntArray) {
+        return a.contentEquals(b)
+    }
+    if (a is LongArray && b is LongArray) {
+        return a.contentEquals(b)
+    }
+    if (a is DoubleArray && b is DoubleArray) {
+        return a.contentEquals(b)
+    }
+    if (a is Array<*> && b is Array<*>) {
+      return a.size == b.size &&
+          a.indices.all{ deepEquals(a[it], b[it]) }
+    }
+    if (a is List<*> && b is List<*>) {
+      return a.size == b.size &&
+          a.indices.all{ deepEquals(a[it], b[it]) }
+    }
+    if (a is Map<*, *> && b is Map<*, *>) {
+      return a.size == b.size && a.all {
+          (b as Map<Any?, Any?>).contains(it.key) &&
+          deepEquals(it.value, b[it.key])
+      }
+    }
+    return a == b
+  }
+      
 }
 
 /**
@@ -46,12 +77,83 @@ class FlutterError (
   override val message: String? = null,
   val details: Any? = null
 ) : Throwable()
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class AndroidOptions (
+  val useStrongBoxKeyMint: Boolean,
+  val authTimeoutSeconds: Long,
+  val requireUserAuthentication: Boolean,
+  val invalidateOnBiometricChange: Boolean,
+  val allowFallbackAuthentication: Boolean,
+  val userConfirmationRequired: Boolean,
+  val attestationChallenge: ByteArray? = null,
+  val biometricPromptTitle: String,
+  val biometricPromptSubtitle: String,
+  val biometricPromptDescription: String,
+  val biometricPromptNegativeButtonText: String
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): AndroidOptions {
+      val useStrongBoxKeyMint = pigeonVar_list[0] as Boolean
+      val authTimeoutSeconds = pigeonVar_list[1] as Long
+      val requireUserAuthentication = pigeonVar_list[2] as Boolean
+      val invalidateOnBiometricChange = pigeonVar_list[3] as Boolean
+      val allowFallbackAuthentication = pigeonVar_list[4] as Boolean
+      val userConfirmationRequired = pigeonVar_list[5] as Boolean
+      val attestationChallenge = pigeonVar_list[6] as ByteArray?
+      val biometricPromptTitle = pigeonVar_list[7] as String
+      val biometricPromptSubtitle = pigeonVar_list[8] as String
+      val biometricPromptDescription = pigeonVar_list[9] as String
+      val biometricPromptNegativeButtonText = pigeonVar_list[10] as String
+      return AndroidOptions(useStrongBoxKeyMint, authTimeoutSeconds, requireUserAuthentication, invalidateOnBiometricChange, allowFallbackAuthentication, userConfirmationRequired, attestationChallenge, biometricPromptTitle, biometricPromptSubtitle, biometricPromptDescription, biometricPromptNegativeButtonText)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      useStrongBoxKeyMint,
+      authTimeoutSeconds,
+      requireUserAuthentication,
+      invalidateOnBiometricChange,
+      allowFallbackAuthentication,
+      userConfirmationRequired,
+      attestationChallenge,
+      biometricPromptTitle,
+      biometricPromptSubtitle,
+      biometricPromptDescription,
+      biometricPromptNegativeButtonText,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other !is AndroidOptions) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    return PlatformAuthenticatorPigeonUtils.deepEquals(toList(), other.toList())  }
+
+  override fun hashCode(): Int = toList().hashCode()
+}
 private open class PlatformAuthenticatorPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
-    return     super.readValueOfType(type, buffer)
+    return when (type) {
+      129.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          AndroidOptions.fromList(it)
+        }
+      }
+      else -> super.readValueOfType(type, buffer)
+    }
   }
   override fun writeValue(stream: ByteArrayOutputStream, value: Any?)   {
-    super.writeValue(stream, value)
+    when (value) {
+      is AndroidOptions -> {
+        stream.write(129)
+        writeValue(stream, value.toList())
+      }
+      else -> super.writeValue(stream, value)
+    }
   }
 }
 
@@ -63,14 +165,14 @@ interface PlatformAuthenticator {
    * Returns the public key as a 65-byte uncompressed byte array (0x04 || X || Y).
    * Throws if generation fails.
    */
-  fun createKey(keyTag: String, callback: (Result<ByteArray>) -> Unit)
+  fun createKey(keyTag: String, options: AndroidOptions, callback: (Result<ByteArray>) -> Unit)
   /** Deletes the key associated with the given tag. */
   fun deleteKey(keyTag: String, callback: (Result<Unit>) -> Unit)
   /**
    * Signs the data using the key associated with the given tag.
    * Returns the signature (R || S) bytes.
    */
-  fun sign(keyTag: String, data: ByteArray, callback: (Result<ByteArray>) -> Unit)
+  fun sign(keyTag: String, data: ByteArray, options: AndroidOptions, callback: (Result<ByteArray>) -> Unit)
   /**
    * Retrieves the public key for the given tag.
    * Returns 65-byte uncompressed public key.
@@ -92,7 +194,8 @@ interface PlatformAuthenticator {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>
             val keyTagArg = args[0] as String
-            api.createKey(keyTagArg) { result: Result<ByteArray> ->
+            val optionsArg = args[1] as AndroidOptions
+            api.createKey(keyTagArg, optionsArg) { result: Result<ByteArray> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlatformAuthenticatorPigeonUtils.wrapError(error))
@@ -132,7 +235,8 @@ interface PlatformAuthenticator {
             val args = message as List<Any?>
             val keyTagArg = args[0] as String
             val dataArg = args[1] as ByteArray
-            api.sign(keyTagArg, dataArg) { result: Result<ByteArray> ->
+            val optionsArg = args[2] as AndroidOptions
+            api.sign(keyTagArg, dataArg, optionsArg) { result: Result<ByteArray> ->
               val error = result.exceptionOrNull()
               if (error != null) {
                 reply.reply(PlatformAuthenticatorPigeonUtils.wrapError(error))

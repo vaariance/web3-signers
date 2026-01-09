@@ -22,222 +22,329 @@ using flutter::EncodableMap;
 using flutter::EncodableValue;
 
 FlutterError CreateConnectionError(const std::string channel_name) {
-  return FlutterError("channel-error",
-                      "Unable to establish connection on channel: '" +
-                          channel_name + "'.",
-                      EncodableValue(""));
+  return FlutterError(
+      "channel-error",
+      "Unable to establish connection on channel: '" + channel_name + "'.",
+      EncodableValue(""));
 }
+
+// WindowsOptions
+
+WindowsOptions::WindowsOptions(
+  bool use_tpm,
+  bool require_user_authentication,
+  bool invalidate_on_biometric_change,
+  bool allow_fallback_authentication)
+ : use_tpm_(use_tpm),
+    require_user_authentication_(require_user_authentication),
+    invalidate_on_biometric_change_(invalidate_on_biometric_change),
+    allow_fallback_authentication_(allow_fallback_authentication) {}
+
+WindowsOptions::WindowsOptions(
+  bool use_tpm,
+  bool require_user_authentication,
+  bool invalidate_on_biometric_change,
+  bool allow_fallback_authentication,
+  const std::string* windows_hello_prompt,
+  const std::vector<uint8_t>* attestation_challenge)
+ : use_tpm_(use_tpm),
+    require_user_authentication_(require_user_authentication),
+    invalidate_on_biometric_change_(invalidate_on_biometric_change),
+    allow_fallback_authentication_(allow_fallback_authentication),
+    windows_hello_prompt_(windows_hello_prompt ? std::optional<std::string>(*windows_hello_prompt) : std::nullopt),
+    attestation_challenge_(attestation_challenge ? std::optional<std::vector<uint8_t>>(*attestation_challenge) : std::nullopt) {}
+
+bool WindowsOptions::use_tpm() const {
+  return use_tpm_;
+}
+
+void WindowsOptions::set_use_tpm(bool value_arg) {
+  use_tpm_ = value_arg;
+}
+
+
+bool WindowsOptions::require_user_authentication() const {
+  return require_user_authentication_;
+}
+
+void WindowsOptions::set_require_user_authentication(bool value_arg) {
+  require_user_authentication_ = value_arg;
+}
+
+
+bool WindowsOptions::invalidate_on_biometric_change() const {
+  return invalidate_on_biometric_change_;
+}
+
+void WindowsOptions::set_invalidate_on_biometric_change(bool value_arg) {
+  invalidate_on_biometric_change_ = value_arg;
+}
+
+
+bool WindowsOptions::allow_fallback_authentication() const {
+  return allow_fallback_authentication_;
+}
+
+void WindowsOptions::set_allow_fallback_authentication(bool value_arg) {
+  allow_fallback_authentication_ = value_arg;
+}
+
+
+const std::string* WindowsOptions::windows_hello_prompt() const {
+  return windows_hello_prompt_ ? &(*windows_hello_prompt_) : nullptr;
+}
+
+void WindowsOptions::set_windows_hello_prompt(const std::string_view* value_arg) {
+  windows_hello_prompt_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
+}
+
+void WindowsOptions::set_windows_hello_prompt(std::string_view value_arg) {
+  windows_hello_prompt_ = value_arg;
+}
+
+
+const std::vector<uint8_t>* WindowsOptions::attestation_challenge() const {
+  return attestation_challenge_ ? &(*attestation_challenge_) : nullptr;
+}
+
+void WindowsOptions::set_attestation_challenge(const std::vector<uint8_t>* value_arg) {
+  attestation_challenge_ = value_arg ? std::optional<std::vector<uint8_t>>(*value_arg) : std::nullopt;
+}
+
+void WindowsOptions::set_attestation_challenge(const std::vector<uint8_t>& value_arg) {
+  attestation_challenge_ = value_arg;
+}
+
+
+EncodableList WindowsOptions::ToEncodableList() const {
+  EncodableList list;
+  list.reserve(6);
+  list.push_back(EncodableValue(use_tpm_));
+  list.push_back(EncodableValue(require_user_authentication_));
+  list.push_back(EncodableValue(invalidate_on_biometric_change_));
+  list.push_back(EncodableValue(allow_fallback_authentication_));
+  list.push_back(windows_hello_prompt_ ? EncodableValue(*windows_hello_prompt_) : EncodableValue());
+  list.push_back(attestation_challenge_ ? EncodableValue(*attestation_challenge_) : EncodableValue());
+  return list;
+}
+
+WindowsOptions WindowsOptions::FromEncodableList(const EncodableList& list) {
+  WindowsOptions decoded(
+    std::get<bool>(list[0]),
+    std::get<bool>(list[1]),
+    std::get<bool>(list[2]),
+    std::get<bool>(list[3]));
+  auto& encodable_windows_hello_prompt = list[4];
+  if (!encodable_windows_hello_prompt.IsNull()) {
+    decoded.set_windows_hello_prompt(std::get<std::string>(encodable_windows_hello_prompt));
+  }
+  auto& encodable_attestation_challenge = list[5];
+  if (!encodable_attestation_challenge.IsNull()) {
+    decoded.set_attestation_challenge(std::get<std::vector<uint8_t>>(encodable_attestation_challenge));
+  }
+  return decoded;
+}
+
 
 PigeonInternalCodecSerializer::PigeonInternalCodecSerializer() {}
 
 EncodableValue PigeonInternalCodecSerializer::ReadValueOfType(
-    uint8_t type, flutter::ByteStreamReader *stream) const {
-  return flutter::StandardCodecSerializer::ReadValueOfType(type, stream);
+  uint8_t type,
+  flutter::ByteStreamReader* stream) const {
+  switch (type) {
+    case 129: {
+        return CustomEncodableValue(WindowsOptions::FromEncodableList(std::get<EncodableList>(ReadValue(stream))));
+      }
+    default:
+      return flutter::StandardCodecSerializer::ReadValueOfType(type, stream);
+    }
 }
 
 void PigeonInternalCodecSerializer::WriteValue(
-    const EncodableValue &value, flutter::ByteStreamWriter *stream) const {
+  const EncodableValue& value,
+  flutter::ByteStreamWriter* stream) const {
+  if (const CustomEncodableValue* custom_value = std::get_if<CustomEncodableValue>(&value)) {
+    if (custom_value->type() == typeid(WindowsOptions)) {
+      stream->WriteByte(129);
+      WriteValue(EncodableValue(std::any_cast<WindowsOptions>(*custom_value).ToEncodableList()), stream);
+      return;
+    }
+  }
   flutter::StandardCodecSerializer::WriteValue(value, stream);
 }
 
 /// The codec used by PlatformAuthenticator.
-const flutter::StandardMessageCodec &PlatformAuthenticator::GetCodec() {
-  return flutter::StandardMessageCodec::GetInstance(
-      &PigeonInternalCodecSerializer::GetInstance());
+const flutter::StandardMessageCodec& PlatformAuthenticator::GetCodec() {
+  return flutter::StandardMessageCodec::GetInstance(&PigeonInternalCodecSerializer::GetInstance());
 }
 
-// Sets up an instance of `PlatformAuthenticator` to handle messages through the
-// `binary_messenger`.
-void PlatformAuthenticator::SetUp(flutter::BinaryMessenger *binary_messenger,
-                                  PlatformAuthenticator *api) {
+// Sets up an instance of `PlatformAuthenticator` to handle messages through the `binary_messenger`.
+void PlatformAuthenticator::SetUp(
+  flutter::BinaryMessenger* binary_messenger,
+  PlatformAuthenticator* api) {
   PlatformAuthenticator::SetUp(binary_messenger, api, "");
 }
 
-void PlatformAuthenticator::SetUp(flutter::BinaryMessenger *binary_messenger,
-                                  PlatformAuthenticator *api,
-                                  const std::string &message_channel_suffix) {
-  const std::string prepended_suffix =
-      message_channel_suffix.length() > 0
-          ? std::string(".") + message_channel_suffix
-          : "";
+void PlatformAuthenticator::SetUp(
+  flutter::BinaryMessenger* binary_messenger,
+  PlatformAuthenticator* api,
+  const std::string& message_channel_suffix) {
+  const std::string prepended_suffix = message_channel_suffix.length() > 0 ? std::string(".") + message_channel_suffix : "";
   {
-    BasicMessageChannel<> channel(
-        binary_messenger,
-        "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.createKey" +
-            prepended_suffix,
-        &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.createKey" + prepended_suffix, &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler(
-          [api](const EncodableValue &message,
-                const flutter::MessageReply<EncodableValue> &reply) {
-            try {
-              const auto &args = std::get<EncodableList>(message);
-              const auto &encodable_key_tag_arg = args.at(0);
-              if (encodable_key_tag_arg.IsNull()) {
-                reply(WrapError("key_tag_arg unexpectedly null."));
-                return;
-              }
-              const auto &key_tag_arg =
-                  std::get<std::string>(encodable_key_tag_arg);
-              api->CreateKey(
-                  key_tag_arg, [reply](ErrorOr<std::vector<uint8_t>> &&output) {
-                    if (output.has_error()) {
-                      reply(WrapError(output.error()));
-                      return;
-                    }
-                    EncodableList wrapped;
-                    wrapped.push_back(
-                        EncodableValue(std::move(output).TakeValue()));
-                    reply(EncodableValue(std::move(wrapped)));
-                  });
-            } catch (const std::exception &exception) {
-              reply(WrapError(exception.what()));
+      channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_key_tag_arg = args.at(0);
+          if (encodable_key_tag_arg.IsNull()) {
+            reply(WrapError("key_tag_arg unexpectedly null."));
+            return;
+          }
+          const auto& key_tag_arg = std::get<std::string>(encodable_key_tag_arg);
+          const auto& encodable_options_arg = args.at(1);
+          if (encodable_options_arg.IsNull()) {
+            reply(WrapError("options_arg unexpectedly null."));
+            return;
+          }
+          const auto& options_arg = std::any_cast<const WindowsOptions&>(std::get<CustomEncodableValue>(encodable_options_arg));
+          api->CreateKey(key_tag_arg, options_arg, [reply](ErrorOr<std::vector<uint8_t>>&& output) {
+            if (output.has_error()) {
+              reply(WrapError(output.error()));
+              return;
             }
+            EncodableList wrapped;
+            wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+            reply(EncodableValue(std::move(wrapped)));
           });
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel.SetMessageHandler(nullptr);
     }
   }
   {
-    BasicMessageChannel<> channel(
-        binary_messenger,
-        "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.deleteKey" +
-            prepended_suffix,
-        &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.deleteKey" + prepended_suffix, &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler(
-          [api](const EncodableValue &message,
-                const flutter::MessageReply<EncodableValue> &reply) {
-            try {
-              const auto &args = std::get<EncodableList>(message);
-              const auto &encodable_key_tag_arg = args.at(0);
-              if (encodable_key_tag_arg.IsNull()) {
-                reply(WrapError("key_tag_arg unexpectedly null."));
-                return;
-              }
-              const auto &key_tag_arg =
-                  std::get<std::string>(encodable_key_tag_arg);
-              api->DeleteKey(key_tag_arg,
-                             [reply](std::optional<FlutterError> &&output) {
-                               if (output.has_value()) {
-                                 reply(WrapError(output.value()));
-                                 return;
-                               }
-                               EncodableList wrapped;
-                               wrapped.push_back(EncodableValue());
-                               reply(EncodableValue(std::move(wrapped)));
-                             });
-            } catch (const std::exception &exception) {
-              reply(WrapError(exception.what()));
+      channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_key_tag_arg = args.at(0);
+          if (encodable_key_tag_arg.IsNull()) {
+            reply(WrapError("key_tag_arg unexpectedly null."));
+            return;
+          }
+          const auto& key_tag_arg = std::get<std::string>(encodable_key_tag_arg);
+          api->DeleteKey(key_tag_arg, [reply](std::optional<FlutterError>&& output) {
+            if (output.has_value()) {
+              reply(WrapError(output.value()));
+              return;
             }
+            EncodableList wrapped;
+            wrapped.push_back(EncodableValue());
+            reply(EncodableValue(std::move(wrapped)));
           });
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel.SetMessageHandler(nullptr);
     }
   }
   {
-    BasicMessageChannel<> channel(
-        binary_messenger,
-        "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.sign" +
-            prepended_suffix,
-        &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.sign" + prepended_suffix, &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler(
-          [api](const EncodableValue &message,
-                const flutter::MessageReply<EncodableValue> &reply) {
-            try {
-              const auto &args = std::get<EncodableList>(message);
-              const auto &encodable_key_tag_arg = args.at(0);
-              if (encodable_key_tag_arg.IsNull()) {
-                reply(WrapError("key_tag_arg unexpectedly null."));
-                return;
-              }
-              const auto &key_tag_arg =
-                  std::get<std::string>(encodable_key_tag_arg);
-              const auto &encodable_data_arg = args.at(1);
-              if (encodable_data_arg.IsNull()) {
-                reply(WrapError("data_arg unexpectedly null."));
-                return;
-              }
-              const auto &data_arg =
-                  std::get<std::vector<uint8_t>>(encodable_data_arg);
-              api->Sign(key_tag_arg, data_arg,
-                        [reply](ErrorOr<std::vector<uint8_t>> &&output) {
-                          if (output.has_error()) {
-                            reply(WrapError(output.error()));
-                            return;
-                          }
-                          EncodableList wrapped;
-                          wrapped.push_back(
-                              EncodableValue(std::move(output).TakeValue()));
-                          reply(EncodableValue(std::move(wrapped)));
-                        });
-            } catch (const std::exception &exception) {
-              reply(WrapError(exception.what()));
+      channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_key_tag_arg = args.at(0);
+          if (encodable_key_tag_arg.IsNull()) {
+            reply(WrapError("key_tag_arg unexpectedly null."));
+            return;
+          }
+          const auto& key_tag_arg = std::get<std::string>(encodable_key_tag_arg);
+          const auto& encodable_data_arg = args.at(1);
+          if (encodable_data_arg.IsNull()) {
+            reply(WrapError("data_arg unexpectedly null."));
+            return;
+          }
+          const auto& data_arg = std::get<std::vector<uint8_t>>(encodable_data_arg);
+          const auto& encodable_options_arg = args.at(2);
+          if (encodable_options_arg.IsNull()) {
+            reply(WrapError("options_arg unexpectedly null."));
+            return;
+          }
+          const auto& options_arg = std::any_cast<const WindowsOptions&>(std::get<CustomEncodableValue>(encodable_options_arg));
+          api->Sign(key_tag_arg, data_arg, options_arg, [reply](ErrorOr<std::vector<uint8_t>>&& output) {
+            if (output.has_error()) {
+              reply(WrapError(output.error()));
+              return;
             }
+            EncodableList wrapped;
+            wrapped.push_back(EncodableValue(std::move(output).TakeValue()));
+            reply(EncodableValue(std::move(wrapped)));
           });
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel.SetMessageHandler(nullptr);
     }
   }
   {
-    BasicMessageChannel<> channel(
-        binary_messenger,
-        "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.getPublicKey" +
-            prepended_suffix,
-        &GetCodec());
+    BasicMessageChannel<> channel(binary_messenger, "dev.flutter.pigeon.web3_signers.PlatformAuthenticator.getPublicKey" + prepended_suffix, &GetCodec());
     if (api != nullptr) {
-      channel.SetMessageHandler(
-          [api](const EncodableValue &message,
-                const flutter::MessageReply<EncodableValue> &reply) {
-            try {
-              const auto &args = std::get<EncodableList>(message);
-              const auto &encodable_key_tag_arg = args.at(0);
-              if (encodable_key_tag_arg.IsNull()) {
-                reply(WrapError("key_tag_arg unexpectedly null."));
-                return;
-              }
-              const auto &key_tag_arg =
-                  std::get<std::string>(encodable_key_tag_arg);
-              api->GetPublicKey(
-                  key_tag_arg,
-                  [reply](
-                      ErrorOr<std::optional<std::vector<uint8_t>>> &&output) {
-                    if (output.has_error()) {
-                      reply(WrapError(output.error()));
-                      return;
-                    }
-                    EncodableList wrapped;
-                    auto output_optional = std::move(output).TakeValue();
-                    if (output_optional) {
-                      wrapped.push_back(
-                          EncodableValue(std::move(output_optional).value()));
-                    } else {
-                      wrapped.push_back(EncodableValue());
-                    }
-                    reply(EncodableValue(std::move(wrapped)));
-                  });
-            } catch (const std::exception &exception) {
-              reply(WrapError(exception.what()));
+      channel.SetMessageHandler([api](const EncodableValue& message, const flutter::MessageReply<EncodableValue>& reply) {
+        try {
+          const auto& args = std::get<EncodableList>(message);
+          const auto& encodable_key_tag_arg = args.at(0);
+          if (encodable_key_tag_arg.IsNull()) {
+            reply(WrapError("key_tag_arg unexpectedly null."));
+            return;
+          }
+          const auto& key_tag_arg = std::get<std::string>(encodable_key_tag_arg);
+          api->GetPublicKey(key_tag_arg, [reply](ErrorOr<std::optional<std::vector<uint8_t>>>&& output) {
+            if (output.has_error()) {
+              reply(WrapError(output.error()));
+              return;
             }
+            EncodableList wrapped;
+            auto output_optional = std::move(output).TakeValue();
+            if (output_optional) {
+              wrapped.push_back(EncodableValue(std::move(output_optional).value()));
+            } else {
+              wrapped.push_back(EncodableValue());
+            }
+            reply(EncodableValue(std::move(wrapped)));
           });
+        } catch (const std::exception& exception) {
+          reply(WrapError(exception.what()));
+        }
+      });
     } else {
       channel.SetMessageHandler(nullptr);
     }
   }
 }
 
-EncodableValue
-PlatformAuthenticator::WrapError(std::string_view error_message) {
-  return EncodableValue(
-      EncodableList{EncodableValue(std::string(error_message)),
-                    EncodableValue("Error"), EncodableValue()});
+EncodableValue PlatformAuthenticator::WrapError(std::string_view error_message) {
+  return EncodableValue(EncodableList{
+    EncodableValue(std::string(error_message)),
+    EncodableValue("Error"),
+    EncodableValue()
+  });
 }
 
-EncodableValue PlatformAuthenticator::WrapError(const FlutterError &error) {
-  return EncodableValue(EncodableList{EncodableValue(error.code()),
-                                      EncodableValue(error.message()),
-                                      error.details()});
+EncodableValue PlatformAuthenticator::WrapError(const FlutterError& error) {
+  return EncodableValue(EncodableList{
+    EncodableValue(error.code()),
+    EncodableValue(error.message()),
+    error.details()
+  });
 }
 
-} // namespace web3_signers
+}  // namespace web3_signers

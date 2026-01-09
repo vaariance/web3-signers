@@ -64,11 +64,161 @@ private func nilOrValue<T>(_ value: Any?) -> T? {
   return value as! T?
 }
 
+func deepEqualsPlatformAuthenticator(_ lhs: Any?, _ rhs: Any?) -> Bool {
+  let cleanLhs = nilOrValue(lhs) as Any?
+  let cleanRhs = nilOrValue(rhs) as Any?
+  switch (cleanLhs, cleanRhs) {
+  case (nil, nil):
+    return true
+
+  case (nil, _), (_, nil):
+    return false
+
+  case is (Void, Void):
+    return true
+
+  case let (cleanLhsHashable, cleanRhsHashable) as (AnyHashable, AnyHashable):
+    return cleanLhsHashable == cleanRhsHashable
+
+  case let (cleanLhsArray, cleanRhsArray) as ([Any?], [Any?]):
+    guard cleanLhsArray.count == cleanRhsArray.count else { return false }
+    for (index, element) in cleanLhsArray.enumerated() {
+      if !deepEqualsPlatformAuthenticator(element, cleanRhsArray[index]) {
+        return false
+      }
+    }
+    return true
+
+  case let (cleanLhsDictionary, cleanRhsDictionary) as ([AnyHashable: Any?], [AnyHashable: Any?]):
+    guard cleanLhsDictionary.count == cleanRhsDictionary.count else { return false }
+    for (key, cleanLhsValue) in cleanLhsDictionary {
+      guard cleanRhsDictionary.index(forKey: key) != nil else { return false }
+      if !deepEqualsPlatformAuthenticator(cleanLhsValue, cleanRhsDictionary[key]!) {
+        return false
+      }
+    }
+    return true
+
+  default:
+    // Any other type shouldn't be able to be used with pigeon. File an issue if you find this to be untrue.
+    return false
+  }
+}
+
+func deepHashPlatformAuthenticator(value: Any?, hasher: inout Hasher) {
+  if let valueList = value as? [AnyHashable] {
+     for item in valueList { deepHashPlatformAuthenticator(value: item, hasher: &hasher) }
+     return
+  }
+
+  if let valueDict = value as? [AnyHashable: AnyHashable] {
+    for key in valueDict.keys { 
+      hasher.combine(key)
+      deepHashPlatformAuthenticator(value: valueDict[key]!, hasher: &hasher)
+    }
+    return
+  }
+
+  if let hashableValue = value as? AnyHashable {
+    hasher.combine(hashableValue.hashValue)
+  }
+
+  return hasher.combine(String(describing: value))
+}
+
+    
+
+enum DarwinAccessible: Int {
+  /// can only be accessed while the device is unlocked.
+  case whenUnlocked = 0
+  /// can only be accessed once the device has been unlocked after a restart.
+  case afterFirstUnlock = 1
+  /// can only be accessed while the device is unlocked on this device.
+  case whenUnlockedThisDeviceOnly = 2
+  /// can only be accessed after the first unlock on this device.
+  case whenPasscodeSetThisDeviceOnly = 3
+  /// can only be accessed after the first unlock on this device.
+  case afterFirstUnlockThisDeviceOnly = 4
+}
+
+/// Generated class from Pigeon that represents data sent in messages.
+struct DarwinOptions: Hashable {
+  var useSecureEnclave: Bool
+  var accessGroup: String? = nil
+  var requireUserAuthentication: Bool
+  var invalidateOnBiometricChange: Bool
+  var allowFallbackAuthentication: Bool
+  var isParmanent: Bool
+  var accessible: DarwinAccessible
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> DarwinOptions? {
+    let useSecureEnclave = pigeonVar_list[0] as! Bool
+    let accessGroup: String? = nilOrValue(pigeonVar_list[1])
+    let requireUserAuthentication = pigeonVar_list[2] as! Bool
+    let invalidateOnBiometricChange = pigeonVar_list[3] as! Bool
+    let allowFallbackAuthentication = pigeonVar_list[4] as! Bool
+    let isParmanent = pigeonVar_list[5] as! Bool
+    let accessible = pigeonVar_list[6] as! DarwinAccessible
+
+    return DarwinOptions(
+      useSecureEnclave: useSecureEnclave,
+      accessGroup: accessGroup,
+      requireUserAuthentication: requireUserAuthentication,
+      invalidateOnBiometricChange: invalidateOnBiometricChange,
+      allowFallbackAuthentication: allowFallbackAuthentication,
+      isParmanent: isParmanent,
+      accessible: accessible
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      useSecureEnclave,
+      accessGroup,
+      requireUserAuthentication,
+      invalidateOnBiometricChange,
+      allowFallbackAuthentication,
+      isParmanent,
+      accessible,
+    ]
+  }
+  static func == (lhs: DarwinOptions, rhs: DarwinOptions) -> Bool {
+    return deepEqualsPlatformAuthenticator(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashPlatformAuthenticator(value: toList(), hasher: &hasher)
+  }
+}
 
 private class PlatformAuthenticatorPigeonCodecReader: FlutterStandardReader {
+  override func readValue(ofType type: UInt8) -> Any? {
+    switch type {
+    case 129:
+      let enumResultAsInt: Int? = nilOrValue(self.readValue() as! Int?)
+      if let enumResultAsInt = enumResultAsInt {
+        return DarwinAccessible(rawValue: enumResultAsInt)
+      }
+      return nil
+    case 130:
+      return DarwinOptions.fromList(self.readValue() as! [Any?])
+    default:
+      return super.readValue(ofType: type)
+    }
+  }
 }
 
 private class PlatformAuthenticatorPigeonCodecWriter: FlutterStandardWriter {
+  override func writeValue(_ value: Any) {
+    if let value = value as? DarwinAccessible {
+      super.writeByte(129)
+      super.writeValue(value.rawValue)
+    } else if let value = value as? DarwinOptions {
+      super.writeByte(130)
+      super.writeValue(value.toList())
+    } else {
+      super.writeValue(value)
+    }
+  }
 }
 
 private class PlatformAuthenticatorPigeonCodecReaderWriter: FlutterStandardReaderWriter {
@@ -91,7 +241,7 @@ protocol PlatformAuthenticator {
   /// Generates a new key pair in the secure element/keystore.
   /// Returns the public key as a 65-byte uncompressed byte array (0x04 || X || Y).
   /// Throws if generation fails.
-  func createKey(keyTag: String, completion: @escaping (Result<FlutterStandardTypedData, Error>) -> Void)
+  func createKey(keyTag: String, options: DarwinOptions, completion: @escaping (Result<FlutterStandardTypedData, Error>) -> Void)
   /// Deletes the key associated with the given tag.
   func deleteKey(keyTag: String, completion: @escaping (Result<Void, Error>) -> Void)
   /// Signs the data using the key associated with the given tag.
@@ -116,7 +266,8 @@ class PlatformAuthenticatorSetup {
       createKeyChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]
         let keyTagArg = args[0] as! String
-        api.createKey(keyTag: keyTagArg) { result in
+        let optionsArg = args[1] as! DarwinOptions
+        api.createKey(keyTag: keyTagArg, options: optionsArg) { result in
           switch result {
           case .success(let res):
             reply(wrapResult(res))

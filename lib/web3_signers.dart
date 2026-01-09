@@ -16,10 +16,11 @@ import 'package:pointycastle/export.dart' hide PublicKey, Signature;
 import 'package:web3dart/src/utils/uuid.dart';
 import 'package:web3dart/web3dart.dart';
 
-import 'src/api/platform_authenticator.g.dart';
+import 'src/api/platform_authenticator.dart';
 import 'src/utils/constants.dart';
 import 'src/utils/enums.dart';
 
+export 'src/api/platform_authenticator.dart';
 export 'src/utils/enums.dart';
 export 'src/vendor/safe.dart';
 

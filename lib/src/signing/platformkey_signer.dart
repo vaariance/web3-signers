@@ -77,7 +77,11 @@ final class PlatformKeySigner implements Signer {
 
   @override
   Future<Signature> signAsync(Uint8List preImage) async {
-    final sigBytes = await _authenticator.sign(_config.keyTag, preImage);
+    final sigBytes = await _authenticator.sign(_config.keyTag, preImage, (
+      android: _config.androidOptions,
+      darwin: _config.darwinOptions,
+      windows: _config.windowsOptions,
+    ));
     final sig = getMessagingSignature(Bytes.fromList(sigBytes));
     final curve = SigningCurve.r1;
     final ecSig = Signature(sig.r.value, sig.s.value, curve: curve);

@@ -13,11 +13,23 @@ interface class PlatformConfig implements P256Config {
   /// The unique identifier used to store and retrieve the key from the platform storage.
   final String keyTag;
 
+  final AndroidOptions? androidOptions;
+  final DarwinOptions? darwinOptions;
+  final WindowsOptions? windowsOptions;
+
   /// Creates a new instance of [PlatformConfig].
   ///
   /// Parameters:
   /// - [keyTag]: The unique identifier for the key.
-  const PlatformConfig({required this.keyTag});
+  /// - [androidOptions]: The Android-specific options.
+  /// - [darwinOptions]: The iOS/macOS-specific options.
+  /// - [windowsOptions]: The Windows-specific options.
+  const PlatformConfig({
+    required this.keyTag,
+    this.androidOptions,
+    this.darwinOptions,
+    this.windowsOptions,
+  });
 }
 
 /// Represents options for PassKeys operations, extending SignatureOptions.

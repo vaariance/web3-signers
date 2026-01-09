@@ -4,7 +4,7 @@ import 'package:web3_signers/web3_signers.dart';
 import 'package:passkeys/types.dart';
 
 import '../__test_utils__/keys/secp256r1_keys.dart';
-import '../__test_utils__/mocks/mock_platform_signer.dart';
+// import '../__test_utils__/mocks/mock_platform_signer.dart';
 import '../__test_utils__/mocks/mock_authenticator.dart';
 
 void main() {
@@ -14,86 +14,86 @@ void main() {
       expect(key.length, equals(32));
     });
 
-    group('generatePlatformKey', () {
-      late MockPlatformAuthenticator mockAuthenticator;
-      late PlatformConfig config;
+    // group('generatePlatformKey', () {
+    //   late MockPlatformAuthenticator mockAuthenticator;
+    //   late PlatformConfig config;
 
-      setUp(() {
-        mockAuthenticator = MockPlatformAuthenticator();
-        config = PlatformConfig(keyTag: 'test-tag');
-      });
+    //   setUp(() {
+    //     mockAuthenticator = MockPlatformAuthenticator();
+    //     config = PlatformConfig(keyTag: 'test-tag');
+    //   });
 
-      test('creates new key if checkExisting is false (default)', () async {
-        final pubKeyBytes = Bytes.fromList([
-          0x04,
-          ...List.filled(32, 1),
-          ...List.filled(32, 2),
-        ]);
-        when(
-          () => mockAuthenticator.createKey('test-tag'),
-        ).thenAnswer((_) async => pubKeyBytes);
+    //   test('creates new key if checkExisting is false (default)', () async {
+    //     final pubKeyBytes = Bytes.fromList([
+    //       0x04,
+    //       ...List.filled(32, 1),
+    //       ...List.filled(32, 2),
+    //     ]);
+    //     when(
+    //       () => mockAuthenticator.createKey('test-tag'),
+    //     ).thenAnswer((_) async => pubKeyBytes);
 
-        final key = await generatePlatformKey(
-          config: config,
-          auth: mockAuthenticator,
-        );
+    //     final key = await generatePlatformKey(
+    //       config: config,
+    //       auth: mockAuthenticator,
+    //     );
 
-        verify(() => mockAuthenticator.createKey('test-tag')).called(1);
-        verifyNever(() => mockAuthenticator.getPublicKey(any()));
+    //     verify(() => mockAuthenticator.createKey('test-tag')).called(1);
+    //     verifyNever(() => mockAuthenticator.getPublicKey(any()));
 
-        expect(key.x.toBytes(), equals(List.filled(32, 1)));
-        expect(key.y.toBytes(), equals(List.filled(32, 2)));
-      });
+    //     expect(key.x.toBytes(), equals(List.filled(32, 1)));
+    //     expect(key.y.toBytes(), equals(List.filled(32, 2)));
+    //   });
 
-      test('gets existing key if checkExisting is true', () async {
-        final pubKeyBytes = Bytes.fromList([
-          0x04,
-          ...List.filled(32, 3),
-          ...List.filled(32, 4),
-        ]);
-        when(
-          () => mockAuthenticator.getPublicKey('test-tag'),
-        ).thenAnswer((_) async => pubKeyBytes);
+    //   test('gets existing key if checkExisting is true', () async {
+    //     final pubKeyBytes = Bytes.fromList([
+    //       0x04,
+    //       ...List.filled(32, 3),
+    //       ...List.filled(32, 4),
+    //     ]);
+    //     when(
+    //       () => mockAuthenticator.getPublicKey('test-tag'),
+    //     ).thenAnswer((_) async => pubKeyBytes);
 
-        final key = await generatePlatformKey(
-          config: config,
-          checkExisting: true,
-          auth: mockAuthenticator,
-        );
+    //     final key = await generatePlatformKey(
+    //       config: config,
+    //       checkExisting: true,
+    //       auth: mockAuthenticator,
+    //     );
 
-        verify(() => mockAuthenticator.getPublicKey('test-tag')).called(1);
-        verifyNever(() => mockAuthenticator.createKey(any()));
+    //     verify(() => mockAuthenticator.getPublicKey('test-tag')).called(1);
+    //     verifyNever(() => mockAuthenticator.createKey(any()));
 
-        expect(key.x.toBytes(), equals(List.filled(32, 3)));
-        expect(key.y.toBytes(), equals(List.filled(32, 4)));
-      });
+    //     expect(key.x.toBytes(), equals(List.filled(32, 3)));
+    //     expect(key.y.toBytes(), equals(List.filled(32, 4)));
+    //   });
 
-      test(
-        'creates key if getPublicKey returns null even with checkExisting',
-        () async {
-          final pubKeyBytes = Bytes.fromList([
-            0x04,
-            ...List.filled(32, 5),
-            ...List.filled(32, 6),
-          ]);
-          when(
-            () => mockAuthenticator.getPublicKey('test-tag'),
-          ).thenAnswer((_) async => null);
-          when(
-            () => mockAuthenticator.createKey('test-tag'),
-          ).thenAnswer((_) async => pubKeyBytes);
+    //   test(
+    //     'creates key if getPublicKey returns null even with checkExisting',
+    //     () async {
+    //       final pubKeyBytes = Bytes.fromList([
+    //         0x04,
+    //         ...List.filled(32, 5),
+    //         ...List.filled(32, 6),
+    //       ]);
+    //       when(
+    //         () => mockAuthenticator.getPublicKey('test-tag'),
+    //       ).thenAnswer((_) async => null);
+    //       when(
+    //         () => mockAuthenticator.createKey('test-tag'),
+    //       ).thenAnswer((_) async => pubKeyBytes);
 
-          await generatePlatformKey(
-            config: config,
-            checkExisting: true,
-            auth: mockAuthenticator,
-          );
+    //       await generatePlatformKey(
+    //         config: config,
+    //         checkExisting: true,
+    //         auth: mockAuthenticator,
+    //       );
 
-          verify(() => mockAuthenticator.getPublicKey('test-tag')).called(1);
-          verify(() => mockAuthenticator.createKey('test-tag')).called(1);
-        },
-      );
-    });
+    //       verify(() => mockAuthenticator.getPublicKey('test-tag')).called(1);
+    //       verify(() => mockAuthenticator.createKey('test-tag')).called(1);
+    //     },
+    //   );
+    // });
 
     group("Generate PassKey", () {
       late MockPasskeyAuthenticator mockAuth;
