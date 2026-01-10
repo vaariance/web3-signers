@@ -3,26 +3,6 @@ allprojects {
         google()
         mavenCentral()
     }
-    // don't do this. as corbado to add a namespace to thier passkeys_android package instead
-    // and support gradle 8+
-    subprojects {
-        afterEvaluate { project ->
-            if (project.hasProperty('android')) {
-                project.android {
-                    if (namespace == null) {
-                        namespace project.group
-                    }
-                }
-            }
-        }
-    }
-    // don't do this, ask corbado to upgrade their androidx:credentials versions
-    configurations.all {
-        resolutionStrategy {
-            force "androidx.credentials:credentials:1.5.0-alpha05"
-            force 'androidx.credentials:credentials-play-services-auth:1.5.0-alpha05'
-        }
-    }
 }
 
 rootProject.buildDir = "../build"

@@ -59,15 +59,15 @@ typedef PlatformOptions =
 class PlatformAuthenticator {
   @visibleForTesting
   late darwin_auth.PlatformAuthenticator darwinAuth =
-      darwin_auth.PlatformAuthenticator(messageChannelSuffix: "darwin_auth");
+      darwin_auth.PlatformAuthenticator();
 
   @visibleForTesting
   late android_auth.PlatformAuthenticator androidAuth =
-      android_auth.PlatformAuthenticator(messageChannelSuffix: "android_auth");
+      android_auth.PlatformAuthenticator();
 
   @visibleForTesting
   late windows_auth.PlatformAuthenticator windowsAuth =
-      windows_auth.PlatformAuthenticator(messageChannelSuffix: "windows_auth");
+      windows_auth.PlatformAuthenticator();
 
   PlatformAuthenticator();
 

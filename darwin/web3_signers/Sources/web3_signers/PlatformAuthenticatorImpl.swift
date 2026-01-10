@@ -1,4 +1,5 @@
 import Foundation
+import LocalAuthentication
 
 #if os(iOS)
     import Flutter
@@ -78,7 +79,10 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
         cryptoQueue.async { [weak self] in
             guard let self = self else { return }
 
-            guard let key = self.getSecKey(from: keyTag) else {
+            let context = LAContext()
+            context.localizedReason = "Sign a Payload on your device"
+
+            guard let key = self.getSecKey(from: keyTag, context: context) else {
                 DispatchQueue.main.async {
                     completion(.failure(KEY_NOT_FOUND))
                 }
@@ -129,10 +133,10 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
         }
     }
 
-    private func getSecKey(from keyTag: String) -> SecKey? {
+    private func getSecKey(from keyTag: String, context: LAContext? = nil) -> SecKey? {
         var item: CFTypeRef?
         let status = SecItemCopyMatching(
-            keyQuery(keyTag: keyTag, returnRef: true),
+            keyQuery(keyTag: keyTag, returnRef: true, context: context),
             &item
         )
         guard status == errSecSuccess else { return nil }
@@ -230,7 +234,8 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
 
     private func keyQuery(
         keyTag: String,
-        returnRef: Bool = false
+        returnRef: Bool = false,
+        context: LAContext? = nil
     ) -> CFDictionary {
         var query: [String: Any] = [
             kSecClass as String: kSecClassKey,
@@ -241,6 +246,10 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
 
         if returnRef {
             query[kSecReturnRef as String] = true
+        }
+
+        if let context = context {
+            query[kSecUseAuthenticationContext as String] = context
         }
 
         return query as CFDictionary

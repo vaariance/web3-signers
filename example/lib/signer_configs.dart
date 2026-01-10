@@ -1,14 +1,24 @@
 import 'package:web3_signers/web3_signers.dart';
 
-final androidOptions = AndroidPlatformOptions();
+// this configurations are ideal for simulators.
+// on real device please spec it out according to your needs
+final Bytes attestationChallenge = Bytes(32);
+final androidOptions = AndroidPlatformOptions(
+    requireUserAuthentication: false,
+    attestationChallenge: attestationChallenge);
 // disable secure enclave for simulators
-final darwinOptions = DarwinPlatformOptions(useSecureEnclave: false);
+final darwinOptions = DarwinPlatformOptions(
+    useSecureEnclave: true,
+    isParmanent: true,
+    accessible: DarwinAccessible.whenUnlocked,
+    invalidateOnBiometricChange: false,
+    requireUserAuthentication: true);
 final windowsOptions = WindowsPlatformOptions();
 
 const passkeyConfig = PassKeyConfig(rpId: "variance.space", rpName: "Variance");
 
 final platformConfig = PlatformConfig(
-    keyTag: "com.example.web3_signers",
+    keyTag: "space.variance.web3_signers",
     androidOptions: androidOptions,
     darwinOptions: darwinOptions,
     windowsOptions: windowsOptions);

@@ -1,4 +1,4 @@
-package com.example.web3_signers
+package space.variance.web3_signers
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

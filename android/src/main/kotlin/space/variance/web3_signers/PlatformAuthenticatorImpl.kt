@@ -141,7 +141,7 @@ class PlatformAuthenticatorImpl(private val context: Context) : PlatformAuthenti
         coroutineScope.launch {
             try {
                 val publicKey = withContext(Dispatchers.IO) {
-                    val secKey = getSecKey(keyTag) ?: throw KEY_NOT_FOUND
+                    val secKey = getSecKey(keyTag) ?: return@withContext null
                     val publicKey = secKey.certificate.publicKey
                     parsePublicKey(publicKey as ECPublicKey)
                 }
