@@ -8,10 +8,8 @@ final androidOptions = AndroidPlatformOptions(
     attestationChallenge: attestationChallenge);
 // disable secure enclave for simulators
 final darwinOptions = DarwinPlatformOptions(
-    useSecureEnclave: true,
-    isParmanent: true,
-    accessible: DarwinAccessible.whenUnlocked,
-    invalidateOnBiometricChange: false,
+    useSecureEnclave: false,
+    accessible: DarwinAccessible.whenUnlockedThisDeviceOnly,
     requireUserAuthentication: true);
 final windowsOptions = WindowsPlatformOptions();
 

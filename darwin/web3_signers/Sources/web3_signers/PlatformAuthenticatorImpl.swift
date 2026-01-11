@@ -160,9 +160,7 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
         }
     }
 
-    private func createAccessControl(options: DarwinOptions) -> Result<SecAccessControl, Error> {
-        var error: Unmanaged<CFError>?
-
+    private func parseAccessiblity(options: DarwinOptions) -> CFString {
         let accessibility: CFString
         switch options.accessible {
         case .whenUnlocked:
@@ -176,6 +174,13 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
         case .afterFirstUnlockThisDeviceOnly:
             accessibility = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
         }
+        return accessibility
+    }
+
+    private func createAccessControl(options: DarwinOptions) -> Result<SecAccessControl, Error> {
+        var error: Unmanaged<CFError>?
+
+        var accessibility: CFString = parseAccessiblity(options: options)
 
         var flags: SecAccessControlCreateFlags = [.privateKeyUsage]
 
@@ -211,7 +216,6 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
         var privateKeyAttrs: [String: Any] = [
             kSecAttrIsPermanent as String: options.isParmanent,
             kSecAttrApplicationTag as String: keyTag.data(using: .utf8)!,
-            kSecAttrAccessControl as String: access,
             kSecAttrCanSign as String: true,
         ]
 
@@ -222,12 +226,16 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
         var attributes: [String: Any] = [
             kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom,
             kSecAttrKeySizeInBits as String: 256,
-            kSecPrivateKeyAttrs as String: privateKeyAttrs,
         ]
 
         if options.useSecureEnclave {
             attributes[kSecAttrTokenID as String] = kSecAttrTokenIDSecureEnclave
+            privateKeyAttrs[kSecAttrAccessControl as String] = access
+        } else {
+            privateKeyAttrs[kSecAttrAccessible as String] = parseAccessiblity(options: options)
         }
+
+        attributes[kSecPrivateKeyAttrs as String] = privateKeyAttrs
 
         return attributes
     }
