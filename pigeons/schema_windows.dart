@@ -4,12 +4,10 @@ final class WindowsOptions {
   final bool useTpm;
 
   final bool requireUserAuthentication;
-  final bool invalidateOnBiometricChange;
-  final bool allowFallbackAuthentication;
 
   final String uiPolicyFriendlyName;
   final String uiPolicyDescription;
-  
+
   final Uint8List? attestationChallenge;
 
   const WindowsOptions({
@@ -17,9 +15,7 @@ final class WindowsOptions {
     this.attestationChallenge,
     required this.uiPolicyFriendlyName,
     required this.uiPolicyDescription,
-    required this.invalidateOnBiometricChange,
     required this.requireUserAuthentication,
-    required this.allowFallbackAuthentication,
   });
 }
 

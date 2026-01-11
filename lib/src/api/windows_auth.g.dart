@@ -33,8 +33,6 @@ class WindowsOptions {
   WindowsOptions({
     required this.useTpm,
     required this.requireUserAuthentication,
-    required this.invalidateOnBiometricChange,
-    required this.allowFallbackAuthentication,
     required this.uiPolicyFriendlyName,
     required this.uiPolicyDescription,
     this.attestationChallenge,
@@ -43,10 +41,6 @@ class WindowsOptions {
   bool useTpm;
 
   bool requireUserAuthentication;
-
-  bool invalidateOnBiometricChange;
-
-  bool allowFallbackAuthentication;
 
   String uiPolicyFriendlyName;
 
@@ -58,8 +52,6 @@ class WindowsOptions {
     return <Object?>[
       useTpm,
       requireUserAuthentication,
-      invalidateOnBiometricChange,
-      allowFallbackAuthentication,
       uiPolicyFriendlyName,
       uiPolicyDescription,
       attestationChallenge,
@@ -74,11 +66,9 @@ class WindowsOptions {
     return WindowsOptions(
       useTpm: result[0]! as bool,
       requireUserAuthentication: result[1]! as bool,
-      invalidateOnBiometricChange: result[2]! as bool,
-      allowFallbackAuthentication: result[3]! as bool,
-      uiPolicyFriendlyName: result[4]! as String,
-      uiPolicyDescription: result[5]! as String,
-      attestationChallenge: result[6] as Uint8List?,
+      uiPolicyFriendlyName: result[2]! as String,
+      uiPolicyDescription: result[3]! as String,
+      attestationChallenge: result[4] as Uint8List?,
     );
   }
 

@@ -33,29 +33,21 @@ FlutterError CreateConnectionError(const std::string channel_name) {
 WindowsOptions::WindowsOptions(
   bool use_tpm,
   bool require_user_authentication,
-  bool invalidate_on_biometric_change,
-  bool allow_fallback_authentication,
   const std::string& ui_policy_friendly_name,
   const std::string& ui_policy_description)
  : use_tpm_(use_tpm),
     require_user_authentication_(require_user_authentication),
-    invalidate_on_biometric_change_(invalidate_on_biometric_change),
-    allow_fallback_authentication_(allow_fallback_authentication),
     ui_policy_friendly_name_(ui_policy_friendly_name),
     ui_policy_description_(ui_policy_description) {}
 
 WindowsOptions::WindowsOptions(
   bool use_tpm,
   bool require_user_authentication,
-  bool invalidate_on_biometric_change,
-  bool allow_fallback_authentication,
   const std::string& ui_policy_friendly_name,
   const std::string& ui_policy_description,
   const std::vector<uint8_t>* attestation_challenge)
  : use_tpm_(use_tpm),
     require_user_authentication_(require_user_authentication),
-    invalidate_on_biometric_change_(invalidate_on_biometric_change),
-    allow_fallback_authentication_(allow_fallback_authentication),
     ui_policy_friendly_name_(ui_policy_friendly_name),
     ui_policy_description_(ui_policy_description),
     attestation_challenge_(attestation_challenge ? std::optional<std::vector<uint8_t>>(*attestation_challenge) : std::nullopt) {}
@@ -75,24 +67,6 @@ bool WindowsOptions::require_user_authentication() const {
 
 void WindowsOptions::set_require_user_authentication(bool value_arg) {
   require_user_authentication_ = value_arg;
-}
-
-
-bool WindowsOptions::invalidate_on_biometric_change() const {
-  return invalidate_on_biometric_change_;
-}
-
-void WindowsOptions::set_invalidate_on_biometric_change(bool value_arg) {
-  invalidate_on_biometric_change_ = value_arg;
-}
-
-
-bool WindowsOptions::allow_fallback_authentication() const {
-  return allow_fallback_authentication_;
-}
-
-void WindowsOptions::set_allow_fallback_authentication(bool value_arg) {
-  allow_fallback_authentication_ = value_arg;
 }
 
 
@@ -129,11 +103,9 @@ void WindowsOptions::set_attestation_challenge(const std::vector<uint8_t>& value
 
 EncodableList WindowsOptions::ToEncodableList() const {
   EncodableList list;
-  list.reserve(7);
+  list.reserve(5);
   list.push_back(EncodableValue(use_tpm_));
   list.push_back(EncodableValue(require_user_authentication_));
-  list.push_back(EncodableValue(invalidate_on_biometric_change_));
-  list.push_back(EncodableValue(allow_fallback_authentication_));
   list.push_back(EncodableValue(ui_policy_friendly_name_));
   list.push_back(EncodableValue(ui_policy_description_));
   list.push_back(attestation_challenge_ ? EncodableValue(*attestation_challenge_) : EncodableValue());
@@ -144,11 +116,9 @@ WindowsOptions WindowsOptions::FromEncodableList(const EncodableList& list) {
   WindowsOptions decoded(
     std::get<bool>(list[0]),
     std::get<bool>(list[1]),
-    std::get<bool>(list[2]),
-    std::get<bool>(list[3]),
-    std::get<std::string>(list[4]),
-    std::get<std::string>(list[5]));
-  auto& encodable_attestation_challenge = list[6];
+    std::get<std::string>(list[2]),
+    std::get<std::string>(list[3]));
+  auto& encodable_attestation_challenge = list[4];
   if (!encodable_attestation_challenge.IsNull()) {
     decoded.set_attestation_challenge(std::get<std::vector<uint8_t>>(encodable_attestation_challenge));
   }

@@ -42,8 +42,6 @@ class WindowsPlatformOptions extends windows_auth.WindowsOptions {
     super.attestationChallenge,
     super.useTpm = true,
     super.requireUserAuthentication = true,
-    super.invalidateOnBiometricChange = true,
-    super.allowFallbackAuthentication = false,
     super.uiPolicyFriendlyName = "Ethereum Signing Key",
     super.uiPolicyDescription = "Authorizes access to sign Ethereum data.",
   });
