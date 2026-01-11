@@ -1,5 +1,5 @@
-#include "runner/platform_authenticator_impl.h"
-#include "web3_signers/platform_authenticator_errors.h"
+#include "platform_authenticator_errors.h"
+#include "platform_authenticator_impl.h"
 
 #include <windows.h>
 #include <ncrypt.h>
@@ -154,13 +154,14 @@ void PlatformAuthenticatorImpl::CreateKey(
         NCRYPT_UI_POLICY uiPolicy = { 0 };
         uiPolicy.dwVersion = 1;
         uiPolicy.dwFlags = NCRYPT_UI_FORCE_HIGH_PROTECTION_FLAG;
-        
-        std::wstring prompt;
-        if (options.windows_hello_prompt() != nullptr) {
-            prompt = StringToWString(*(options.windows_hello_prompt()));
-            uiPolicy.pszDescription = prompt.c_str();
-            uiPolicy.pszFriendlyName = prompt.c_str(); 
-        }
+
+        std::wstring policyName;
+        policyName = StringToWString(options.ui_policy_friendly_name());
+        uiPolicy.pszFriendlyName = policyName.c_str();
+
+		std::wstring policyDesc;
+        policyDesc = StringToWString(options.ui_policy_description());
+		uiPolicy.pszDescription = policyDesc.c_str();
 
         status = NCryptSetProperty(key.get(), NCRYPT_UI_POLICY_PROPERTY, (PBYTE)&uiPolicy, sizeof(uiPolicy), 0);
         if (status != ERROR_SUCCESS) {

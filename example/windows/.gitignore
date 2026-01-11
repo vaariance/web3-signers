@@ -1,4 +1,4 @@
-flutter/
+flutter/ephemeral/
 
 # Visual Studio user-specific files.
 *.suo
@@ -8,9 +8,7 @@ flutter/
 
 # Visual Studio build-related files.
 x64/
-x64-Debug/
 x86/
-x86-Debug/
 
 # Visual Studio cache files
 # files ending in .cache can be ignored

@@ -30,13 +30,13 @@ final class DarwinOptions {
   final DarwinAccessible accessible;
 
   const DarwinOptions({
-    this.useSecureEnclave = true,
+    required this.useSecureEnclave,
     this.accessGroup,
-    this.invalidateOnBiometricChange = true,
-    this.requireUserAuthentication = true,
-    this.allowFallbackAuthentication = false,
-    this.isParmanent = true,
-    this.accessible = DarwinAccessible.whenUnlocked,
+    required this.invalidateOnBiometricChange,
+    required this.requireUserAuthentication,
+    required this.allowFallbackAuthentication,
+    required this.isParmanent,
+    required this.accessible,
   });
 }
 

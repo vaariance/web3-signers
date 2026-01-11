@@ -7,16 +7,19 @@ final class WindowsOptions {
   final bool invalidateOnBiometricChange;
   final bool allowFallbackAuthentication;
 
-  final String? windowsHelloPrompt;
+  final String uiPolicyFriendlyName;
+  final String uiPolicyDescription;
+  
   final Uint8List? attestationChallenge;
 
   const WindowsOptions({
-    this.useTpm = true,
-    this.windowsHelloPrompt,
+    required this.useTpm,
     this.attestationChallenge,
-    this.invalidateOnBiometricChange = true,
-    this.requireUserAuthentication = true,
-    this.allowFallbackAuthentication = false,
+    required this.uiPolicyFriendlyName,
+    required this.uiPolicyDescription,
+    required this.invalidateOnBiometricChange,
+    required this.requireUserAuthentication,
+    required this.allowFallbackAuthentication,
   });
 }
 

@@ -55,6 +55,5 @@ class PlatformAuthenticatorPlugin : public flutter::Plugin, public PlatformAuthe
 
 } // namespace web3_signers
 
-} // namespace web3_signers
 
 #endif // FLUTTER_PLUGIN_PLATFORM_AUTHENTICATOR_PLUGIN_H_

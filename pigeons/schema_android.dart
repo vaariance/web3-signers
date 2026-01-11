@@ -17,18 +17,17 @@ final class AndroidOptions {
   final String biometricPromptNegativeButtonText;
 
   const AndroidOptions({
-    this.useStrongBoxKeyMint = true,
-    this.authTimeoutSeconds = 0,
+    required this.useStrongBoxKeyMint,
+    required this.authTimeoutSeconds,
     this.attestationChallenge,
-    this.invalidateOnBiometricChange = true,
-    this.requireUserAuthentication = true,
-    this.allowFallbackAuthentication = false,
-    this.userConfirmationRequired = false,
-    this.biometricPromptTitle = "Authenticate",
-    this.biometricPromptSubtitle = "Authenticate with Device",
-    this.biometricPromptDescription =
-        "Authenticate with your device to enable Secure Enclave crypto operation",
-    this.biometricPromptNegativeButtonText = "Cancel",
+    required this.invalidateOnBiometricChange,
+    required this.requireUserAuthentication,
+    required this.allowFallbackAuthentication,
+    required this.userConfirmationRequired,
+    required this.biometricPromptTitle,
+    required this.biometricPromptSubtitle,
+    required this.biometricPromptDescription,
+    required this.biometricPromptNegativeButtonText,
   });
 }
 

@@ -35,7 +35,8 @@ class WindowsOptions {
     required this.requireUserAuthentication,
     required this.invalidateOnBiometricChange,
     required this.allowFallbackAuthentication,
-    this.windowsHelloPrompt,
+    required this.uiPolicyFriendlyName,
+    required this.uiPolicyDescription,
     this.attestationChallenge,
   });
 
@@ -47,7 +48,9 @@ class WindowsOptions {
 
   bool allowFallbackAuthentication;
 
-  String? windowsHelloPrompt;
+  String uiPolicyFriendlyName;
+
+  String uiPolicyDescription;
 
   Uint8List? attestationChallenge;
 
@@ -57,7 +60,8 @@ class WindowsOptions {
       requireUserAuthentication,
       invalidateOnBiometricChange,
       allowFallbackAuthentication,
-      windowsHelloPrompt,
+      uiPolicyFriendlyName,
+      uiPolicyDescription,
       attestationChallenge,
     ];
   }
@@ -72,8 +76,9 @@ class WindowsOptions {
       requireUserAuthentication: result[1]! as bool,
       invalidateOnBiometricChange: result[2]! as bool,
       allowFallbackAuthentication: result[3]! as bool,
-      windowsHelloPrompt: result[4] as String?,
-      attestationChallenge: result[5] as Uint8List?,
+      uiPolicyFriendlyName: result[4]! as String,
+      uiPolicyDescription: result[5]! as String,
+      attestationChallenge: result[6] as Uint8List?,
     );
   }
 

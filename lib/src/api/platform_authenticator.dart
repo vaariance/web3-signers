@@ -19,9 +19,8 @@ class AndroidPlatformOptions extends android_auth.AndroidOptions {
     super.allowFallbackAuthentication = false,
     super.userConfirmationRequired = false,
     super.biometricPromptTitle = "Sign",
-    super.biometricPromptSubtitle = "Sign Transaction",
-    super.biometricPromptDescription =
-        "Authenticate with your device to enable Secure Enclave crypto operation",
+    super.biometricPromptSubtitle = "Sign Ethereum Data",
+    super.biometricPromptDescription = "Authenticate to Sign Ethereum Data",
     super.biometricPromptNegativeButtonText = "Cancel",
   });
 }
@@ -40,12 +39,13 @@ class DarwinPlatformOptions extends darwin_auth.DarwinOptions {
 
 class WindowsPlatformOptions extends windows_auth.WindowsOptions {
   WindowsPlatformOptions({
-    super.windowsHelloPrompt = "Sign Transaction",
     super.attestationChallenge,
     super.useTpm = true,
     super.requireUserAuthentication = true,
     super.invalidateOnBiometricChange = true,
     super.allowFallbackAuthentication = false,
+    super.uiPolicyFriendlyName = "Ethereum Signing Key",
+    super.uiPolicyDescription = "Authorizes access to sign Ethereum data.",
   });
 }
 

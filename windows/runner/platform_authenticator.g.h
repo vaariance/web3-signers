@@ -65,7 +65,9 @@ class WindowsOptions {
     bool use_tpm,
     bool require_user_authentication,
     bool invalidate_on_biometric_change,
-    bool allow_fallback_authentication);
+    bool allow_fallback_authentication,
+    const std::string& ui_policy_friendly_name,
+    const std::string& ui_policy_description);
 
   // Constructs an object setting all fields.
   explicit WindowsOptions(
@@ -73,7 +75,8 @@ class WindowsOptions {
     bool require_user_authentication,
     bool invalidate_on_biometric_change,
     bool allow_fallback_authentication,
-    const std::string* windows_hello_prompt,
+    const std::string& ui_policy_friendly_name,
+    const std::string& ui_policy_description,
     const std::vector<uint8_t>* attestation_challenge);
 
   bool use_tpm() const;
@@ -88,9 +91,11 @@ class WindowsOptions {
   bool allow_fallback_authentication() const;
   void set_allow_fallback_authentication(bool value_arg);
 
-  const std::string* windows_hello_prompt() const;
-  void set_windows_hello_prompt(const std::string_view* value_arg);
-  void set_windows_hello_prompt(std::string_view value_arg);
+  const std::string& ui_policy_friendly_name() const;
+  void set_ui_policy_friendly_name(std::string_view value_arg);
+
+  const std::string& ui_policy_description() const;
+  void set_ui_policy_description(std::string_view value_arg);
 
   const std::vector<uint8_t>* attestation_challenge() const;
   void set_attestation_challenge(const std::vector<uint8_t>* value_arg);
@@ -105,7 +110,8 @@ class WindowsOptions {
   bool require_user_authentication_;
   bool invalidate_on_biometric_change_;
   bool allow_fallback_authentication_;
-  std::optional<std::string> windows_hello_prompt_;
+  std::string ui_policy_friendly_name_;
+  std::string ui_policy_description_;
   std::optional<std::vector<uint8_t>> attestation_challenge_;
 };
 

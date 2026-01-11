@@ -34,24 +34,30 @@ WindowsOptions::WindowsOptions(
   bool use_tpm,
   bool require_user_authentication,
   bool invalidate_on_biometric_change,
-  bool allow_fallback_authentication)
+  bool allow_fallback_authentication,
+  const std::string& ui_policy_friendly_name,
+  const std::string& ui_policy_description)
  : use_tpm_(use_tpm),
     require_user_authentication_(require_user_authentication),
     invalidate_on_biometric_change_(invalidate_on_biometric_change),
-    allow_fallback_authentication_(allow_fallback_authentication) {}
+    allow_fallback_authentication_(allow_fallback_authentication),
+    ui_policy_friendly_name_(ui_policy_friendly_name),
+    ui_policy_description_(ui_policy_description) {}
 
 WindowsOptions::WindowsOptions(
   bool use_tpm,
   bool require_user_authentication,
   bool invalidate_on_biometric_change,
   bool allow_fallback_authentication,
-  const std::string* windows_hello_prompt,
+  const std::string& ui_policy_friendly_name,
+  const std::string& ui_policy_description,
   const std::vector<uint8_t>* attestation_challenge)
  : use_tpm_(use_tpm),
     require_user_authentication_(require_user_authentication),
     invalidate_on_biometric_change_(invalidate_on_biometric_change),
     allow_fallback_authentication_(allow_fallback_authentication),
-    windows_hello_prompt_(windows_hello_prompt ? std::optional<std::string>(*windows_hello_prompt) : std::nullopt),
+    ui_policy_friendly_name_(ui_policy_friendly_name),
+    ui_policy_description_(ui_policy_description),
     attestation_challenge_(attestation_challenge ? std::optional<std::vector<uint8_t>>(*attestation_challenge) : std::nullopt) {}
 
 bool WindowsOptions::use_tpm() const {
@@ -90,16 +96,21 @@ void WindowsOptions::set_allow_fallback_authentication(bool value_arg) {
 }
 
 
-const std::string* WindowsOptions::windows_hello_prompt() const {
-  return windows_hello_prompt_ ? &(*windows_hello_prompt_) : nullptr;
+const std::string& WindowsOptions::ui_policy_friendly_name() const {
+  return ui_policy_friendly_name_;
 }
 
-void WindowsOptions::set_windows_hello_prompt(const std::string_view* value_arg) {
-  windows_hello_prompt_ = value_arg ? std::optional<std::string>(*value_arg) : std::nullopt;
+void WindowsOptions::set_ui_policy_friendly_name(std::string_view value_arg) {
+  ui_policy_friendly_name_ = value_arg;
 }
 
-void WindowsOptions::set_windows_hello_prompt(std::string_view value_arg) {
-  windows_hello_prompt_ = value_arg;
+
+const std::string& WindowsOptions::ui_policy_description() const {
+  return ui_policy_description_;
+}
+
+void WindowsOptions::set_ui_policy_description(std::string_view value_arg) {
+  ui_policy_description_ = value_arg;
 }
 
 
@@ -118,12 +129,13 @@ void WindowsOptions::set_attestation_challenge(const std::vector<uint8_t>& value
 
 EncodableList WindowsOptions::ToEncodableList() const {
   EncodableList list;
-  list.reserve(6);
+  list.reserve(7);
   list.push_back(EncodableValue(use_tpm_));
   list.push_back(EncodableValue(require_user_authentication_));
   list.push_back(EncodableValue(invalidate_on_biometric_change_));
   list.push_back(EncodableValue(allow_fallback_authentication_));
-  list.push_back(windows_hello_prompt_ ? EncodableValue(*windows_hello_prompt_) : EncodableValue());
+  list.push_back(EncodableValue(ui_policy_friendly_name_));
+  list.push_back(EncodableValue(ui_policy_description_));
   list.push_back(attestation_challenge_ ? EncodableValue(*attestation_challenge_) : EncodableValue());
   return list;
 }
@@ -133,12 +145,10 @@ WindowsOptions WindowsOptions::FromEncodableList(const EncodableList& list) {
     std::get<bool>(list[0]),
     std::get<bool>(list[1]),
     std::get<bool>(list[2]),
-    std::get<bool>(list[3]));
-  auto& encodable_windows_hello_prompt = list[4];
-  if (!encodable_windows_hello_prompt.IsNull()) {
-    decoded.set_windows_hello_prompt(std::get<std::string>(encodable_windows_hello_prompt));
-  }
-  auto& encodable_attestation_challenge = list[5];
+    std::get<bool>(list[3]),
+    std::get<std::string>(list[4]),
+    std::get<std::string>(list[5]));
+  auto& encodable_attestation_challenge = list[6];
   if (!encodable_attestation_challenge.IsNull()) {
     decoded.set_attestation_challenge(std::get<std::vector<uint8_t>>(encodable_attestation_challenge));
   }

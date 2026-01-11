@@ -80,7 +80,7 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
             guard let self = self else { return }
 
             let context = LAContext()
-            context.localizedReason = "Sign a Payload on your device"
+            context.localizedReason = "Sign Ethereum Data"
 
             guard let key = self.getSecKey(from: keyTag, context: context) else {
                 DispatchQueue.main.async {

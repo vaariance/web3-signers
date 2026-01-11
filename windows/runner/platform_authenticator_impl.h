@@ -1,7 +1,7 @@
 #ifndef PLATFORM_AUTHENTICATOR_IMPL_H_
 #define PLATFORM_AUTHENTICATOR_IMPL_H_
 
-#include "runner/platform_authenticator.g.h"
+#include "platform_authenticator.g.h"
 #include <vector>
 #include <string>
 #include <functional>
