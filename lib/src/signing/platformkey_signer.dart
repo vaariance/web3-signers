@@ -85,12 +85,12 @@ final class PlatformKeySigner implements Signer {
   }
 
   @override
-  EIP7702MsgSignature sign(Uint8List preImage) {
+  EIP7702MsgSignature sign(Bytes preImage) {
     throw UnsupportedError("Sync signing not supported for PlatformKeySigner");
   }
 
   @override
-  Future<Signature> signAsync(Uint8List preImage) async {
+  Future<Signature> signAsync(Bytes preImage) async {
     final sigBytes = await _authenticator.sign(_config.keyTag, preImage, (
       android: _config.androidOptions,
       darwin: _config.darwinOptions,

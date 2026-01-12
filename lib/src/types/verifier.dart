@@ -154,11 +154,11 @@ final class Verifier {
     final clientDataJSON =
         '{"type":"webauthn.get","challenge":"$hashBase64",${match[1]}}';
     final clientHash = sha256Hash(utf8.encode(clientDataJSON));
-    return signature.authData!.concat(Uint8List.fromList(clientHash));
+    return signature.authData!.concat(Bytes.fromList(clientHash));
   }
 
   static Future<Uint32> _rpcRequest(
-    Uint8List calldata,
+    Bytes calldata,
     String contractAddress,
     String rpcUrl,
   ) async {

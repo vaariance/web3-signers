@@ -2,6 +2,7 @@
 
 ![Pub Version](https://img.shields.io/pub/v/web3_signers)
 ![License](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)
+[![Coverage Status](https://coveralls.io/repos/github/vaariance/web3-signers/badge.svg?branch=main)](https://coveralls.io/github/vaariance/web3-signers?branch=main)
 
 **A generic signing interface for Smart Accounts (ERC-4337, EIP-7702), ERC-1271, and ERC-7739 validation.**
 

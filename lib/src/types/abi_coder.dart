@@ -15,7 +15,7 @@ interface class Abi {
   ///
   /// Parameters:
   ///   - `types`: A list of string types describing the ABI types to decode.
-  ///   - `value`: A [Uint8List] containing the ABI-encoded data to be decoded.
+  ///   - `value`: A [Bytes] containing the ABI-encoded data to be decoded.
   ///
   /// Returns:
   ///   A list of decoded values with the specified type.
@@ -35,7 +35,7 @@ interface class Abi {
   ///   - `values`: A list of dynamic values to be ABI-encoded.
   ///
   /// Returns:
-  ///   A [Uint8List] containing the ABI-encoded types and values.
+  ///   A [Bytes] containing the ABI-encoded types and values.
   ///
   /// Example:
   /// ```dart

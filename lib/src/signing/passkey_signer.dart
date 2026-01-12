@@ -60,7 +60,7 @@ final class PassKeySigner implements Signer {
   @override
   Signature getDummySignature() {
     final uv = _config.userVerification == "required" ? 0x04 : 0x01;
-    final dummyAdField = Uint8List(37);
+    final dummyAdField = Bytes(37);
     dummyAdField.fillRange(0, dummyAdField.length, 0xfe);
     dummyAdField[32] = uv;
 
@@ -82,14 +82,14 @@ final class PassKeySigner implements Signer {
   }
 
   @override
-  Signature sign(Uint8List preImage) {
+  Signature sign(Bytes preImage) {
     throw UnsupportedError(
       'Passkey signing requires user interaction; use signAsync(preImage).',
     );
   }
 
   @override
-  Future<Signature> signAsync(Uint8List preImage) async {
+  Future<Signature> signAsync(Bytes preImage) async {
     final hashBase64 = b64e(preImage);
 
     final assertion = await _authenticate(hashBase64);
@@ -131,7 +131,7 @@ final class PassKeySigner implements Signer {
   /// This method is deprecated; use [signAsync] instead.
   @Deprecated("use SignAsync")
   Future<Signature> signToPasskeySignature(
-    Uint8List hash, {
+    Bytes hash, {
     List<CredentialType>? knownCredentials,
   }) {
     return signAsync(hash);

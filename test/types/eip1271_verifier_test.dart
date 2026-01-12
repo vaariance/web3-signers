@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:web3_signers/web3_signers.dart';
@@ -14,7 +13,7 @@ void main() {
       final signer = LocalKeySigner.fromRawPrivateKey(
         hexToBytes(validPrivateKey),
       );
-      final message = Uint8List.fromList(List.filled(32, 0x1));
+      final message = Bytes.fromList(List.filled(32, 0x1));
 
       // Manually sign (we know LocalKeySigner does correct signature)
       final signature = signer.sign(
@@ -39,8 +38,8 @@ void main() {
       HttpOverrides.runZoned(
         () async {
           final isValid = await Verifier.isValidContractSignature(
-            Uint8List(32),
-            Uint8List(65),
+            Bytes(32),
+            Bytes(65),
             contractAddress,
             rpcUrl,
           );

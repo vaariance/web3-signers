@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:web3_signers/web3_signers.dart';
@@ -5,6 +7,7 @@ import 'package:web3_signers/web3_signers.dart';
 import 'package:web3dart/web3dart.dart';
 
 import '../__test_utils__/mocks/mock_platform_signer.dart';
+import '../__test_utils__/keys/secp256r1_keys.dart' as keys;
 
 void main() {
   group('PlatformKeySigner', () {
@@ -14,12 +17,16 @@ void main() {
     late PlatformPublicKey publicKey;
 
     final testKeyTag = 'test-key-tag';
-    final x = BigInt.parse(
-      "1234567890123456789012345678901234567890123456789012345678901234",
-    );
-    final y = BigInt.parse(
-      "1234567890123456789012345678901234567890123456789012345678901234",
-    );
+    final x = hexToInt(keys.sePubKeyx);
+    final y = hexToInt(keys.sePubKeyy);
+
+    setUpAll(() {
+      registerFallbackValue((
+        android: AndroidPlatformOptions(),
+        darwin: DarwinPlatformOptions(),
+        windows: WindowsPlatformOptions(),
+      ));
+    });
 
     setUp(() {
       mockAuthenticator = MockPlatformAuthenticator();
@@ -55,43 +62,36 @@ void main() {
       expect(signer.getAddress(), equals(expectedAddress));
     });
 
-    // TODO: use a valid ASN.1 signature
-    // test('signAsync calls API and returns valid signature', () async {
-    //   final message = utf8.encode("Hello World");
+    test('signAsync calls API and returns valid signature', () async {
+      final message = keys.seMessage;
+      final messageBytes = utf8.encode(message);
+      final prefix = '\u0019Ethereum Signed Message:\n${messageBytes.length}';
+      final preImage = ascii.encode(prefix).concat(messageBytes);
 
-    //   // Mock API returns r and s bytes
-    //   // Expected signature bytes (64 bytes: 32 R + 32 S)
-    //   final rBytes = List.filled(32, 1);
-    //   final sBytes = List.filled(32, 2);
-    //   final signatureBytes = [...rBytes, ...sBytes];
+      // Mock API returns valid DER encoded signature bytes
+      final signatureResponse = hexToBytes(keys.seSignResponse);
 
-    //   when(
-    //     () => mockApi.sign(testKeyTag, any()),
-    //   ).thenAnswer((_) async => signatureBytes);
+      when(
+        () => mockAuthenticator.sign(testKeyTag, preImage, any()),
+      ).thenAnswer((_) async => signatureResponse);
 
-    //   final signature = await signer.signAsync(message);
+      final signature = await signer.personalSign(messageBytes);
 
-    //   expect(
-    //     signature.r,
-    //     equals(
-    //       BigInt.parse(
-    //         "0101010101010101010101010101010101010101010101010101010101010101",
-    //         radix: 16,
-    //       ),
-    //     ),
-    //   );
-    //   expect(
-    //     signature.s,
-    //     equals(
-    //       BigInt.parse(
-    //         "0202020202020202020202020202020202020202020202020202020202020202",
-    //         radix: 16,
-    //       ),
-    //     ),
-    //   );
+      expect(signature.r, equals(hexToInt(keys.seSigR)));
+      expect(signature.s, equals(hexToInt(keys.seSigS)));
 
-    //   verify(() => mockApi.sign(testKeyTag, message)).called(1);
-    // });
+      // Verify signature using Verifier (signature is EIP-191 compliant)
+      final isValid = Verifier.isValidSignedMessage(
+        messageBytes,
+        signature,
+        signer.publicKey,
+      );
+      expect(isValid, equals(IsValidSignatureResponse.success));
+
+      verify(
+        () => mockAuthenticator.sign(testKeyTag, preImage, any()),
+      ).called(1);
+    });
 
     test('getDummySignature returns valid placeholder', () {
       final dummy = signer.getDummySignature();

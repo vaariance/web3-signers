@@ -710,7 +710,7 @@ abstract interface class _Uint {
   int get hashCode => Object.hash(_value, bitWidth);
 
   /// Converts this Uint to a hexadecimal string with '0x' prefix.
-  String toHex() => '0x${toString()}';
+  String toHex() => '0x${toString().padLeft(_hexLength, '0')}';
 
   /// Converts this Uint to an integer.
   int toInt() => _value.toInt();

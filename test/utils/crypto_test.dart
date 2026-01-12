@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:web3_signers/web3_signers.dart';
 
@@ -76,7 +75,7 @@ void main() {
       }
 
       final content = [...toDerInteger(r), ...toDerInteger(s)];
-      final der = Uint8List.fromList([0x30, content.length, ...content]);
+      final der = Bytes.fromList([0x30, content.length, ...content]);
 
       final sig = getMessagingSignature(Bytes.fromList(der));
       expect(sig.r, equals(Uint256(r)));

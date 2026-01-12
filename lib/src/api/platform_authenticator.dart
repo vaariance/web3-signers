@@ -240,7 +240,7 @@ class PlatformAuthenticator {
   ///
   /// Example:
   /// ```dart
-  /// final dataToSign = Uint8List.fromList([1, 2, 3, 4]);
+  /// final dataToSign = Bytes.fromList([1, 2, 3, 4]);
   /// final signature = await authenticator.sign(
   ///   'my_secure_key',
   ///   dataToSign,
