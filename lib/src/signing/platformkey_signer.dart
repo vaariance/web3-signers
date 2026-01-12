@@ -1,11 +1,18 @@
 part of '../../web3_signers.dart';
 
+/// A signer that uses a platform-specific key (KeyStore/Keychain) for signing.
+///
+/// This signer interacts with a [PlatformAuthenticator] to perform secure signing operations
+/// backed by hardware security modules (HSM) or TEE where available.
 final class PlatformKeySigner implements Signer {
   final PlatformAuthenticator _authenticator;
   final PlatformConfig _config;
 
   final PlatformPublicKey _key;
 
+  /// Creates a [PlatformKeySigner] with a specific configuration and public key.
+  ///
+  /// Uses the default [PlatformAuthenticator].
   factory PlatformKeySigner.withConfig(
     PlatformConfig config,
     PlatformPublicKey key,
@@ -13,7 +20,11 @@ final class PlatformKeySigner implements Signer {
     return PlatformKeySigner._(PlatformAuthenticator(), config, key);
   }
 
-  factory PlatformKeySigner.withApi(
+  /// Creates a [PlatformKeySigner] with a custom authenticator.
+  ///
+  /// This factory prevents the default [PlatformAuthenticator] from being used,
+  /// allowing for dependency injection or custom implementations.
+  factory PlatformKeySigner.withAuthenticator(
     PlatformAuthenticator authenticator,
     PlatformConfig config,
     PlatformPublicKey key,
@@ -41,6 +52,9 @@ final class PlatformKeySigner implements Signer {
   @override
   bool get supportsSyncSigning => false;
 
+  /// Deletes the signing key from the platform's secure storage.
+  ///
+  /// This operation is irreversible.
   Future<void> deleteSigningKey() async {
     await _authenticator.deleteKey(_config.keyTag);
   }

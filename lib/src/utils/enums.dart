@@ -1,10 +1,15 @@
 import 'package:pointycastle/export.dart';
 import 'package:web3_signers/web3_signers.dart' show Uint32;
 
+/// The type of signer used to sign transactions.
 enum SignerType { localKey, platformKey, passKey }
 
+/// The response code returned by a smart contract when verifying a signature via EIP-1271.
 enum IsValidSignatureResponse {
+  /// The magic value returning success (0x1626ba7e).
   success("0x1626ba7e"),
+
+  /// The value indicating failure (0xffffffff).
   failure("0xffffffff");
 
   final String value;
@@ -20,8 +25,12 @@ enum IsValidSignatureResponse {
   }
 }
 
+/// The strength of the mnemonic phrase in bits.
 enum WordLength {
+  /// 12 words (128 bits of entropy).
   word_12(128),
+
+  /// 24 words (256 bits of entropy).
   word_24(256);
 
   final int wordsStrength;
@@ -29,10 +38,18 @@ enum WordLength {
   const WordLength(this.wordsStrength);
 }
 
+/// The transport mechanisms available for Passkey authentication.
 enum PassKeyTransports {
+  /// Bluetooth Low Energy.
   bluetooth("ble"),
+
+  /// USB.
   usb("usb"),
+
+  /// Near Field Communication.
   nfc("nfc"),
+
+  /// Internal transport (e.g., Touch ID, Face ID).
   device("internal");
 
   final String transport;
@@ -40,18 +57,21 @@ enum PassKeyTransports {
   const PassKeyTransports(this.transport);
 }
 
+/// The level of attestation provided by the authenticator during registration.
 enum PasskeyAttestationLevel { none, indirect, direct, enterprise }
 
-/// Categorizes all non standard key type
-/// - webauthn - for passkeys
-/// - secureElement - for platform keys like (keystore,TPM,secure enclave)
-/// - physical - for hardware keys like (ledger, trezor, etc)
-/// - server - for server side keys like (server wallets, mpcs, TEE keys, etc)
-enum GenericKeyType { webauthn, secureElement, physical, server }
+/// The elliptic curve used for signing.
+enum SigningCurve {
+  /// secp256r1 (NIST P-256).
+  r1,
 
-enum SigningCurve { r1, k1 }
+  /// secp256k1 (Bitcoin/Ethereum).
+  k1,
+}
 
+/// Extensions on [SigningCurve] to retrieve curve parameters and digest algorithms.
 extension SigningCurveX on SigningCurve {
+  /// Returns the domain parameters for this curve.
   ECDomainParameters get curveParams {
     switch (this) {
       case SigningCurve.r1:
@@ -61,6 +81,7 @@ extension SigningCurveX on SigningCurve {
     }
   }
 
+  /// Returns the message digest algorithm for this curve.
   Digest get digest {
     switch (this) {
       case SigningCurve.r1:

@@ -214,7 +214,7 @@ class PlatformAuthenticatorImpl: PlatformAuthenticator {
         keyTag: String, access: SecAccessControl, options: DarwinOptions
     ) -> [String: Any] {
         var privateKeyAttrs: [String: Any] = [
-            kSecAttrIsPermanent as String: options.isParmanent,
+            kSecAttrIsPermanent as String: options.isPermanent,
             kSecAttrApplicationTag as String: keyTag.data(using: .utf8)!,
             kSecAttrCanSign as String: true,
         ]

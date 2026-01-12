@@ -1,15 +1,25 @@
 part of '../../web3_signers.dart';
 
+/// A signer that uses a Passkey (WebAuthn) for signing.
+///
+/// This signer interacts with a [PasskeyAuthenticator] to sign transactions and messages.
 final class PassKeySigner implements Signer {
   final PasskeyAuthenticator _authenticator;
   final PassKeyConfig _config;
 
   final PassKeyPublicKey _key;
 
+  /// Creates a [PassKeySigner] with a specific configuration and public key.
+  ///
+  /// Uses the default [PasskeyAuthenticator].
   factory PassKeySigner.withConfig(PassKeyConfig config, PassKeyPublicKey key) {
     return PassKeySigner._(PasskeyAuthenticator(), config, key);
   }
 
+  /// Creates a [PassKeySigner] with a custom authenticator.
+  ///
+  /// This factory prevents the default [PasskeyAuthenticator] from being used,
+  /// allowing for dependency injection or custom implementations.
   factory PassKeySigner.withAuthenticator(
     PasskeyAuthenticator authenticator,
     PassKeyConfig config,
@@ -116,6 +126,9 @@ final class PassKeySigner implements Signer {
     return signature;
   }
 
+  /// Signs a hash using the Passkey authenticator.
+  ///
+  /// This method is deprecated; use [signAsync] instead.
   @Deprecated("use SignAsync")
   Future<Signature> signToPasskeySignature(
     Uint8List hash, {

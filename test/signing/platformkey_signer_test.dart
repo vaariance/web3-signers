@@ -25,7 +25,11 @@ void main() {
       mockAuthenticator = MockPlatformAuthenticator();
       config = PlatformConfig(keyTag: testKeyTag);
       publicKey = PlatformPublicKey(x: Uint256(x), y: Uint256(y));
-      signer = PlatformKeySigner.withApi(mockAuthenticator, config, publicKey);
+      signer = PlatformKeySigner.withAuthenticator(
+        mockAuthenticator,
+        config,
+        publicKey,
+      );
     });
 
     test('kind is platformKey', () {

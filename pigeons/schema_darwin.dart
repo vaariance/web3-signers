@@ -25,7 +25,7 @@ final class DarwinOptions {
   final bool invalidateOnBiometricChange;
   final bool allowFallbackAuthentication;
 
-  final bool isParmanent;
+  final bool isPermanent;
 
   final DarwinAccessible accessible;
 
@@ -35,7 +35,7 @@ final class DarwinOptions {
     required this.invalidateOnBiometricChange,
     required this.requireUserAuthentication,
     required this.allowFallbackAuthentication,
-    required this.isParmanent,
+    required this.isPermanent,
     required this.accessible,
   });
 }

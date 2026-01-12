@@ -2,8 +2,10 @@ part of '../../web3_signers.dart';
 
 /// Generates a new random secp256k1 private key.
 ///
-/// - Uses `PointyCastle`’s `ECKeyGenerator` seeded with `Random.secure()`.
-/// - Returns a 32-byte private key.
+/// Uses `PointyCastle`'s `ECKeyGenerator` seeded with a cryptographically secure
+/// random number generator ([Random.secure]).
+///
+/// Returns a 32-byte [Bytes] list representing the private key.
 Bytes generatePrivateKey() {
   final generator = ECKeyGenerator();
   generator.init(
@@ -16,6 +18,27 @@ Bytes generatePrivateKey() {
   return unsignedIntToBytes(keyPair.privateKey.d!);
 }
 
+/// Generates a new key pair using the platform's secure hardware authenticator.
+///
+/// This function coordinates with the [PlatformAuthenticator] to create a persistent
+/// key pair identifying the user or device.
+///
+/// - [config]: Configuration parameters including the key tag and platform-specific options.
+/// - [checkExisting]: If `true`, attempts to retrieve an existing public key for the tag before creating a new one. Defaults to `false`.
+/// - [auth]: Optional instance of [PlatformAuthenticator]. Defaults to a new instance.
+///
+/// Returns a [PlatformPublicKey] containing the purely public components (X and Y coordinates).
+///
+/// Throws [FormatException] if the returned public key is invalid.
+///
+/// Example:
+/// ```dart
+/// final config = PlatformConfig(
+///   keyTag: 'com.example.app.signing_key',
+///   androidOptions: AndroidPlatformOptions(useStrongBoxKeyMint: true),
+/// );
+/// final publicKey = await generatePlatformKey(config: config);
+/// ```
 Future<PlatformPublicKey> generatePlatformKey({
   required PlatformConfig config,
   bool checkExisting = false,
@@ -30,9 +53,9 @@ Future<PlatformPublicKey> generatePlatformKey({
   }
 
   pubKeyBytes ??= await auth.createKey(config.keyTag, (
-    android: config.androidOptions,
-    darwin: config.darwinOptions,
-    windows: config.windowsOptions,
+    android: config.androidOptions ?? AndroidPlatformOptions(),
+    darwin: config.darwinOptions ?? DarwinPlatformOptions(),
+    windows: config.windowsOptions ?? WindowsPlatformOptions(),
   ));
 
   if (pubKeyBytes.length != 65 || pubKeyBytes[0] != 0x04) {
@@ -44,6 +67,31 @@ Future<PlatformPublicKey> generatePlatformKey({
   return PlatformPublicKey(x: x, y: y);
 }
 
+/// Registers a new WebAuthn/Passkey credential with a relying party.
+///
+/// This function handles the creation of a new passkey credential, including
+/// setting up the user entity, selection criteria, and parsing the attestation response.
+///
+/// - [config]: Configuration for the passkey registration (RP ID, timeout, etc.).
+/// - [username]: The human-readable name of the user (e.g., email address).
+/// - [displayname]: The display name of the user.
+/// - [userIdBase64]: Optional Base64 encoded user ID. If null, a random UUIDv4 is generated.
+/// - [challenge]: Optional Base64 encoded challenge. If null, a random challenge is generated.
+/// - [attestationLevel]: The desired attestation level. Defaults to [PasskeyAttestationLevel.none].
+/// - [excludedCredentials]: A list of credential IDs to exclude (to prevent re-registration).
+/// - [auth]: Optional instance of [PasskeyAuthenticator]. Defaults to a new instance.
+///
+/// Returns a [PassKeyPublicKey] containing the public key coordinates and credential metadata.
+///
+/// Example:
+/// ```dart
+/// final config = PassKeyConfig(rpId: 'example.com', rpName: 'Example App');
+/// final credential = await generatePassKey(
+///   config: config,
+///   username: 'user@example.com',
+///   displayname: 'User Name',
+/// );
+/// ```
 Future<PassKeyPublicKey> generatePassKey({
   required PassKeyConfig config,
   required String username,

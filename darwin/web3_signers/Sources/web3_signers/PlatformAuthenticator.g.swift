@@ -148,7 +148,7 @@ struct DarwinOptions: Hashable {
   var requireUserAuthentication: Bool
   var invalidateOnBiometricChange: Bool
   var allowFallbackAuthentication: Bool
-  var isParmanent: Bool
+  var isPermanent: Bool
   var accessible: DarwinAccessible
 
 
@@ -159,7 +159,7 @@ struct DarwinOptions: Hashable {
     let requireUserAuthentication = pigeonVar_list[2] as! Bool
     let invalidateOnBiometricChange = pigeonVar_list[3] as! Bool
     let allowFallbackAuthentication = pigeonVar_list[4] as! Bool
-    let isParmanent = pigeonVar_list[5] as! Bool
+    let isPermanent = pigeonVar_list[5] as! Bool
     let accessible = pigeonVar_list[6] as! DarwinAccessible
 
     return DarwinOptions(
@@ -168,7 +168,7 @@ struct DarwinOptions: Hashable {
       requireUserAuthentication: requireUserAuthentication,
       invalidateOnBiometricChange: invalidateOnBiometricChange,
       allowFallbackAuthentication: allowFallbackAuthentication,
-      isParmanent: isParmanent,
+      isPermanent: isPermanent,
       accessible: accessible
     )
   }
@@ -179,7 +179,7 @@ struct DarwinOptions: Hashable {
       requireUserAuthentication,
       invalidateOnBiometricChange,
       allowFallbackAuthentication,
-      isParmanent,
+      isPermanent,
       accessible,
     ]
   }

@@ -20,7 +20,7 @@
 | **Wallet Class** | `EOAWallet` | Removed (Use `LocalKeySigner`) |
 | **Hardware** | null | `PlatformKeySigner` |
 | **Address Type** | `EthereumAddress` | `HexString` (String) |
-| **Sign Return** | `Uint8List` (Bytes) | `MsgSignature` (Object) |
+| **Sign Return** | `Uint8List` (Bytes) | `Signature` (Object) |
 
 ## Migration Examples
 
