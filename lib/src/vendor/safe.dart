@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'dart:convert';
 
 import 'package:eip7702/eip7702.dart';

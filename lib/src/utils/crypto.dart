@@ -59,7 +59,7 @@ List<int> getRandomValues([int length = 32]) {
   var rBytes = rValue.valueBytes;
   var sBytes = sValue.valueBytes;
 
-  if (rBytes == null || sBytes == null) {
+  if (rBytes == null || sBytes == null || rBytes.isEmpty || sBytes.isEmpty) {
     throw Exception('Invalid signature bytes');
   }
 

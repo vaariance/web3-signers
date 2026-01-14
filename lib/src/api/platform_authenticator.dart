@@ -1,5 +1,3 @@
-import "dart:io";
-
 import "package:flutter/foundation.dart";
 import "package:web3_signers/web3_signers.dart";
 
@@ -167,16 +165,16 @@ class PlatformAuthenticator {
   /// final publicKey = await authenticator.createKey('my_secure_key', options);
   /// ```
   Future<Bytes> createKey(String keyTag, PlatformOptions options) async {
-    return switch (Platform.operatingSystem) {
-      "windows" => windowsAuth.createKey(
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.windows => windowsAuth.createKey(
         keyTag,
         _require(options.windows, "windows"),
       ),
-      "android" => androidAuth.createKey(
+      TargetPlatform.android => androidAuth.createKey(
         keyTag,
         _require(options.android, "android"),
       ),
-      "ios" || "macos" => darwinAuth.createKey(
+      TargetPlatform.iOS || TargetPlatform.macOS => darwinAuth.createKey(
         keyTag,
         _require(options.darwin, "darwin"),
       ),
@@ -195,10 +193,11 @@ class PlatformAuthenticator {
   /// await authenticator.deleteKey('my_secure_key');
   /// ```
   Future<void> deleteKey(String keyTag) async {
-    return switch (Platform.operatingSystem) {
-      "windows" => windowsAuth.deleteKey(keyTag),
-      "android" => androidAuth.deleteKey(keyTag),
-      "ios" || "macos" => darwinAuth.deleteKey(keyTag),
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.windows => windowsAuth.deleteKey(keyTag),
+      TargetPlatform.android => androidAuth.deleteKey(keyTag),
+      TargetPlatform.iOS ||
+      TargetPlatform.macOS => darwinAuth.deleteKey(keyTag),
       _ => throw UnsupportedError("Unsupported platform"),
     };
   }
@@ -219,10 +218,11 @@ class PlatformAuthenticator {
   /// }
   /// ```
   Future<Bytes?> getPublicKey(String keyTag) async {
-    return switch (Platform.operatingSystem) {
-      "windows" => windowsAuth.getPublicKey(keyTag),
-      "android" => androidAuth.getPublicKey(keyTag),
-      "ios" || "macos" => darwinAuth.getPublicKey(keyTag),
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.windows => windowsAuth.getPublicKey(keyTag),
+      TargetPlatform.android => androidAuth.getPublicKey(keyTag),
+      TargetPlatform.iOS ||
+      TargetPlatform.macOS => darwinAuth.getPublicKey(keyTag),
       _ => throw UnsupportedError("Unsupported platform"),
     };
   }
@@ -248,18 +248,19 @@ class PlatformAuthenticator {
   /// );
   /// ```
   Future<Bytes> sign(String keyTag, Bytes data, PlatformOptions options) async {
-    return switch (Platform.operatingSystem) {
-      "windows" => windowsAuth.sign(
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.windows => windowsAuth.sign(
         keyTag,
         data,
         _require(options.windows, "windows"),
       ),
-      "android" => androidAuth.sign(
+      TargetPlatform.android => androidAuth.sign(
         keyTag,
         data,
         _require(options.android, "android"),
       ),
-      "ios" || "macos" => darwinAuth.sign(keyTag, data),
+      TargetPlatform.iOS ||
+      TargetPlatform.macOS => darwinAuth.sign(keyTag, data),
       _ => throw UnsupportedError("Unsupported platform"),
     };
   }

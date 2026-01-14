@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:web3_signers/src/utils/constants.dart';
 import 'package:web3_signers/web3_signers.dart';
 import 'package:web3dart/web3dart.dart' show hexToBytes;
 
@@ -32,7 +33,6 @@ void main() {
     });
 
     test('isValidContractSignature returns success on magic value', () async {
-      final contractAddress = "0x1234567890123456789012345678901234567890";
       final rpcUrl = "http://localhost:8545";
 
       HttpOverrides.runZoned(
@@ -40,7 +40,7 @@ void main() {
           final isValid = await Verifier.isValidContractSignature(
             Bytes(32),
             Bytes(65),
-            contractAddress,
+            defaultP256Verifier,
             rpcUrl,
           );
           expect(isValid, equals(IsValidSignatureResponse.success));

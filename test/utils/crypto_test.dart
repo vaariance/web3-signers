@@ -81,5 +81,22 @@ void main() {
       expect(sig.r, equals(Uint256(r)));
       expect(sig.s, equals(Uint256(s)));
     });
+
+    test(
+      'getMessagingSignature throws exception on empty parsed signature',
+      () {
+        final der = Bytes.fromList([0x30, 0x04, 0x05, 0x00, 0x05, 0x00]);
+        expect(
+          () => getMessagingSignature(der),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Invalid signature bytes'),
+            ),
+          ),
+        );
+      },
+    );
   });
 }

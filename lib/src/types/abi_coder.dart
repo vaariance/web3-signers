@@ -80,6 +80,8 @@ interface class Abi {
         list.addAll(intToBytes(BigInt.from(item)));
       } else if (item is List) {
         list.addAll(pack(item));
+      } else if (item is _Uint) {
+        list.addAll(item.toBytes());
       } else {
         throw ArgumentError(
           "Unable to pack provided value. Invalid Type",

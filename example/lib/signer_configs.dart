@@ -13,7 +13,10 @@ final darwinOptions = DarwinPlatformOptions(
     requireUserAuthentication: true);
 final windowsOptions = WindowsPlatformOptions();
 
-const passkeyConfig = PassKeyConfig(rpId: "variance.space", rpName: "Variance");
+const passkeyConfig = PassKeyConfig(
+    rpId: "variance.space",
+    rpName: "Variance",
+    authenticatorAttachment: "platform");
 
 final platformConfig = PlatformConfig(
     keyTag: "space.variance.web3_signers",

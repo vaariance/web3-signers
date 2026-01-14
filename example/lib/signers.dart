@@ -21,10 +21,11 @@ class Signers {
       final pubKey = await generatePassKey(
           config: passkeyConfig,
           username: 'variance.space',
-          displayname: 'demo@variance.space');
+          displayname: 'demo@variance.space',
+          excludedCredentials: [b64d("0ohsLBsE-Xs-QvGnLSWFe5Zx19Y")]);
       log('x: ${pubKey.x.toHex()}\ny: ${pubKey.y.toHex()}');
       final signer = PassKeySigner.withConfig(passkeyConfig, pubKey);
-
+      log("credential ID: ${b64e(pubKey.credentialId)}");
       return signer;
     } catch (e) {
       log(e.toString());

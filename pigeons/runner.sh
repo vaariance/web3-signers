@@ -33,4 +33,18 @@ dart run pigeon \
   --cpp_source_out "$CPP_PATH/platform_authenticator.g.cpp" \
   --cpp_namespace "web3_signers"
 
+
+# 4. EXCLUDE GENERATED FILES FROM COVERAGE
+echo "---------- Adding coverage exclusions..."
+for file in "$DART_GEN_PATH"/*.g.dart; do
+  if [ -f "$file" ]; then
+    if ! grep -q "^// coverage:ignore-file" "$file"; then
+      echo "// coverage:ignore-file" | cat - "$file" > temp && mv temp "$file"
+      echo "Added ignore to $file"
+    else
+      echo "Ignore already present in $file"
+    fi
+  fi
+done
+
 echo "✅ Generation complete."

@@ -92,6 +92,24 @@ void main() {
           ).called(1);
         },
       );
+
+      test("throws exception if publick key is invlaid", () {
+        final pubKeyBytes = hexToBytes(keys.seCreateRes);
+        when(
+          () => mockAuthenticator.createKey('test-tag', any()),
+        ).thenAnswer((_) async => pubKeyBytes.sublist(1));
+
+        expect(
+          () => generatePlatformKey(config: config, auth: mockAuthenticator),
+          throwsA(
+            isA<FormatException>().having(
+              (e) => e.toString(),
+              'message',
+              contains('Invalid public key format from platform'),
+            ),
+          ),
+        );
+      });
     });
 
     group("Generate PassKey", () {
@@ -133,6 +151,20 @@ void main() {
         // Verify X and Y were parsed correctly (attestation object contains specific key)
         expect(result.x.toBytes().isNotEmpty, isTrue);
         expect(result.y.toBytes().isNotEmpty, isTrue);
+
+        when(
+          () => mockAuth.register(any()),
+        ).thenAnswer((_) async => registerResponse);
+
+        final resultWithExcludedCredential = await generatePassKey(
+          config: config,
+          username: "testuser",
+          displayname: "Test User",
+          auth: mockAuth,
+          excludedCredentials: [b64d("0ohsLBsE-Xs-QvGnLSWFe5Zx19Y")],
+        );
+
+        expect(resultWithExcludedCredential, isA<PassKeyPublicKey>());
       });
     });
   });

@@ -88,11 +88,11 @@ final class Signature extends EIP7702MsgSignature implements ECSignature {
     this.curve,
   }) : super(r, s, 27 + yParity, yParity);
 
-  /// Finds the index of the [digest] within the [clientDataJson].
+  /// Finds the index of the [payload] within the [clientDataJson].
   ///
-  /// Used for proving that the signed challenge matches the expected digest.
-  int? getChallengeLocation(Bytes digest) {
-    return clientDataJson?.indexOf(b64e(digest));
+  /// Used for proving that the signed challenge matches the signed data.
+  int? getChallengeLocation(Bytes payload) {
+    return clientDataJson?.indexOf(b64e(payload));
   }
 
   /// Finds the index of the `"type"` field in [clientDataJson].

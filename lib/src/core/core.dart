@@ -104,18 +104,6 @@ Future<PassKeyPublicKey> generatePassKey({
 }) async {
   auth ??= PasskeyAuthenticator();
 
-  excluded(List<Bytes> list) {
-    return list
-        .map(
-          (e) => CredentialType(
-            type: 'public-key',
-            id: b64e(e),
-            transports: config.transports.map((t) => t.transport).toList(),
-          ),
-        )
-        .toList();
-  }
-
   final entity = RegisterRequestType(
     challenge: challenge ?? b64e(getRandomValues()),
     relyingParty: RelyingPartyType(id: config.rpId, name: config.rpName),
@@ -133,7 +121,7 @@ Future<PassKeyPublicKey> generatePassKey({
     pubKeyCredParams: [PubKeyCredParamType(type: 'public-key', alg: -7)],
     timeout: config.timeout,
     attestation: attestationLevel.name,
-    excludeCredentials: excluded(excludedCredentials),
+    excludeCredentials: _parseExcludedCredentials(excludedCredentials, config),
   );
 
   final attestation = await auth.register(entity);
@@ -146,6 +134,21 @@ Future<PassKeyPublicKey> generatePassKey({
     aaGuid: aaGuid,
     userName: username,
   );
+}
+
+List<CredentialType> _parseExcludedCredentials(
+  List<Bytes> list,
+  PassKeyConfig config,
+) {
+  return list
+      .map(
+        (e) => CredentialType(
+          type: 'public-key',
+          id: b64e(e),
+          transports: config.transports.map((t) => t.transport).toList(),
+        ),
+      )
+      .toList();
 }
 
 ((Uint256, Uint256)?, Bytes, String) _parsePassKeyResponse(

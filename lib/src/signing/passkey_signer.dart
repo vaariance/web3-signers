@@ -151,7 +151,7 @@ final class PassKeySigner implements Signer {
       challenge: challenge,
       timeout: _config.timeout,
       userVerification: _config.userVerification,
-      allowCredentials: allowedCreds.isEmpty ? null : allowedCreds,
+      allowCredentials: allowedCreds,
       mediation: MediationType.values.firstWhere(
         (m) => m.name.toLowerCase() == _config.mediation.toLowerCase(),
       ),

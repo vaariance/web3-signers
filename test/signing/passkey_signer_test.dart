@@ -154,6 +154,34 @@ void main() {
       expect(isValid, equals(IsValidSignatureResponse.failure));
     });
 
+    test('get challenge and type positions from signature', () async {
+      final message = Bytes(32);
+
+      when(() => mockAuthenticator.authenticate(any())).thenAnswer((_) async {
+        return AuthenticateResponseType(
+          id: credentialId,
+          rawId: credentialId,
+          authenticatorData: validAuthenticatorData,
+          clientDataJSON: validClientDataJSON,
+          signature: validSignature,
+          userHandle: validUserHandle,
+        );
+      });
+
+      final signature = await signer.signAsync(message);
+      final challengePos = signature.getChallengeLocation(message);
+      expect(challengePos, isNotNull);
+      final typePos = signature.getTypeLocation();
+      expect(typePos, isNotNull);
+      final type = signature.clientDataJson!.substring(typePos!);
+      expect(type, startsWith('"type"'));
+      final challenge = signature.clientDataJson!.substring(
+        challengePos!,
+        challengePos + b64e(message).length,
+      );
+      expect(challenge, equals(b64e(message)));
+    });
+
     test('does not support sync signing', () {
       expect(signer.supportsSyncSigning, isFalse);
       expect(() => signer.sign(Bytes(32)), throwsUnsupportedError);

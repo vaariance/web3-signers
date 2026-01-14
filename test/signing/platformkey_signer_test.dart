@@ -1,11 +1,13 @@
 import 'dart:convert';
 
+import 'package:eip712/eip712.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:web3_signers/web3_signers.dart';
 // import SignerType enum
 import 'package:web3dart/web3dart.dart';
 
+import '../__test_utils__/fixtures/constants.dart';
 import '../__test_utils__/mocks/mock_platform_signer.dart';
 import '../__test_utils__/keys/secp256r1_keys.dart' as keys;
 
@@ -43,6 +45,10 @@ void main() {
       expect(signer.kind, equals(SignerType.platformKey));
     });
 
+    test('key is recoverable', () {
+      expect(signer.isRecoverable, isFalse);
+    });
+
     test('supports user presence and verification', () {
       expect(signer.supportsUserPresence, isTrue);
       expect(signer.supportsUserVerification, isTrue);
@@ -60,6 +66,19 @@ void main() {
       final expectedAddress = "0x${bytesToHex(hash.sublist(12, 32))}";
 
       expect(signer.getAddress(), equals(expectedAddress));
+    });
+
+    test('sign throws UnsupportedError for syncSigning', () {
+      expect(
+        () => signer.sign(Bytes(32)),
+        throwsA(
+          isA<UnsupportedError>().having(
+            (e) => e.toString(),
+            'message',
+            contains('Sync signing not supported for PlatformKeySigner'),
+          ),
+        ),
+      );
     });
 
     test('signAsync calls API and returns valid signature', () async {
@@ -91,6 +110,30 @@ void main() {
       verify(
         () => mockAuthenticator.sign(testKeyTag, preImage, any()),
       ).called(1);
+    });
+
+    test('signs typed data (EIP-712)', () async {
+      when(
+        () => mockAuthenticator.sign(
+          testKeyTag,
+          hashTypedData(typedData: rawTypedData, version: TypedDataVersion.v4),
+          any(),
+        ),
+      ).thenAnswer((_) async => hexToBytes(keys.seSignResponse));
+
+      final signature = await signer.signTypedData(
+        rawTypedData,
+        TypedDataVersion.v4,
+      );
+
+      // Verify recovery
+      final isValid = Verifier.isValidSignedTypedData(
+        rawTypedData,
+        TypedDataVersion.v4,
+        signature,
+        signer.publicKey,
+      );
+      expect(isValid, equals(IsValidSignatureResponse.failure));
     });
 
     test('getDummySignature returns valid placeholder', () {
