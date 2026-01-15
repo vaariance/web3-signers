@@ -1,11 +1,4 @@
-## [0.2.1](https://github.com/vaariance/web3-signers/compare/v0.2.0...v0.2.1) (2025-06-16)
-
-### Bug Fixes
-
-* **erc1271:** use bytesToUnsignedInt instead of bytesToInt for signature parsing ([1070067](https://github.com/vaariance/web3-signers/commit/10700678aa5f5207a57ca31fdbffe3060a497078))
-
 ## [0.3.0](https://github.com/vaariance/web3-signers/compare/v0.2.1...v0.3.0) (2026-01-15)
-
 
 ### Features
 
@@ -28,11 +21,16 @@
 * **ui:** web3signers usecase/example implementation ([69a86b9](https://github.com/vaariance/web3-signers/commit/69a86b9182328dcad64fcec09e7ae1e5e771f37b))
 * **windows:** implement platform authenticator for Windows ([8889b15](https://github.com/vaariance/web3-signers/commit/8889b15544aed488feec6997360e3349cf30df6f))
 
-
 ### Bug Fixes
 
 * **passkey:** align WebAuthn signature with viem/ox for on-chain verification ([3790972](https://github.com/vaariance/web3-signers/commit/37909725641c16222bf6b68c29039d623f7f6352))
 * **passkey:** align WebAuthn signature with viem/ox for on-chain verification ([de0c484](https://github.com/vaariance/web3-signers/commit/de0c484f2f496bb1b9577138ce0d8c93377c3466))
+
+## [0.2.1](https://github.com/vaariance/web3-signers/compare/v0.2.0...v0.2.1) (2025-06-16)
+
+### Bug Fixes
+
+* **erc1271:** use bytesToUnsignedInt instead of bytesToInt for signature parsing ([1070067](https://github.com/vaariance/web3-signers/commit/10700678aa5f5207a57ca31fdbffe3060a497078))
 
 ## 0.2.0
 
