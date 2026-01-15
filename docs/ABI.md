@@ -73,6 +73,39 @@ print(decoded[0]); // BigInt
 print(decoded[1]); // EthereumAddress (Bytes)
 ```
 
+### `getAbiItem`
+
+Retrieves an item from the ABI.
+
+```dart
+const encodedData = getAbiItem({
+  abi: [
+    { 
+      name: 'x', 
+      type: 'function', 
+      inputs: [{ type: 'uint256' }], 
+      outputs: [],
+      stateMutability: 'payable'
+    },
+    { 
+      name: 'y', 
+      type: 'event', 
+      inputs: [{ type: 'address' }], 
+      outputs: [{ type: 'uint256' }],
+      stateMutability: 'view'
+    },
+    { 
+      name: 'z', 
+      type: 'function', 
+      inputs: [{ type: 'string' }],
+      outputs: [{ type: 'uint256' }],
+      stateMutability: 'view'
+    }
+  ],
+  name: 'y',
+})
+```
+
 ## Advanced Usage
 
 ### Deeply Nested Tuples

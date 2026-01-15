@@ -350,6 +350,25 @@ void main() {
         expect(item!.name, 'bar');
       });
 
+      test('finds by json', () {
+        final item = getAbiItem(
+          abi: [
+            {
+              'name': 'bar',
+              'type': 'function',
+              'inputs': [
+                {'type': 'uint256'},
+              ],
+              'outputs': [],
+              'stateMutability': 'view',
+            },
+          ],
+          name: 'bar',
+        );
+        expect(item, isNotNull);
+        expect(item!.name, 'bar');
+      });
+
       test('finds overload by args length', () {
         final item1 = getAbiItem(abi: abi, name: 'foo', args: [1]); // 1 arg
         expect(item1, isNotNull);
@@ -446,6 +465,27 @@ void main() {
           () => encodeAbiParameters([123], [1]),
           throwsA(isA<ArgumentError>()),
         );
+      });
+
+      test('AbiItem.fromJson parsing', () {
+        final json = {
+          'name': 'transfer',
+          'type': 'function',
+          'stateMutability': 'payable',
+          'inputs': [
+            {'name': 'to', 'type': 'address'},
+          ],
+          'outputs': [
+            {'type': 'bool'},
+          ],
+        };
+        final item = AbiItem.fromJson(json);
+        expect(item.name, 'transfer');
+        expect(item.type, 'function');
+        expect(item.stateMutability, 'payable');
+        expect(item.inputs, hasLength(1));
+        expect(item.inputs[0].name, 'to');
+        expect(item.outputs, hasLength(1));
       });
     });
   });

@@ -111,16 +111,21 @@ Bytes encodePacked(List<dynamic> values) {
 /// final output = getAbiItem(abi: uniswapAbi, name: 'swapExactInputForOutput');
 /// ```
 AbiItem? getAbiItem({
-  required List<AbiItem> abi,
+  required List<dynamic> abi,
   String? name,
   List<dynamic>? args,
 }) {
-  // Basic matching implementation
   for (final item in abi) {
-    if (name != null && item.name != name) continue;
-    if (args != null && item.inputs.length != args.length) continue;
-    // Could add type checking logic here
-    return item;
+    if (item is AbiItem) {
+      if (name != null && item.name != name) continue;
+      if (args != null && item.inputs.length != args.length) continue;
+      return item;
+    } else if (item is Map) {
+      if (name != null && item['name'] != name) continue;
+      final inputs = item['inputs'] as List?;
+      if (args != null && (inputs?.length ?? 0) != args.length) continue;
+      return AbiItem.fromJson(Map<String, dynamic>.from(item));
+    }
   }
   return null;
 }

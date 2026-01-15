@@ -89,6 +89,24 @@ class AbiItem {
     };
   }
 
+  factory AbiItem.fromJson(Dict json) {
+    return AbiItem(
+      name: json['name'] as String?,
+      type: json['type'] as String? ?? 'function',
+      inputs:
+          (json['inputs'] as List?)
+              ?.map((e) => AbiParameter.fromJson(e as Dict))
+              .toList() ??
+          const [],
+      outputs:
+          (json['outputs'] as List?)
+              ?.map((e) => AbiParameter.fromJson(e as Dict))
+              .toList() ??
+          const [],
+      stateMutability: json['stateMutability'] as String? ?? 'nonpayable',
+    );
+  }
+
   @override
   String toString() =>
       'AbiItem(name: $name, type: $type, inputs: $inputs, outputs: $outputs, state: $stateMutability)';
