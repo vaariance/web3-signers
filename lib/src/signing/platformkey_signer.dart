@@ -85,7 +85,7 @@ final class PlatformKeySigner implements Signer {
   }
 
   @override
-  EIP7702MsgSignature sign(Bytes preImage) {
+  Signature sign(Bytes preImage) {
     throw UnsupportedError("Sync signing not supported for PlatformKeySigner");
   }
 

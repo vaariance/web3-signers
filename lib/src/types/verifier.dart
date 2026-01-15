@@ -36,7 +36,10 @@ final class Verifier {
     String rpcUrl,
   ) async {
     final selector = hexToBytes("1626ba7e");
-    final encoded = Abi.encode(['bytes32', 'bytes'], [hash, signatureBytes]);
+    final encoded = encodeAbiParameters(
+      ['bytes32', 'bytes'],
+      [hash, signatureBytes],
+    );
     final calldata = selector.concat(encoded);
 
     final result = await _rpcRequest(calldata, contractAddress, rpcUrl);
@@ -180,7 +183,7 @@ final class Verifier {
 
       final HttpClientResponse response = await request.close();
       final String responseBody = await response.transform(utf8.decoder).join();
-      final Map<String, dynamic> jsonResponse = json.decode(responseBody);
+      final Dict jsonResponse = json.decode(responseBody);
 
       if (jsonResponse.containsKey('error')) {
         return Uint32.zero;

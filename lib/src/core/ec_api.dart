@@ -63,13 +63,21 @@ final class PlatformPublicKey extends PublicKey {
 
 /// Represents an Elliptic Curve Digital Signature Algorithm (ECDSA) signature.
 ///
-/// Extends [EIP7702MsgSignature] to support standard Ethereum signing as well as
+/// Extends [ECSignature] to support standard Ethereum signing as well as
 /// passkey-specific signature data.
+///
+/// - `v`: v is intrinsically normalized to 27 or 28. regardless of EIP-1559.
+///   This encourages the use of `yParity` over `v` unless needed.
 ///
 /// Includes fields for Passkey (WebAuthn) validation:
 /// - [authData]: Authenticator data from the WebAuthn response.
 /// - [clientDataJson]: The JSON client data collected during the signature operation.
-final class Signature extends EIP7702MsgSignature implements ECSignature {
+final class Signature extends ECSignature implements MsgSignature {
+  final int yParity;
+
+  @override
+  final int v;
+
   /// Authenticator data for passkey signatures.
   final Bytes? authData;
 
@@ -80,13 +88,13 @@ final class Signature extends EIP7702MsgSignature implements ECSignature {
   final SigningCurve? curve;
 
   Signature(
-    BigInt r,
-    BigInt s, {
-    int yParity = 0,
+    super.r,
+    super.s, {
+    this.yParity = 0,
     this.authData,
     this.clientDataJson,
     this.curve,
-  }) : super(r, s, 27 + yParity, yParity);
+  }) : v = 27 + yParity;
 
   /// Finds the index of the [payload] within the [clientDataJson].
   ///
@@ -103,11 +111,6 @@ final class Signature extends EIP7702MsgSignature implements ECSignature {
     // Return position of '"type"' key, not 'webauthn.get' value.
     // The Kernel WebAuthn validator expects the index of the type field.
     return clientDataJson?.indexOf('"type"');
-  }
-
-  @override
-  bool isNormalized(ECDomainParameters curveParams) {
-    return !(s.compareTo(curveParams.n >> 1) > 0);
   }
 
   @override

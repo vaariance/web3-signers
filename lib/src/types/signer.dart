@@ -18,7 +18,7 @@ typedef PasskeySignerInterface = Signer;
 /// passkeys/WebAuthn, hardware, custodial, etc.). The capabilities flags
 /// describe user‑presence/verification behavior and whether the signer can
 /// operate synchronously.
-abstract class Signer extends CustomSigner {
+abstract class Signer {
   /// Logical type/category of the signer (e.g., SecureEnclave, Passkey, LocalKey).
   SignerType get kind;
 
@@ -62,6 +62,17 @@ abstract class Signer extends CustomSigner {
   /// preimage depending on the implementation). The output encoding is
   /// implementation‑specific.
   Future<Signature> personalSign(Bytes message);
+
+  /// Signs a digest synchronously and returns the signature.
+  ///
+  /// Implementations should throw if [supportsSyncSigning] is `false`.
+  Signature sign(Bytes preImage);
+
+  /// Signs a digest asynchronously and returns the signature.
+  ///
+  /// This is the standard signing method for all signers, including those
+  /// requiring user interaction (e.g., Passkeys).
+  Future<Signature> signAsync(Bytes preImage);
 
   /// Signs a digest using elliptic curve and returns `(r, s[, v])`.
   ///

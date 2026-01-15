@@ -57,7 +57,6 @@ Future<PlatformPublicKey> generatePlatformKey({
     darwin: config.darwinOptions ?? DarwinPlatformOptions(),
     windows: config.windowsOptions ?? WindowsPlatformOptions(),
   ));
-  dev.log("pubKeyBytes: ${bytesToHex(pubKeyBytes)}");
   if (pubKeyBytes.length != 65 || pubKeyBytes[0] != 0x04) {
     throw FormatException("Invalid public key format from platform");
   }

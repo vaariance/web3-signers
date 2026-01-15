@@ -1,5 +1,7 @@
 part of '../../web3_signers.dart';
 
+typedef HexString = String;
+
 typedef Bytes = Uint8List;
 
 extension BytesX on Bytes {

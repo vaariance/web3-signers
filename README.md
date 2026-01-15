@@ -4,21 +4,31 @@
 ![License](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)
 [![Coverage Status](https://coveralls.io/repos/github/vaariance/web3-signers/badge.svg?branch=main)](https://coveralls.io/github/vaariance/web3-signers?branch=main)
 
-**A generic signing interface for Smart Accounts (ERC-4337, EIP-7702), ERC-1271, and ERC-7739 validation.**
+**A generic signing interface for Smart Accounts validation and EOAs.**
 
 This package provides a unified `Signer` interface to interact with various authentication credentials - Passkeys (WebAuthn), Platform Keys (Secure Enclave/TPM), and Local Private Keys. It allows developers to build Smart Account signers that are decoupled from specific wallet implementations, making it a foundational building block for any AA SDK or dApp.
 
 > [!WARNING]
 > **Migrating from v0.x?**
 >
-> Significant breaking changes were introduced in v1.0.0. Please refer to the [Migration Guide](MIGRATION.md).
+> Significant breaking changes were introduced in v1.0.0. Please refer to the [Migration Guide](docs/MIGRATION.md).
+
+## ABI Utilities
+
+The package includes fully `viem`-compatible ABI parsing and encoding utilities.
+
+- **Human-Readable Parsing**: Parse `function`, `event`, `error`, and `tuple` signatures strings.
+- **Flexible Encoding**: Encode using signatures, `AbiParameter` objects, or raw JSON maps.
+- **Deep Nesting**: Full support for recursive tuples and arrays.
+
+👉 **[Read the ABI Documentation](docs/ABI.md)**
 
 ## Features
 
 - 🔐 **Passkeys (WebAuthn)**: Biometric and FIDO2 signing with configurable attestation and transports.
 - 🛡️ **Platform Keys**: Hardware-backed keys using Secure Enclave (iOS/macOS), Keystore (Android), and Windows Hello.
 - 🔑 **Local Keys**: Memory-based private key signing for ephemeral sessions or recovery.
-- ⚡ **Standard Compliant**: Native support for EIP-1271 and ERC-7739 protections.
+- ⚡ **Standard Compliant**: Native support for EIP-1271 and ERC-7739 validations.
 - 📱 **Cross-Platform**: Unified API for Android, iOS, macOS, Windows, and Web (partial).
 
 ## Platform Requirements
@@ -164,7 +174,8 @@ final signer = PlatformKeySigner.withConfig(platformConfig, platformPublicKey);
 // To delete the key later (irreversible):
 await signer.deleteSigningKey();
 
-// Advanced: Inject a custom authenticator instance (useful for dependency injection or reuse in key generation)final auth = PlatformAuthenticator();
+// Advanced: Inject a custom authenticator instance (useful for dependency injection or reuse in key generation)
+final auth = PlatformAuthenticator();
 final signer = PlatformKeySigner.withAuthenticator(
   auth, 
   platformConfig, 
@@ -219,7 +230,7 @@ if (signer.supportsSyncSigning) {
 Prefixes the message with `\x19Ethereum Signed Message:\n...` before signing.
 
 ```dart
-final signature = await signer.personalSign(ascii.encode("Hello Ethereum"));
+final signature = await signer.personalSign(utf8.encode("Hello Ethereum"));
 ```
 
 **4. Typed Data (EIP-712)**
