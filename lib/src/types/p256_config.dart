@@ -62,20 +62,20 @@ interface class PassKeyConfig implements P256Config {
   final bool requireResidentKey;
 
   /// The type of resident key requirement.
-  /// ["required"] or ["preferred"] or ["discouraged"].
+  /// `required` or `preferred` or `discouraged`.
   ///
   /// Defaults to "preferred".
   final String residentKey;
 
   /// The authenticator attachment to use
-  /// ["cross-platform"] or ["platform"]
+  /// `cross-platform` or `platform`
   ///
   /// Defaults to "cross-platform"
   final String authenticatorAttachment;
 
   /// The mediation type for the PassKeys operation.
   ///
-  /// ["conditional"] or ["optional"] or ["silent"] or ["required"].
+  /// `conditional` or `optional` or `silent` or `required`.
   ///
   /// Defaults to "optional".
   final String mediation;

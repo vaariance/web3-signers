@@ -11,7 +11,7 @@ This package provides a unified `Signer` interface to interact with various auth
 > [!WARNING]
 > **Migrating from v0.x?**
 >
-> Significant breaking changes were introduced in v1.0.0. Please refer to the [Migration Guide](docs/MIGRATION.md).
+> Significant breaking changes were introduced in v1.0.0. Please refer to the [Migration Guide](doc/MIGRATION.md).
 
 ## ABI Utilities
 
@@ -21,7 +21,7 @@ The package includes fully `viem`-compatible ABI parsing and encoding utilities.
 - **Flexible Encoding**: Encode using signatures, `AbiParameter` objects, or raw JSON maps.
 - **Deep Nesting**: Full support for recursive tuples and arrays.
 
-👉 **[Read the ABI Documentation](docs/ABI.md)**
+👉 **[Read the ABI Documentation](doc/ABI.md)**
 
 ## Features
 
