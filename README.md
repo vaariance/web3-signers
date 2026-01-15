@@ -1,227 +1,275 @@
-# web3 signers
+# web3_signers
 
+![Pub Version](https://img.shields.io/pub/v/web3_signers)
+![License](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)
 [![Coverage Status](https://coveralls.io/repos/github/vaariance/web3-signers/badge.svg?branch=main)](https://coveralls.io/github/vaariance/web3-signers?branch=main)
 
-A flutter plugin that provides a uniform interface for signing [EIP-1271](https://eips.ethereum.org/EIPS/eip-1271) messages on dart.
+**A generic signing interface for Smart Accounts validation and EOAs.**
 
-supports:
+This package provides a unified `Signer` interface to interact with various authentication credentials - Passkeys (WebAuthn), Platform Keys (Secure Enclave/TPM), and Local Private Keys. It allows developers to build Smart Account signers that are decoupled from specific wallet implementations, making it a foundational building block for any AA SDK or dApp.
 
-    ✅ passkeys
-    ✅ mnemonics
-    ✅ single privateKey
+> [!WARNING]
+> **Migrating from v0.x?**
+>
+> Significant breaking changes were introduced in v1.0.0. Please refer to the [Migration Guide](doc/MIGRATION.md).
 
-## Quick synopsis
+## ABI Utilities
 
-```dart
-import 'package:web3_signers/web3_signers.dart';
-```
+The package includes fully `viem`-compatible ABI parsing and encoding utilities.
 
-## Working with passkeys
+- **Human-Readable Parsing**: Parse `function`, `event`, `error`, and `tuple` signatures strings.
+- **Flexible Encoding**: Encode using signatures, `AbiParameter` objects, or raw JSON maps.
+- **Deep Nesting**: Full support for recursive tuples and arrays.
 
-passkeys signer conforms to the `multi-signer-interface` and allows you to sign payloads using your device passkeys. It falls under the secp256r1 category and can be verified on-chain using the [P256Verifier](https://p256.eth.limo/) precompile.
-
-```dart
-final sharedSigner = EthereumAddress.fromHex("0xfD90FAd33ee8b58f32c00aceEad1358e4AFC23f9");
-final options =  PassKeysOptions(
-          name: "variance", // replace with your relying party name
-          namespace: "variance.space", // replace with your relying party Id (domain name)
-          residentKey: "required",
-          sharedWebauthnSigner: sharedSigner)
-
-final PassKeySigner pkpSigner = PassKeySigner(options: options);
-
-// register a new passkey
-PassKeyPair pkp = await pkpSigner.register("user@variance.space", "test user"); 
-// username is `user@variance.space` and is required
-// diplay name is `test user` and is recommended to provide it during registration
-```
-
-If you already know the `credentialIds` created for the user, you can pass the `knownCredentials` as thus:
-
-```dart
-final PassKeySigner pkpSigner = PassKeySigner(
-  ...
-  knownCredentials: Set<Bytes>.from(<Uint8List>[Uint8List(32), Uint8List(32)])>
-);
-```
-
-This enables the authenticator to filter the passkeys presented to the user for signing operations.
-
-> **Note**
-> credential Id's are returned in the passkeyPair in both raw format and base64 format.
-
-### Passkey signatures
-
-There are 3 methods of signing a payload using the paskey signer.
-
-- method 1: using `personalSign`
-
-personal sign returns a `Uint8List` which is an encoded representation of the [passkeySignature object](./lib/src/signers/passkey_signer.dart#L85) needed onchain.
-in order to extract the individual values, you have to split it according to [FCLSignature](./lib/src/interfaces/signature_options.dart) and decode the `data` using `abi.decode(bytes, bytes, uint256[2])`.
-The signed `challenge` is only known to you. It is assumed your relying party is aware of this challenge which should be `Base64Url` encoded.
-
-```dart
-final sig = await pkpSigner.personalSign(Uint8List(32));
-```
-
-- method 2: using `signToEc`
-
-Similar to personalSign, it conforms to the multi-signer-interface and returns an instance of msgSignature containing the `r`, `s` and `v`  values of the signature. Effectively **v** is 0;
-
-```dart
-final sig = await pkpSigner.signToEc(Uint8List(32));
-```
-
-> This returns only the r and s values. This is not recommended for verifications as the `clientDataJson` is not available with it.
-
-- method 3: using `signToPasskeySignature`
-
-This is not part of the multi-signer-interface but is actually being called internally by `personalSign` and `signToEc` and returns the raw [passkeySignature object](./lib/src/signers/passkey_signer.dart#L85).
-
-```dart
-final PassKeySignature sig = await pkpSigner.signToPasskeySignature(Uint8List(32));
-```
-
-> For each of the method above you can pass in an index if you have knownCredentials. prompting the authenticator to specifically sign with a particular credential.
-> e.g  `await pkpSigner.signToPasskeySignature(Uint8List(32), 2); // signing with knowwnCredential at index 2`
-
-## Working with Privatey keys
-
-The private key signer conform to the `multi-signer-interface` and is the most basic signer.
-
-```dart
-final PrivateKeySigner signer = PrivateKeySigner.createRandom("password");
-```
-
-You can manully instantiate the privateKey signer
-
-```dart
-final Random random = Random.secure();
-final EthPrivateKey privKey = EthPrivateKey.createRandom(random);
-final PrivateKeySigner signer = PrivateKeySigner.create(privKey, "password", random);
-```
-
-You can load from an encrypted backup
-
-```dart
-final PrivateKeySigner signer = PrivateKeySigner.fromJson("source", "password");
-```
-
-To sign transactions, use any of `personalSign` or `signToEc`
-
-```dart
-final Uint8List payload = Uint8List(32); // bytes32(0)
-final signature = await signer.signToEc(payload);
-log("r: ${signature.r}, s: ${signature.s}") // r and s are both bigint format
-```
-
-## Building an EOA wallet
-
-Beyond [EIP-1271](https://eips.ethereum.org/EIPS/eip-1271) messages. the [web3-signers](https://pub.dev/packages/web3_signers) package can be relied upon for developing fully featured [Externally Owned Accounts](https://ethereum.org/developers/docs/accounts) like [Metamask](https://metamask.io) using the [EOAWallet](./lib/src/signers/eoa_wallet_signer.dart) class.
-The EOA wallet conforms to the `multi-signer-interface`, hence it can be used to create signers that are backed with a seed phrase.
-
-```dart
-// creates a new EOA wallet
-EOAWallet eoaWallet = EOAWallet.createWallet();
-
-// by the default a 12 word phrase signer is created, in order to create a 24 word phrase you need to specify it
-eoaWallet = EOAWallet.createWallet(WordLength.word_24); // returns 24 word phrase signer
-
-// retrieve the account seed phrase
-final mnemonic = eoaWallet.exportMnemonic();
-
-// recover eoa wallet from seed phrase
-eoaWallet = EOAWallet.recoverAccount(mnemonic);
-
-// generate a new deterministic account
-final accountOne = eoaWallet.addAccount(1);
-
-// export the private key of an account
-final accountZer0PrivKey = eoaWallet.exportPrivateKey(0);
-final accountOnePrivKey = eoaWallet.exportPrivateKey(1);
-
-// get account address
-String accountZer0Address = eoaWallet.zerothAddress;
-// or
-accountZer0Address = eoaWallet.getAddress();
-final accountOneAddress = eoaWallet.getAddress(index: 1);
-```
-
-The `signToEc` and `personalSign` methods are available for signing transactions. optionally, you can use the exportedPrivateKey to sign transactions DIY.
-
-## Handling Der Encoded data
-
-- convert a Der Encoded public key to `(x,y)`
-
-```dart
-final derDecoded = getPublicKeyFromBytes(derCodedData);
-```
-
-- convert a Der Encoded signature to `(r,s)`
-
-```dart
-final derDecoded = getMessagingSignature(derCodedSig);
-```
-
-## Multi Signer Interface
-
-The Multi Signer Interface or (MSI), provides a uniform interface that must be implemented across different signer types.
-
-Any class inheriting the MSI must adhere to the following:
-
-```dart
-abstract class MultiSignerInterface {
-    /// You must specify a dummy signature that matches your transaction signature standard.
-    String getDummySignature();
-    /// Generates a public address of the signer.
-    String getAddress();
-    /// Signs the provided [hash] using the personal sign method.
-    Future<Uint8List> personalSign(Uint8List hash);
-    /// Signs the provided [hash] using elliptic curve algorithm and returns the r, s and pocpossiblycibly v values.
-    Future<MsgSignature> signToEc(Uint8List hash);
-}
-```
+👉 **[Read the ABI Documentation](doc/ABI.md)**
 
 ## Features
 
-| Feature                        | Android | iOS | Web |
-| ------------------------------ | :-----: | :-: | :-: |
-| generate passkeypair           | ✅      | ✅  | ✅  |
-| sign with a passkey              | ✅      | ✅  | ✅  |
-| Generate wallet and sign for EOA accounts            | ✅      | ✅  | ✅  |
-| generate and sign with privatekeys            | ✅      | ✅  | ✅  |
+- 🔐 **Passkeys (WebAuthn)**: Biometric and FIDO2 signing with configurable attestation and transports.
+- 🛡️ **Platform Keys**: Hardware-backed keys using Secure Enclave (iOS/macOS), Keystore (Android), and Windows Hello.
+- 🔑 **Local Keys**: Memory-based private key signing for ephemeral sessions or recovery.
+- ⚡ **Standard Compliant**: Native support for EIP-1271 and ERC-7739 validations.
+- 📱 **Cross-Platform**: Unified API for Android, iOS, macOS, Windows, and Web (partial).
 
-## Platform specific configuration
+## Platform Requirements
 
-### iOS
+| Platform | Minimum Version | Notes |
+|----------|-----------------|-------|
+| **Android** | Android 11 (API 30)+ | Required for modern biometric/keystore features. |
+| **iOS** | iOS 13.0+ | Supports Secure Enclave and Authentication Services. |
+| **macOS** | macOS 10.15+ (Catalina) | Supports Touch ID and platform authenticators. |
+| **Windows** | Windows 10/11 | Requires CMake 3.14+ for build. |
 
-- Configuring passkeys for iOS
+## Installation
 
-  - Set mininum iOS version/target deployment to 16.0
+Add the package to your `pubspec.yaml`:
 
-    > **Note:** passkeys requires iOS 16.0 or later.
+```yaml
+dependencies:
+  web3_signers: ^1.0.0
+```
 
-  - You need an apple developer account. [Apply](developer.apple.com) if you don't have.
+## Usage
 
-  - Set up your Associated Domain to your app `capabilities` in Xcode. [follow this guide](https://developer.apple.com/documentation/xcode/configuring-an-associated-domain).
-    - this should look like `webcredentials:variance.space?mode= developer` [follow this guide](https://developer.apple.com/documentation/xcode/configuring-an-associated-domain#Enable-alternate-mode-for-unreachable-servers) to understand how to work in development mode to bypass Apple’s CDN service.
+### 1. Local Private Keys
 
-  - Host an `apple-app-site-association` in your website. [follow this guide](https://developer.apple.com/documentation/xcode/supporting-associated-domains)
-    - you can verify this via [https://app-site-association.cdn-apple.com/a/v1/<YOUR_DOMAIN>](https://app-site-association.cdn-apple.com/a/v1/variance.space) (replace the domain with yours)
+*Best for: Development, testing, ephemeral session keys, or where users handle their own seed phrases.*
 
-  - (optionally) Add `keychain sharing` to your app `capabilities` in xcode.
+```dart
+import 'package:web3_signers/web3_signers.dart';
 
-### Android
+// Option A: Generate a random private key (for new wallets)
+final privateKey = generatePrivateKey(); 
 
-- Set your `minSdkVersion` to 28
+// Option B: Derive from a mnemonic
+// 1. Generate a new mnemonic or use an existing one
+ final mnemonic = generateMnemonic(WordLength.word_12);
+// 2. Derive the private key (supports optional custom path)
+ final privateKey = mnemonicToPrivateKey("your twelve word mnemonic ...", "m/44'/60'/0'/0/0");
 
-- Configuring android passkeys
+// 3. Create the signer
+// Direct from private key bytes:
+final signer = LocalKeySigner.fromRawPrivateKey(privateKey);
 
-  - Set up App Links. follow this [guide](https://docs.flutter.dev/cookbook/navigation/set-up-app-links).
-  - Make sure your have `"delegate_permission/common.get_login_creds"` in your `assetlinks.json`. Refer to this [guide](https://developer.android.com/training/sign-in/passkeys).
+// OR directly from a mnemonic string:
+final signerFromMnemonic = LocalKeySigner.fromMnemonic("your twelve word mnemonic ...");
+```
 
-- Example: how to get your app SHA256 certificate required in your `assetlinks.json` file. Use this [guide](https://docs.flutter.dev/cookbook/navigation/set-up-app-links).
+### 2. Passkeys (WebAuthn)
 
-    ```sh
-    keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android/
-    ```
+*Best for: Main account keys, biometric security, convenient cross-device access.*
+
+**Step 1: Configuration**:
+Define your Relying Party (RP) settings. This MUST match your domain.
+
+```dart
+final pkConfig = PassKeyConfig(
+  rpId: "app.example.com", 
+  rpName: "Example App",
+  timeout: 60000, 
+  userVerification: "required",
+);
+```
+
+**Step 2: Credential Creation (Registration)**:
+Prompt the user to create a new passkey.
+
+```dart
+// Returns the public key and credential metadata
+final pkPublicKey = await generatePassKey(
+  config: pkConfig,
+  username: "user@example.com",
+  displayname: "User Name",
+  attestationLevel: PasskeyAttestationLevel.none, 
+  // challenge is optional; a random one is generated if omitted
+  // auth is optional; a default is used if omitted
+);
+```
+
+**Step 3: Signer Instantiation**
+
+```dart
+// Standard instantiation
+final signer = PassKeySigner.withConfig(pkConfig, pkPublicKey);
+
+// Advanced: Inject a custom authenticator instance (useful for dependency injection or reuse in key generation)
+final auth = PasskeyAuthenticator();
+final signer = PassKeySigner.withAuthenticator(auth, pkConfig, pkPublicKey);
+```
+
+### 3. Platform Keys (Secure Enclave / Keystore)
+
+*Best for: Device-specific keys, high-security hardware backing without WebAuthn prompts.*
+
+**Step 1: Configuration**:
+Platform keys offer granular control over security and UI via `AndroidPlatformOptions`, `DarwinPlatformOptions`, and `WindowsPlatformOptions`.
+
+```dart
+final platformConfig = PlatformConfig(
+  keyTag: "com.example.app.signing_key", 
+  
+  // Android: Prefer StrongBox, require authentication
+  androidOptions: AndroidPlatformOptions(
+    useStrongBoxKeyMint: true,
+    requireUserAuthentication: true,
+    authTimeoutSeconds: 0, // 0 means authenticate every time
+    // ... optional parameters 
+  ),
+  
+  // iOS/macOS: Use Secure Enclave, strict access control
+  darwinOptions: DarwinPlatformOptions(
+    useSecureEnclave: true, // false uses keychain sharing (ensure entitlements are set)
+    accessible: DarwinAccessible.whenUnlockedThisDeviceOnly,
+    // ... other optional parameters 
+  ),
+
+  // Windows: Use TPM, custom prompt text
+  windowsOptions: WindowsPlatformOptions(
+    useTpm: true,
+    // ui policy is enforced by the presense of a `requireUserAuthentication` flag
+    requireUserAuthentication: true,
+    uiPolicyFriendlyName: "My App Wallet",
+    uiPolicyDescription: "Sign transactions for My App Wallet",
+    // ... other optional parameters 
+  ),
+);
+```
+
+**Step 2: Key Generation**
+
+```dart
+final platformPublicKey = await generatePlatformKey(
+  config: platformConfig,
+  checkExisting: true, // Reuse existing key if present
+  // auth is optional; a default is used if omitted
+);
+```
+
+**Step 3: Signer Instantiation**
+
+```dart
+// Standard instantiation
+final signer = PlatformKeySigner.withConfig(platformConfig, platformPublicKey);
+
+// To delete the key later (irreversible):
+await signer.deleteSigningKey();
+
+// Advanced: Inject a custom authenticator instance (useful for dependency injection or reuse in key generation)
+final auth = PlatformAuthenticator();
+final signer = PlatformKeySigner.withAuthenticator(
+  auth, 
+  platformConfig, 
+  platformPublicKey
+);
+```
+
+## Signer Interface
+
+All signers implement the `Signer` interface, providing a consistent way to interact with keys.
+
+### Properties
+
+```dart
+// The signer's public key (PlatformPublicKey, PassKeyPublicKey, or LocalPublicKey)
+final publicKey = signer.publicKey;
+
+// The Ethereum address derived from the public key
+final address = signer.getAddress();
+
+// The type of signer (localKey, platformKey, passKey)
+final type = signer.kind;
+
+// Capabilities
+final canSyncSign = signer.supportsSyncSigning; // True for LocalKeySigner
+final supportsUserPresence = signer.supportsUserPresence; // True for Passkey/Platform
+```
+
+### Signing Methods
+
+**1. Async Signing (Preferred)**
+Most compatible method, handles UI prompts for Passkeys/Platform keys.
+
+```dart
+final signature = await signer.signAsync(messageBytes);
+```
+
+**2. Synchronous Signing**
+Only available if `supportsSyncSigning` is true (e.g., `LocalKeySigner`).
+
+```dart
+if (signer.supportsSyncSigning) {
+    try {
+        final signature = signer.sign(messageBytes);
+    } catch (e) {
+        // Handle error: Signer does not support sync signing
+    }
+}
+```
+
+**3. Personal Sign (EIP-191)**
+Prefixes the message with `\x19Ethereum Signed Message:\n...` before signing.
+
+```dart
+final signature = await signer.personalSign(utf8.encode("Hello Ethereum"));
+```
+
+**4. Typed Data (EIP-712)**
+Signs structured data.
+
+```dart
+final signature = await signer.signTypedData(
+    typedParams, 
+    TypedDataVersion.V4
+);
+```
+
+## Signature Verification
+
+Use the `Verifier` class to validate signatures, including Smart Account (EIP-1271) signatures.
+
+```dart
+import 'package:web3_signers/web3_signers.dart';
+
+// 1. Verify a Contract Signature (EIP-1271/7739)
+final isValid = await Verifier.isValidContractSignature(
+  hash,
+  signatureBytes, // typed data bytes if using 7739 
+  contractAddress,
+  "https://rpc.example.com",
+);
+
+if (isValid == IsValidSignatureResponse.success) {
+    print("Contract signature is valid!");
+}
+
+// 2. Verify an EOA/EC Signature
+final isValidEC = Verifier.isValidECSignature(
+    originalPayload, 
+    signature, 
+    signerPublicKey
+);
+```
+
+## License
+
+This project is licensed under the [BSD 3-Clause License](LICENSE).

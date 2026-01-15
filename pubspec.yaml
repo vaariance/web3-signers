@@ -1,6 +1,6 @@
 name: web3_signers
-description: A versatile EIP-1271 signature verification package that supports a range of key types—including passkeys, private keys, and seed phrases — enabling secure and flexible on-chain signature verification for any Ethereum-based application.
-version: 0.2.1
+description: ERC-1271 and ERC-7739 compatible signature management for passkeys, local keys, and platform keys.
+version: 1.0.0
 homepage: https://variance.space
 repository: https://github.com/vaariance/web3-signers
 issue_tracker: https://github.com/vaariance/web3-signers/issues
@@ -12,21 +12,38 @@ environment:
 platforms:
   android:
   ios:
+  macos:
+  windows:
   web:
 
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: space.variance.web3_signers
+        pluginClass: PlatformAuthenticatorPlugin
+      ios:
+        pluginClass: PlatformAuthenticatorPlugin
+        sharedDarwinSource: true
+      macos:
+        pluginClass: PlatformAuthenticatorPlugin
+        sharedDarwinSource: true
+      windows: 
+        pluginClass: PlatformAuthenticatorPluginCApi
+
 dependencies:
-  passkeys: ^2.9.0
-  wallet: ^0.0.18
+  passkeys: ^2.17.4
   web3dart: ^3.0.1
-  asn1lib: ^1.6.4
-  eip712: ^1.0.0
-  cbor: ^6.3.7
-  crypto: ^3.0.6
+  eip712: ^1.0.1
+  pointycastle: ^4.0.0
+  flutter:
+    sdk: flutter
 
 dev_dependencies:
-  mockito: ^5.4.4
-  build_runner: ^2.4.15
-  flutter_lints: ^5.0.0
+  mocktail: ^1.0.4
+  build_runner: ^2.10.4
+  flutter_lints: ^6.0.0
+  pigeon: ^26.1.5
   flutter_test:
     sdk: flutter
 
@@ -34,3 +51,4 @@ topics:
   - ethereum
   - wallets
   - passkey
+  - secure-enclave

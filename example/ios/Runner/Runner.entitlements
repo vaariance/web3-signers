@@ -8,13 +8,13 @@
 	</array>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>webcredentials:variance.space?mode= developer</string>
+		<string>webcredentials:variance.space?mode=developer</string>
 	</array>
 	<key>com.apple.developer.authentication-services.autofill-credential-provider</key>
 	<true/>
 	<key>keychain-access-groups</key>
 	<array>
-		<string>$(AppIdentifierPrefix)com.example.web3Signers</string>
+		<string>$(AppIdentifierPrefix)space.variance.web3-signers</string>
 	</array>
 </dict>
 </plist>

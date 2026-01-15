@@ -5,25 +5,55 @@ on:
     tags:
       - "v[0-9]+.[0-9]+.[0-9]+*"
 
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish (e.g. v1.2.3)"
+        required: true
+        type: string
+
 jobs:
   publish:
     name: Publish package
     runs-on: ubuntu-latest
+    if: startsWith(github.ref_name || inputs.tag, 'v')
 
     permissions:
       id-token: write
+      contents: read
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Resolve tag
+        id: vars
+        run: echo "tag=${{ github.ref_name || inputs.tag }}" >> $GITHUB_OUTPUT
+
+      - name: Checkout the tagged release
+        uses: actions/checkout@v4
         with:
+          ref: ${{ steps.vars.outputs.tag }}
           fetch-depth: 0
 
-      - name: Setup Dart
-        uses: dart-lang/setup-dart@v1
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.38.3
 
       - name: Install dependencies
-        run: dart pub get
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test
+        continue-on-error: false
 
       - name: Publish to pub.dev
-        run: dart pub publish --force
+        run: |
+          output=$(flutter pub publish --force 2>&1) || {
+            if echo "$output" | grep -q "Version" && echo "$output" | grep -q "already" && echo "$output" | grep -q "exists"; then
+              echo "Version already published; skipping."
+              exit 0
+            else
+              echo "$output"
+              exit $?
+            fi
+          }
