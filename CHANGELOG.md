@@ -1,4 +1,4 @@
-## [0.3.0](https://github.com/vaariance/web3-signers/compare/v0.2.1...v0.3.0) (2026-01-15)
+## [1.0.0](https://github.com/vaariance/web3-signers/compare/v0.2.1...v1.0.0) (2026-01-15)
 
 ### Features
 
