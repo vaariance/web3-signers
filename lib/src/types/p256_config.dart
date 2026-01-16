@@ -1,8 +1,5 @@
 part of '../../web3_signers.dart';
 
-@Deprecated("use PassKeyConfig")
-typedef PassKeysOptions = PassKeyConfig;
-
 sealed class P256Config {}
 
 /// Represents platform-specific configuration for P256 keys.
@@ -37,12 +34,6 @@ interface class PlatformConfig implements P256Config {
 /// This class encapsulates various parameters required for PassKeys authentication
 /// and signature processes.
 interface class PassKeyConfig implements P256Config {
-  @Deprecated("use rpId")
-  final String namespace;
-
-  @Deprecated("use rpName")
-  final String name;
-
   /// The relying party id or domain name.
   /// e.g variance.space
   final String rpId;
@@ -109,8 +100,6 @@ interface class PassKeyConfig implements P256Config {
   const PassKeyConfig({
     required this.rpId,
     required this.rpName,
-    @Deprecated("use rpId") this.namespace = "",
-    @Deprecated("use rpName") this.name = "",
     this.userVerification = "required",
     this.requireResidentKey = true,
     this.residentKey = "preferred",

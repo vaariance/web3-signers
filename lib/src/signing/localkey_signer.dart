@@ -1,11 +1,5 @@
 part of '../../web3_signers.dart';
 
-@Deprecated("use LocalKeySigner")
-typedef EOAWallet = LocalKeySigner;
-
-@Deprecated("use LocalKeySigner")
-typedef PrivateKeySigner = LocalKeySigner;
-
 /// A signer that uses a local private key for signing.
 ///
 /// This signer operations are performed entirely in memory.
@@ -84,12 +78,6 @@ final class LocalKeySigner implements Signer {
 
   @override
   Future<Signature> signAsync(Bytes preImage) {
-    return Future.value(sign(preImage));
-  }
-
-  @override
-  @Deprecated('Use sign and/or signAsync instead')
-  Future<MsgSignature> signToEc(Bytes preImage) {
     return Future.value(sign(preImage));
   }
 

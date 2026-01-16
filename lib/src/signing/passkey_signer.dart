@@ -110,12 +110,6 @@ final class PassKeySigner implements Signer {
     return ecSig.normalize(curve.curveParams);
   }
 
-  @Deprecated("use signAsync")
-  @override
-  Future<Signature> signToEc(Bytes preImage) {
-    return signAsync(preImage);
-  }
-
   @override
   Future<Signature> signTypedData(
     TypedMessage jsonData,
@@ -124,17 +118,6 @@ final class PassKeySigner implements Signer {
     final hash = hashTypedData(typedData: jsonData, version: version);
     final signature = await signAsync(hash);
     return signature;
-  }
-
-  /// Signs a hash using the Passkey authenticator.
-  ///
-  /// This method is deprecated; use [signAsync] instead.
-  @Deprecated("use SignAsync")
-  Future<Signature> signToPasskeySignature(
-    Bytes hash, {
-    List<CredentialType>? knownCredentials,
-  }) {
-    return signAsync(hash);
   }
 
   Future<AuthenticateResponseType> _authenticate(String challenge) async {

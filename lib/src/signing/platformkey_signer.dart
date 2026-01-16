@@ -73,6 +73,7 @@ final class PlatformKeySigner implements Signer {
     return Signature(
       BigInt.parse('0x${'ec' * 32}'),
       BigInt.parse('0x${'d5a' * 21}f'),
+      curve: SigningCurve.r1,
     );
   }
 
@@ -100,11 +101,6 @@ final class PlatformKeySigner implements Signer {
     final curve = SigningCurve.r1;
     final ecSig = Signature(sig.r.value, sig.s.value, curve: curve);
     return ecSig.normalize(curve.curveParams);
-  }
-
-  @override
-  Future<MsgSignature> signToEc(Bytes preImage) async {
-    return signAsync(preImage);
   }
 
   @override
