@@ -32,6 +32,9 @@ jobs:
         with:
           ref: ${{ steps.vars.outputs.tag }}
           fetch-depth: 0
+      
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -48,7 +51,7 @@ jobs:
 
       - name: Publish to pub.dev
         run: |
-          output=$(flutter pub publish --force 2>&1) || {
+          output=$(dart pub publish --force 2>&1) || {
             if echo "$output" | grep -q "Version" && echo "$output" | grep -q "already" && echo "$output" | grep -q "exists"; then
               echo "Version already published; skipping."
               exit 0

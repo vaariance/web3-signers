@@ -1,17 +1,5 @@
 part of '../../web3_signers.dart';
 
-@Deprecated("use Signer")
-typedef MSI = Signer;
-
-@Deprecated("use Signer")
-typedef MultiSignerInterface = Signer;
-
-@Deprecated("use Signer")
-typedef EOAWalletInterface = Signer;
-
-@Deprecated("use Signer")
-typedef PasskeySignerInterface = Signer;
-
 /// Base interface for Smart Account signers.
 ///
 /// Implementations may wrap different backing keys or mechanisms (EOA,
@@ -73,12 +61,6 @@ abstract class Signer {
   /// This is the standard signing method for all signers, including those
   /// requiring user interaction (e.g., Passkeys).
   Future<Signature> signAsync(Bytes preImage);
-
-  /// Signs a digest using elliptic curve and returns `(r, s[, v])`.
-  ///
-  /// Deprecated: prefer unified `sign` or `signAsync` in implementing classes.
-  @Deprecated("Use sign or/and signAsync")
-  Future<MsgSignature> signToEc(Bytes preImage);
 
   /// Signs EIP‑712 typed data with the provided version.
   ///

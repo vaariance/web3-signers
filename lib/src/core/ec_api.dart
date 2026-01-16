@@ -1,11 +1,5 @@
 part of '../../web3_signers.dart';
 
-@Deprecated("use PassKeyPublicKey")
-typedef PassKeyPair = PassKeyPublicKey;
-
-@Deprecated("use Signature")
-typedef PassKeySignature = Signature;
-
 /// A sealed base class representing an Elliptic Curve public key.
 ///
 /// Contains the raw [x] and [y] coordinates as [Uint256].

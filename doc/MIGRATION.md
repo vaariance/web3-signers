@@ -155,7 +155,7 @@ final MsgSignature signature = await signer.personalSign(message);
 // according to your smart account implementation.
 ```
 
-#### `signToEc` (Deprecated) -> `sign` / `signAsync`
+#### `signToEc` (Replaced) -> `sign` / `signAsync`
 
 **Before (v0.x)**
 ```dart
@@ -230,7 +230,6 @@ abstract class MultiSignerInterface { ... }
 abstract class Signer { 
     // ...
     // personalSign now returns Future<Signature>
-    // signToEc is deprecated
     // boolean properties: `supportsUserPresence` `supportsUserVerification` `isRecoverable` `supportsSyncSigning` 
 }
 ```
