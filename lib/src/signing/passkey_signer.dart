@@ -129,7 +129,10 @@ final class PassKeySigner implements Signer {
       ),
     ];
     final entity = AuthenticateRequestType(
-      preferImmediatelyAvailableCredentials: false,
+      preferImmediatelyAvailableCredentials:
+          _config.preferImmediatelyAvailableCredentials,
+      prf: _config.prf,
+      canBeSecurityKey: _config.canBeSecurityKey,
       relyingPartyId: _config.rpId,
       challenge: challenge,
       timeout: _config.timeout,
