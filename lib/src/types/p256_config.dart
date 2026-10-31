@@ -71,6 +71,23 @@ interface class PassKeyConfig implements P256Config {
   /// Defaults to "optional".
   final String mediation;
 
+  /// Whether to prefer credentials immediately available on the device.
+  ///
+  /// Defaults to false.
+  final bool preferImmediatelyAvailableCredentials;
+
+  /// Base64URL-encoded salt for the WebAuthn PRF extension (`prf.eval.first`).
+  ///
+  /// Only the input salt is forwarded; signing does not expose the PRF output.
+  final String? prf;
+
+  /// Whether a hardware security key may be offered during authentication.
+  ///
+  /// Used on iOS and macOS. Defaults to true. Security keys are not offered
+  /// when [preferImmediatelyAvailableCredentials] is true or [mediation]
+  /// is "conditional".
+  final bool canBeSecurityKey;
+
   final int timeout;
 
   final List<PassKeyTransports> transports;
@@ -84,7 +101,11 @@ interface class PassKeyConfig implements P256Config {
   /// - [requireResidentKey]: Indicates whether a resident key is required. Defaults to true.
   /// - [residentKey]: The type of resident key. Defaults to "preferred".
   /// - [authenticatorAttachment]: The cross-platform or platform.
-  /// - [mediation]: The mediation type for the PassKeys operation. Defaults to "conditional".
+  /// - [mediation]: The mediation type for the PassKeys operation. Defaults to "optional".
+  ///
+  /// - [preferImmediatelyAvailableCredentials]: Whether to prefer immediately available credentials. Defaults to false.
+  /// - [prf]: The Base64URL-encoded PRF salt, if any.
+  /// - [canBeSecurityKey]: Whether security keys may be offered. Defaults to true.
   ///
   /// Example:
   /// ```dart
@@ -105,6 +126,9 @@ interface class PassKeyConfig implements P256Config {
     this.residentKey = "preferred",
     this.authenticatorAttachment = "cross-platform",
     this.mediation = "optional",
+    this.preferImmediatelyAvailableCredentials = false,
+    this.prf,
+    this.canBeSecurityKey = true,
     this.timeout = 60000,
     this.transports = const [
       PassKeyTransports.bluetooth,

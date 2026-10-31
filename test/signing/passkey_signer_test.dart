@@ -34,6 +34,73 @@ void main() {
       reset(mockAuthenticator);
     });
 
+    group('authentication options', () {
+      for (final useCustomOptions in [false, true]) {
+        test(
+          useCustomOptions ? 'forwards custom options' : 'preserves defaults',
+          () async {
+            final salt = b64e(List<int>.generate(32, (index) => index));
+            final authenticationConfig =
+                useCustomOptions
+                    ? PassKeyConfig(
+                      rpId: 'variance.space',
+                      rpName: 'Variance',
+                      preferImmediatelyAvailableCredentials: true,
+                      prf: salt,
+                      canBeSecurityKey: false,
+                    )
+                    : config;
+            final authenticationSigner = PassKeySigner.withAuthenticator(
+              mockAuthenticator,
+              authenticationConfig,
+              testP256PublicKey,
+            );
+            when(() => mockAuthenticator.authenticate(any())).thenAnswer(
+              (_) async => AuthenticateResponseType(
+                id: credentialId,
+                rawId: credentialId,
+                authenticatorData: validAuthenticatorData,
+                clientDataJSON: validClientDataJSON,
+                signature: validSignature,
+                userHandle: validUserHandle,
+              ),
+            );
+            final message = Bytes.fromList([1, 2, 3]);
+
+            await authenticationSigner.signAsync(message);
+
+            final request =
+                verify(
+                      () => mockAuthenticator.authenticate(captureAny()),
+                    ).captured.single
+                    as AuthenticateRequestType;
+            expect(
+              request.preferImmediatelyAvailableCredentials,
+              useCustomOptions,
+            );
+            expect(request.prf, useCustomOptions ? salt : isNull);
+            expect(request.canBeSecurityKey, !useCustomOptions);
+            expect(request.challenge, b64e(message));
+            expect(request.relyingPartyId, authenticationConfig.rpId);
+            expect(request.timeout, authenticationConfig.timeout);
+            expect(
+              request.userVerification,
+              authenticationConfig.userVerification,
+            );
+            expect(request.mediation, MediationType.Optional);
+            expect(request.allowCredentials, hasLength(1));
+            final credential = request.allowCredentials!.single;
+            expect(credential.id, b64e(testP256PublicKey.credentialId));
+            expect(credential.type, 'public-key');
+            expect(
+              credential.transports,
+              authenticationConfig.transports.map((t) => t.transport).toList(),
+            );
+          },
+        );
+      }
+    });
+
     test('signer kind is passKey', () {
       expect(signer.kind, equals(SignerType.passKey));
     });
